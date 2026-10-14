@@ -37,21 +37,22 @@ export default function Footer({ showTopCta = true }: { showTopCta?: boolean }) 
           <span>Client Portals</span>
           <Link href="/portal">Resident & Guest Portal</Link>
           <Link href="/portal">Property Owner Portal</Link>
-          <Link href="/portal">Operations & Staff Access</Link>
+          <Link href="/admin">Dedicated Admin Hub ↗</Link>
           <Link href="/property-management">Owner ROI Calculator</Link>
         </div>
 
         <div className="footer__column">
           <span>Contact & Visit</span>
           <p>3037 Hudson Street<br />Baltimore, MD 21224</p>
-          <a href="tel:+14102188462">+1 410 218 8462</a>
-          <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+          <a href="tel:+14102188462">+1 (410) 218-8462</a>
+          <a href="mailto:gonzalojouan@hotmail.com">gonzalojouan@hotmail.com</a>
         </div>
       </div>
 
       <div className="footer__bottom section-pad">
-        <span>© {currentYear} Chase Street Properties</span>
-        <span>Furnished Executive Stays · Baltimore, Maryland</span>
+        <span>© {currentYear} Chase Street Properties · Gonzalo Jouan</span>
+        <span>Furnished Executive & Medical Stays · Baltimore, MD</span>
+        <span>Platform engineered by Go Execution</span>
         <a href="#main">Back to top ↑</a>
       </div>
     </footer>

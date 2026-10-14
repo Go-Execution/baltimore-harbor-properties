@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { usePropertyStore } from '@/utils/usePropertyStore';
 
 export default function Header() {
   const [isSolid, setIsSolid] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { settings, isLoaded } = usePropertyStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,8 +37,40 @@ export default function Header() {
     return pathname.startsWith(href);
   };
 
+  const showBanner = isLoaded && settings.bannerEnabled === 'true' && settings.bannerText;
+
   return (
     <>
+      {/* Dynamic Announcement Banner (SOW §5 Website Settings) */}
+      {showBanner && (
+        <div
+          style={{
+            background: 'var(--copper)',
+            color: '#fff',
+            padding: '6px 16px',
+            textAlign: 'center',
+            fontSize: '0.72rem',
+            fontWeight: 500,
+            letterSpacing: '0.02em',
+            position: 'relative',
+            zIndex: 1001,
+          }}
+        >
+          <span>{settings.bannerText}</span>
+          <Link
+            href="/contact"
+            style={{
+              color: '#fff',
+              textDecoration: 'underline',
+              marginLeft: 8,
+              fontWeight: 700,
+            }}
+          >
+            Inquire Now →
+          </Link>
+        </div>
+      )}
+
       <header className={`site-header ${isSolid || pathname !== '/' ? 'is-solid' : ''}`} data-header>
         <Link href="/" className="brand" aria-label="Chase Street Properties, home">
           <span className="brand__monogram">CS</span>

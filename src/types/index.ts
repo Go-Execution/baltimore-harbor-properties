@@ -31,6 +31,8 @@ export interface Property {
   description: string;
   amenities: Amenity[];
   commute: Commute[];
+  status?: 'Active' | 'Inactive' | 'Maintenance';
+  featured?: boolean;
 }
 
 export interface MaintenanceTicket {
@@ -59,4 +61,9 @@ export interface Reservation {
   dates: string;
   status: 'In-Stay' | 'Arriving Today' | 'Confirmed' | 'Completed';
   total: string;
+  guestEmail?: string;
+  guestPhone?: string;
+  pinCode?: string;
+  nights?: number;
+  createdAt?: string;
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MaintenanceTicket, OwnerApproval, Reservation } from '@/types';
 import Footer from '@/components/Footer';
+import AdminPropertyManager from '@/components/AdminPropertyManager';
 
 const STORAGE_KEY = 'csp_nextjs_portal_state_v1';
 
@@ -685,9 +686,19 @@ export default function PortalPage() {
                     <h2>Chase Street Mission Control</h2>
                     <p>Centralized reservations, occupancy monitoring, and work order dispatch</p>
                   </div>
-                  <Link href="/properties" className="btn-outline">
-                    View Public Catalog ↗
-                  </Link>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <Link href="/admin" className="btn-outline" style={{ background: 'var(--copper)', color: '#fff', border: 'none' }}>
+                      Dedicated Admin Hub ↗
+                    </Link>
+                    <Link href="/properties" className="btn-outline">
+                      View Public Catalog ↗
+                    </Link>
+                  </div>
+                </div>
+
+                {/* SOW §2 & §5: Real-time Property Listing Management & Website Policies */}
+                <div style={{ marginBottom: 32 }}>
+                  <AdminPropertyManager />
                 </div>
 
                 {/* Admin KPIs */}

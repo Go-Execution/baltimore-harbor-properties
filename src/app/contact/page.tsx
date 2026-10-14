@@ -202,8 +202,9 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <span style={{ display: 'block', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--sand)' }}>Email Concierge</span>
-                    <a href="mailto:info@chasestreetproperties.net" style={{ color: '#fff', fontWeight: 500, fontSize: '0.95rem' }}>info@chasestreetproperties.net</a>
+                    <span style={{ display: 'block', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--sand)' }}>Email Concierge & Host</span>
+                    <a href="mailto:gonzalojouan@hotmail.com" style={{ color: '#fff', fontWeight: 500, fontSize: '0.95rem' }}>gonzalojouan@hotmail.com</a>
+                    <span style={{ display: 'block', fontSize: '0.72rem', color: '#c9cecb' }}>Alt: info@chasestreetproperties.net</span>
                   </div>
 
                   <div>
@@ -216,14 +217,19 @@ export default function ContactPage() {
               {/* Portal Quick Card */}
               <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 6, padding: 28 }}>
                 <h4 style={{ font: '400 1.4rem var(--serif)', margin: '0 0 8px', color: 'var(--ink)' }}>
-                  Already an in-stay resident or owner?
+                  Resident, Owner, or Host?
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft)', lineHeight: 1.6, margin: '0 0 18px' }}>
-                  Access your digital keycode, submit maintenance work orders, view owner financial statements, or chat with staff via the Portals Hub.
+                  Access your digital keycode, submit maintenance work orders, view owner financial statements, or manage listings via our portals.
                 </p>
-                <Link href="/portal" className="btn-book" style={{ width: '100%', textAlign: 'center', justifyContent: 'center', padding: 12 }}>
-                  Open Portals Hub ↗
-                </Link>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <Link href="/portal" className="btn-book" style={{ flex: 1, textAlign: 'center', justifyContent: 'center', padding: 12 }}>
+                    Portals Hub ↗
+                  </Link>
+                  <Link href="/admin" className="btn-outline" style={{ padding: '12px 16px', fontSize: '0.72rem', fontWeight: 600 }}>
+                    Admin Hub ↗
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

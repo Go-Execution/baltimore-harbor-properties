@@ -3,8 +3,9 @@
 import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { PROPERTIES } from '@/data/properties';
+import { PROPERTIES as SEED_PROPERTIES } from '@/data/properties';
 import { Property } from '@/types';
+import { usePropertyStore } from '@/utils/usePropertyStore';
 import PropertyCard from '@/components/PropertyCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import Footer from '@/components/Footer';
@@ -13,6 +14,9 @@ function PropertiesContent() {
   const searchParams = useSearchParams();
   const initialNeighborhood = searchParams.get('neighborhood') || 'all';
   const initialGuests = searchParams.get('guests');
+
+  const { activeProperties, isLoaded } = usePropertyStore();
+  const sourceProperties = isLoaded && activeProperties.length > 0 ? activeProperties : SEED_PROPERTIES;
 
   const [activeNeighborhood, setActiveNeighborhood] = useState(initialNeighborhood);
   const [activeSearch, setActiveSearch] = useState('');
@@ -30,7 +34,7 @@ function PropertiesContent() {
   ];
 
   const filteredProperties = useMemo(() => {
-    return PROPERTIES.filter((p) => {
+    return sourceProperties.filter((p) => {
       // Neighborhood
       if (activeNeighborhood !== 'all' && p.neighborhood.toLowerCase() !== activeNeighborhood.toLowerCase()) {
         return false;
@@ -65,7 +69,7 @@ function PropertiesContent() {
       if (activeSort === 'rating') return b.rating - a.rating;
       return a.id - b.id;
     });
-  }, [activeNeighborhood, activeSearch, activeBedrooms, activeSort, initialGuests]);
+  }, [sourceProperties, activeNeighborhood, activeSearch, activeBedrooms, activeSort, initialGuests]);
 
   const handleReset = () => {
     setActiveNeighborhood('all');
