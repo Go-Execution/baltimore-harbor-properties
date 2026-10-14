@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Turnkey executive rental property management in Baltimore. Maximize your property's net income by 35-55% with vetted medical & corporate guests, 24/7 maintenance, and transparent owner reporting.">
+  <meta name="theme-color" content="#17231f">
+  <title>Property Management & Owner Services — Chase Street Properties</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="portal-inner.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header class="site-header is-solid" data-header>
+    <a class="brand" href="index.html" aria-label="Chase Street Properties, home">
+      <span class="brand__monogram">CS</span>
+      <span class="brand__name">Chase Street <small>Properties</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="properties.html">The Stays</a>
+      <a href="about.html">Our Story</a>
+      <a href="property-management.html" class="is-active">For Owners</a>
+      <a href="baltimore-guide.html">Baltimore Guide</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="nav-portal-pill" href="portal.html">
+        <span class="pulse-dot"></span> Portals Hub
+      </a>
+      <a class="header-book" href="#calculator">Calculate ROI <span>↓</span></a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" aria-hidden="true">
+    <nav aria-label="Mobile navigation">
+      <a href="properties.html"><span>01</span> The Stays</a>
+      <a href="about.html"><span>02</span> Our Story</a>
+      <a href="property-management.html"><span>03</span> For Owners</a>
+      <a href="baltimore-guide.html"><span>04</span> Baltimore Guide</a>
+      <a href="contact.html"><span>05</span> Contact</a>
+      <a href="portal.html" style="color: var(--sand);"><span>06</span> Portals Hub ↗</a>
+    </nav>
+    <div class="mobile-menu__footer">
+      <a href="tel:+14102188462">+1 410 218 8462</a>
+      <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+    </div>
+  </div>
+
+  <main id="main">
+    <!-- Hero Banner -->
+    <section class="page-hero">
+      <div class="page-hero__inner">
+        <div class="breadcrumbs">
+          <a href="index.html">Home</a>
+          <span class="sep">/</span>
+          <span>Property Management</span>
+        </div>
+        <h1>Maximize your Baltimore property yield.<br><em>Without the landlord headaches.</em></h1>
+        <p class="lead">
+          We transform premium Baltimore rowhomes and condos into high-performing executive residences. Enjoy 35% to 55% higher net income than traditional long-term leases, with rigorously vetted healthcare & corporate guests and end-to-end stewardship.
+        </p>
+        <div class="page-hero__meta">
+          <div><span>Average Occupancy:</span> <strong>93.4% Year-Round</strong></div>
+          <div><span>Revenue Lift:</span> <strong>+42% vs. Long-Term</strong></div>
+          <div><span>Owner Portal:</span> <strong>Real-Time Financials</strong></div>
+          <div><span>Protection:</span> <strong>$1M Damage Guarantee</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive ROI & Yield Calculator -->
+    <section class="section-pad" id="calculator" style="padding-top: 80px; padding-bottom: 90px; max-width: 1380px; margin: 0 auto;">
+      <div class="panel-header" style="margin-bottom: 30px;">
+        <div>
+          <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--copper); font-weight: 600;">Interactive Estimator</span>
+          <h2 style="font: 400 clamp(2.4rem, 4vw, 3.8rem)/1.1 var(--serif); margin: 6px 0;">Baltimore Rental Yield Calculator</h2>
+          <p>See how your property performs under Chase Street Properties executive furnished management.</p>
+        </div>
+      </div>
+
+      <div class="calc-card">
+        <!-- Sliders -->
+        <div class="calc-sliders">
+          <div class="slider-group">
+            <label for="calc-neigh">
+              <span>Target Neighborhood</span>
+              <strong id="display-neigh" style="color: var(--copper);">Canton / Waterfront</strong>
+            </label>
+            <select id="calc-neigh" class="filter-select" style="width: 100%; border-radius: 4px; padding: 12px;">
+              <option value="canton" selected>Canton / O'Donnell Square</option>
+              <option value="fells">Historic Fells Point</option>
+              <option value="harbor">Harbor East / Inner Harbor</option>
+              <option value="vernon">Mount Vernon / Mid-Town</option>
+              <option value="federal">Federal Hill / Locust Point</option>
+            </select>
+          </div>
+
+          <div class="slider-group">
+            <label for="calc-beds">
+              <span>Property Bedrooms</span>
+              <strong id="display-beds" style="color: var(--copper);">2 Bedrooms</strong>
+            </label>
+            <select id="calc-beds" class="filter-select" style="width: 100%; border-radius: 4px; padding: 12px;">
+              <option value="1">1 Bedroom / Studio</option>
+              <option value="2" selected>2 Bedrooms (Most Popular)</option>
+              <option value="3">3+ Bedrooms Rowhome</option>
+            </select>
+          </div>
+
+          <div class="slider-group">
+            <label for="slider-rent">
+              <span>Current Traditional Monthly Rent</span>
+              <strong id="display-rent" style="color: var(--ink); font-size: 1.1rem; font-family: var(--serif);">$2,200 / mo</strong>
+            </label>
+            <input type="range" id="slider-rent" min="1400" max="4500" step="50" value="2200">
+            <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--ink-soft); margin-top: 4px;">
+              <span>$1,400/mo</span>
+              <span>$4,500/mo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Results Box -->
+        <div class="calc-results-box">
+          <div>
+            <div class="calc-yield-header">
+              <span>Projected Executive Monthly Gross</span>
+              <strong id="res-gross">$3,640</strong>
+            </div>
+
+            <div style="margin: 24px 0; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.18); border-bottom: 1px solid rgba(255,255,255,0.18); display: flex; flex-direction: column; gap: 10px; font-size: 0.82rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Estimated ADR (Avg Daily Rate):</span>
+                <strong id="res-adr">$145 / night</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Occupancy Rate (Annualized):</span>
+                <strong>92.5%</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Chase Street Full Management Fee:</span>
+                <span>20% (all-inclusive)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; color: var(--sand); font-weight: 600;">
+                <span>Projected Net Monthly to Owner:</span>
+                <strong id="res-net" style="font-size: 1.1rem;">$2,912 / mo</strong>
+              </div>
+            </div>
+
+            <div class="calc-diff-note">
+              🎉 <strong>+$712/month extra profit</strong> compared to traditional leasing (+<span id="res-annual">$8,544</span>/year net increase) while eliminating tenant eviction risk and property neglect.
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <a href="#valuation-form" class="btn-book" style="width: 100%; text-align: center; justify-content: center; padding: 14px; background: var(--copper); color: #fff;">
+              Request Official Property Audit ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Model Comparison: Long-Term vs. DIY vs. Chase Street -->
+    <section style="background: #e8e1d6; padding: 90px var(--gutter);">
+      <div style="max-width: 1380px; margin: 0 auto;">
+        <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--copper); font-weight: 600;">The Comparison</span>
+        <h2 style="font: 400 clamp(2.4rem, 4vw, 3.8rem)/1.1 var(--serif); margin: 8px 0 40px; color: var(--ink);">
+          Why Baltimore owners switch to Chase Street.
+        </h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+          <!-- Traditional -->
+          <div style="background: #fff; padding: 32px; border: 1px solid var(--line); border-radius: 4px;">
+            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; color: #888;">Model A</span>
+            <h3 style="font: 400 1.8rem var(--serif); margin: 8px 0 16px; color: var(--ink);">Traditional 12-Mo Lease</h3>
+            <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 0.82rem; line-height: 2; color: var(--ink-soft);">
+              <li>❌ Fixed below-market rent locked for 12 months</li>
+              <li>❌ Eviction vulnerability & tenant payment disputes</li>
+              <li>❌ Undetected wear & tear discovered only at lease end</li>
+              <li>❌ Zero personal use for the owner or family</li>
+              <li>❌ Agent placement fees (1 month rent every turnover)</li>
+            </ul>
+          </div>
+
+          <!-- DIY Airbnb -->
+          <div style="background: #fff; padding: 32px; border: 1px solid var(--line); border-radius: 4px;">
+            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; color: #888;">Model B</span>
+            <h3 style="font: 400 1.8rem var(--serif); margin: 8px 0 16px; color: var(--ink);">DIY Airbnb Management</h3>
+            <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 0.82rem; line-height: 2; color: var(--ink-soft);">
+              <li>❌ 24/7 guest messaging & midnight lockout calls</li>
+              <li>❌ Last-minute cleaner cancellations & laundry stress</li>
+              <li>❌ Unregulated party risk and neighbor friction</li>
+              <li>❌ Sub-optimal manual pricing losing thousands</li>
+              <li>❌ High platform service commissions</li>
+            </ul>
+          </div>
+
+          <!-- Chase Street Properties -->
+          <div style="background: var(--forest); color: #fff; padding: 32px; border-radius: 4px; box-shadow: 0 16px 40px rgba(23,35,31,0.18); position: relative; overflow: hidden;">
+            <span class="p-badge p-badge--copper" style="position: absolute; top: 20px; right: 20px;">Top Choice</span>
+            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--sand);">Model C</span>
+            <h3 style="font: 400 1.8rem var(--serif); margin: 8px 0 16px; color: #fff;">Chase Street Properties</h3>
+            <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 0.82rem; line-height: 2; color: #d6deda;">
+              <li>✓ <strong>+35% to +55% Net Revenue Premium</strong></li>
+              <li>✓ <strong>Vetted Healthcare, Corporate & Executive Guests</strong></li>
+              <li>✓ <strong>Weekly In-House Cleaning & Maintenance Checks</strong></li>
+              <li>✓ <strong>Dynamic Algorithmic Revenue Optimization</strong></li>
+              <li>✓ <strong>Transparent Owner Portal with Instant ACH Payouts</strong></li>
+              <li>✓ <strong>Personal Owner Stays with 1-Click Calendar Locks</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Free Property Valuation Request Form -->
+    <section class="section-pad" id="valuation-form" style="padding-top: 90px; padding-bottom: 110px; max-width: 900px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--copper); font-weight: 600;">Get Started</span>
+        <h2 style="font: 400 clamp(2.4rem, 4.5vw, 4rem)/1.1 var(--serif); margin: 8px 0 14px; color: var(--ink);">
+          Request Your Free Property Assessment
+        </h2>
+        <p style="font-size: 0.92rem; color: var(--ink-soft); max-width: 580px; margin: 0 auto;">
+          We will analyze your Baltimore address, evaluate local corporate & medical housing demand, and deliver an audited revenue projection within 24 hours.
+        </p>
+      </div>
+
+      <div class="portal-card" style="box-shadow: 0 16px 36px rgba(23,35,31,0.08);">
+        <form id="owner-lead-form" class="ticket-form" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="ticket-form-grid">
+            <div>
+              <label for="owner-name">Owner Full Name *</label>
+              <input type="text" id="owner-name" placeholder="e.g. Eleanor Vance" required>
+            </div>
+            <div>
+              <label for="owner-email">Email Address *</label>
+              <input type="email" id="owner-email" placeholder="eleanor@domain.com" required>
+            </div>
+          </div>
+
+          <div class="ticket-form-grid">
+            <div>
+              <label for="owner-phone">Phone Number *</label>
+              <input type="tel" id="owner-phone" placeholder="+1 (410) 555-0199" required>
+            </div>
+            <div>
+              <label for="owner-address">Property Street Address & Zip Code *</label>
+              <input type="text" id="owner-address" placeholder="e.g. 2900 O'Donnell St, 21224" required>
+            </div>
+          </div>
+
+          <div class="ticket-form-grid">
+            <div>
+              <label for="prop-type">Property Configuration</label>
+              <select id="prop-type">
+                <option value="rowhome">Historic Rowhome (Canton / Fells Point)</option>
+                <option value="condo">Waterfront Condo / Loft (Inner Harbor / Harbor East)</option>
+                <option value="apartment">Multi-Family / Multi-Unit Building</option>
+                <option value="townhouse">Modern Townhouse</option>
+              </select>
+            </div>
+            <div>
+              <label for="prop-furnished">Is the Property Currently Furnished?</label>
+              <select id="prop-furnished">
+                <option value="fully">Fully Furnished</option>
+                <option value="partial">Partially Furnished</option>
+                <option value="unfurnished">Unfurnished (Need Turnkey Staging)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-full">
+            <label for="owner-notes">Additional Details or Timelines</label>
+            <textarea id="owner-notes" placeholder="Tell us about the property, current lease status, parking spots, or any specific goals..."></textarea>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+            <span style="font-size: 0.68rem; color: var(--ink-soft);">🔒 No obligation · 100% confidential assessment</span>
+            <button type="submit" class="btn-book" style="padding: 14px 28px; font-size: 0.75rem;">
+              Submit for Revenue Assessment ↗
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__middle section-pad" style="border-top: none;">
+      <div class="footer__brand">
+        <span class="brand__monogram">CS</span>
+        <p>Chase Street<br>Properties</p>
+      </div>
+      <div class="footer__column">
+        <span>Residences</span>
+        <a href="properties.html">All Stays Catalog</a>
+        <a href="about.html">Our Story</a>
+        <a href="baltimore-guide.html">Baltimore Guide</a>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="footer__column">
+        <span>Owner Links</span>
+        <a href="portal.html">Owner Portal Login</a>
+        <a href="#calculator">Yield Calculator</a>
+        <a href="#valuation-form">Request Valuation</a>
+        <a href="portal.html">Financial Statements</a>
+      </div>
+      <div class="footer__column">
+        <span>Office Headquarters</span>
+        <p>3037 Hudson Street<br>Baltimore, MD 21224</p>
+        <a href="tel:+14102188462">+1 410 218 8462</a>
+        <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+      </div>
+    </div>
+    <div class="footer__bottom section-pad">
+      <span>© 2026 Chase Street Properties</span>
+      <span>Turnkey Executive Property Management · Baltimore, MD</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.querySelector('.menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    menuBtn?.addEventListener('click', () => {
+      const open = !mobileMenu.classList.contains('is-open');
+      mobileMenu.classList.toggle('is-open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    // ROI Calculator Interactive Logic
+    const sliderRent = document.getElementById('slider-rent');
+    const displayRent = document.getElementById('display-rent');
+    const selectBeds = document.getElementById('calc-beds');
+    const selectNeigh = document.getElementById('calc-neigh');
+    const displayBeds = document.getElementById('display-beds');
+    const displayNeigh = document.getElementById('display-neigh');
+
+    const resGross = document.getElementById('res-gross');
+    const resNet = document.getElementById('res-net');
+    const resAdr = document.getElementById('res-adr');
+    const resAnnual = document.getElementById('res-annual');
+
+    function updateCalculator() {
+      const rent = parseInt(sliderRent.value, 10);
+      const beds = parseInt(selectBeds.value, 10);
+      displayRent.textContent = `$${rent.toLocaleString()} / mo`;
+      displayBeds.textContent = `${beds} ${beds === 1 ? 'Bedroom' : 'Bedrooms'}`;
+      displayNeigh.textContent = selectNeigh.options[selectNeigh.selectedIndex].text;
+
+      // Dynamic model calculation based on Baltimore executive rates
+      let baseAdr = 115;
+      if (beds === 2) baseAdr = 155;
+      if (beds === 3) baseAdr = 210;
+
+      // Neighborhood premium
+      if (selectNeigh.value === 'harbor') baseAdr += 35;
+      if (selectNeigh.value === 'fells') baseAdr += 15;
+
+      const occupancy = 0.92;
+      const bookedNights = Math.round(30.5 * occupancy);
+      const gross = bookedNights * baseAdr;
+      const net = Math.round(gross * 0.80); // 20% mgmt fee
+      const annualExtra = Math.max(0, (net - rent) * 12);
+
+      resGross.textContent = `$${gross.toLocaleString()}`;
+      resNet.textContent = `$${net.toLocaleString()} / mo`;
+      resAdr.textContent = `$${baseAdr} / night`;
+      resAnnual.textContent = `$${annualExtra.toLocaleString()}`;
+    }
+
+    sliderRent.addEventListener('input', updateCalculator);
+    selectBeds.addEventListener('change', updateCalculator);
+    selectNeigh.addEventListener('change', updateCalculator);
+    updateCalculator();
+
+    // Lead Form submission
+    const leadForm = document.getElementById('owner-lead-form');
+    leadForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('owner-name').value;
+      const addr = document.getElementById('owner-address').value;
+      alert(`Thank you, ${name}! Your free revenue report for ${addr} has been dispatched to your email. One of our property managers will contact you today.`);
+      leadForm.reset();
+    });
+  </script>
+</body>
+</html>

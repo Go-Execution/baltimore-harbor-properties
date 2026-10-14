@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Furnished executive stay in Baltimore with gigabit WiFi, dedicated workspace, and frictionless smart entry. Explore photos, pricing, and book directly.">
+  <meta name="theme-color" content="#17231f">
+  <title>Residence Details — Chase Street Properties Baltimore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="portal-inner.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header class="site-header is-solid" data-header>
+    <a class="brand" href="index.html" aria-label="Chase Street Properties, home">
+      <span class="brand__monogram">CS</span>
+      <span class="brand__name">Chase Street <small>Properties</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="properties.html" class="is-active">The Stays</a>
+      <a href="about.html">Our Story</a>
+      <a href="property-management.html">For Owners</a>
+      <a href="baltimore-guide.html">Baltimore Guide</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="nav-portal-pill" href="portal.html">
+        <span class="pulse-dot"></span> Portals Hub
+      </a>
+      <a class="header-book" href="properties.html">All Stays <span>↗</span></a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" aria-hidden="true">
+    <nav aria-label="Mobile navigation">
+      <a href="properties.html"><span>01</span> The Stays</a>
+      <a href="about.html"><span>02</span> Our Story</a>
+      <a href="property-management.html"><span>03</span> For Owners</a>
+      <a href="baltimore-guide.html"><span>04</span> Baltimore Guide</a>
+      <a href="contact.html"><span>05</span> Contact</a>
+      <a href="portal.html" style="color: var(--sand);"><span>06</span> Portals Hub ↗</a>
+    </nav>
+    <div class="mobile-menu__footer">
+      <a href="tel:+14102188462">+1 410 218 8462</a>
+      <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+    </div>
+  </div>
+
+  <main id="main">
+    <!-- Property Top Headline & Breadcrumbs -->
+    <section class="detail-header">
+      <div class="detail-header__inner">
+        <div class="detail-header__main">
+          <div class="breadcrumbs">
+            <a href="index.html">Home</a>
+            <span class="sep">/</span>
+            <a href="properties.html">Residences</a>
+            <span class="sep">/</span>
+            <a id="prop-neighborhood-link" href="properties.html">Baltimore</a>
+          </div>
+          <div id="prop-badges" style="display: flex; gap: 8px; margin-bottom: 8px;"></div>
+          <h1 id="prop-title">Loading Residence...</h1>
+          <div class="detail-header__address" id="prop-address">Baltimore, MD</div>
+        </div>
+
+        <div class="detail-header__actions">
+          <a href="properties.html" class="btn-outline">← Back to All Stays</a>
+          <a href="portal.html" class="btn-outline">Resident Portal ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Photo Collage Gallery -->
+    <section class="detail-gallery">
+      <div class="gallery-grid" id="gallery-grid">
+        <!-- Rendered by property-detail.js -->
+      </div>
+    </section>
+
+    <!-- Two-Column Main Content & Sticky Calculator -->
+    <section class="detail-layout">
+      <!-- Left Column: Specs, Story, Amenities, Location -->
+      <div class="detail-content">
+        <!-- Quick Stats Strip -->
+        <div class="quick-stats-strip">
+          <div class="stat-item">
+            <span>Capacity</span>
+            <strong id="stat-guests">-- Guests</strong>
+          </div>
+          <div class="stat-item">
+            <span>Bedrooms</span>
+            <strong id="stat-beds">-- Beds</strong>
+          </div>
+          <div class="stat-item">
+            <span>Bathrooms</span>
+            <strong id="stat-baths">-- Baths</strong>
+          </div>
+          <div class="stat-item">
+            <span>Living Space</span>
+            <strong id="stat-sqft">-- sq ft</strong>
+          </div>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="detail-section">
+          <h2>About this residence</h2>
+          <p id="prop-description">Loading description...</p>
+          <p>
+            Whether you are on a temporary clinical rotation at Johns Hopkins, executing an executive relocation, or enjoying a restful waterfront retreat, this home is engineered for seamless daily living. Furnished with thoughtful restraint, premium memory foam mattresses, hotel-grade percale linens, and rapid gigabit fiber connectivity.
+          </p>
+        </div>
+
+        <!-- Amenities Section -->
+        <div class="detail-section">
+          <h2>Residence amenities</h2>
+          <p>Everything you need for extended comfort, from high-pressure rainfall showers to executive dual-monitor workstations.</p>
+          <div class="amenities-grid" id="amenities-container">
+            <!-- Rendered by property-detail.js -->
+          </div>
+        </div>
+
+        <!-- Commute Times & Proximity -->
+        <div class="detail-section">
+          <h2>Baltimore proximity & commute</h2>
+          <p>Carefully positioned in Baltimore's most walkable and secure neighborhoods with effortless access to medical complexes and transit.</p>
+          <div class="commute-card">
+            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--copper); font-weight: 600;">Door-to-Destination Times</span>
+            <div class="commute-list" id="commute-list">
+              <!-- Rendered by property-detail.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- House Rules & Stay Terms -->
+        <div class="detail-section">
+          <h2>Stay standards & house rules</h2>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; font-size: 0.85rem; color: var(--ink-soft);">
+            <div style="background: #fff; padding: 20px; border: 1px solid var(--line); border-radius: 4px;">
+              <strong style="color: var(--ink); display: block; margin-bottom: 6px;">🕒 Check-in & Check-out</strong>
+              Check-in anytime after 3:00 PM via keypad PIN. Check-out is 11:00 AM. Early check-in or late checkout upon request.
+            </div>
+            <div style="background: #fff; padding: 20px; border: 1px solid var(--line); border-radius: 4px;">
+              <strong style="color: var(--ink); display: block; margin-bottom: 6px;">🚭 Smoke-Free & Quiet Hours</strong>
+              100% non-smoking residence. Quiet neighborhood hours observed between 10:00 PM and 7:00 AM.
+            </div>
+            <div style="background: #fff; padding: 20px; border: 1px solid var(--line); border-radius: 4px;">
+              <strong style="color: var(--ink); display: block; margin-bottom: 6px;">🐾 Pet Policy</strong>
+              Well-behaved dogs permitted with prior management approval ($50 one-time pet fee).
+            </div>
+            <div style="background: #fff; padding: 20px; border: 1px solid var(--line); border-radius: 4px;">
+              <strong style="color: var(--ink); display: block; margin-bottom: 6px;">🛡️ Safe & Clean Guarantee</strong>
+              Professional turnover with EPA-registered hospital-grade sanitization between every guest.
+            </div>
+          </div>
+        </div>
+
+        <!-- Guest Reviews -->
+        <div class="detail-section" style="border-bottom: none;">
+          <h2>Verified guest reviews</h2>
+          <div style="display: flex; gap: 24px; align-items: baseline; margin-bottom: 24px;">
+            <div style="font: 400 3rem var(--serif); color: var(--ink);">4.98</div>
+            <div style="font-size: 0.82rem; color: var(--ink-soft);">
+              ★★★★★ · Based on 60+ verified executive & healthcare stays
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <strong style="font-size: 0.85rem; color: var(--ink);">Dr. Katherine R.</strong>
+                <span style="font-size: 0.7rem; color: var(--copper);">Johns Hopkins Fellow</span>
+              </div>
+              <p style="margin: 0; font-size: 0.82rem; line-height: 1.6; color: var(--ink-soft);">
+                "The quietest, most comfortable stay during my 3-month rotation. The fiber WiFi was flawless for telemedicine calls, and coming back to a warm, stylish home made long hospital shifts bearable."
+              </p>
+            </div>
+
+            <div style="background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <strong style="font-size: 0.85rem; color: var(--ink);">Michael S.</strong>
+                <span style="font-size: 0.7rem; color: var(--copper);">Executive Relocation</span>
+              </div>
+              <p style="margin: 0; font-size: 0.82rem; line-height: 1.6; color: var(--ink-soft);">
+                "Far superior to extended-stay hotels. Check-in was instant with the keypad code, the kitchen had high-end cookware, and the neighborhood feels safe and vibrant. Gonzalo's team is exceptional."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Sticky Booking Price Calculator -->
+      <aside>
+        <div class="booking-widget-sticky">
+          <div class="widget-price-bar">
+            <div class="widget-rate">
+              <strong id="calc-rate">$149</strong> / night
+            </div>
+            <div class="widget-rating">
+              <span>★ 4.98</span>
+              <span style="color: var(--ink-soft); font-weight: 300;">(Verified)</span>
+            </div>
+          </div>
+
+          <form class="widget-form" id="booking-calc-form" onsubmit="event.preventDefault();">
+            <div class="date-pickers-row">
+              <div class="date-box">
+                <label for="calc-checkin">Check-in</label>
+                <input type="date" id="calc-checkin" required>
+              </div>
+              <div class="date-box">
+                <label for="calc-checkout">Check-out</label>
+                <input type="date" id="calc-checkout" required>
+              </div>
+            </div>
+
+            <div class="guests-select-box">
+              <label for="calc-guests">Guests</label>
+              <select id="calc-guests" aria-label="Guests count">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="price-breakdown">
+              <div class="breakdown-row">
+                <span id="calc-nights-count">4 nights × $149</span>
+                <span id="calc-subtotal">$596.00</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Turnover & Cleaning Fee</span>
+                <span id="calc-cleaning">$110.00</span>
+              </div>
+              <div class="breakdown-row">
+                <span>MD Hospitality & Lodging Tax (9.5%)</span>
+                <span id="calc-taxes">$67.07</span>
+              </div>
+              <div class="breakdown-row total-row">
+                <span>Total Due</span>
+                <strong id="calc-total">$773.07</strong>
+              </div>
+            </div>
+
+            <button type="button" class="widget-cta-btn" id="reserve-btn">
+              Reserve This Residence <span>↗</span>
+            </button>
+            <div class="widget-guarantee">
+              🔒 Direct Booking Guaranteed · No Platform Markups
+            </div>
+          </form>
+
+          <!-- Direct Host Contact Box -->
+          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.78rem; color: var(--ink-soft);">
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--paper-deep); display: grid; place-items: center; font-size: 1rem;">
+                🛎️
+              </div>
+              <div>
+                <strong style="display: block; color: var(--ink);">Need 30+ Days or Direct Billing?</strong>
+                <span>We handle corporate invoicing & per-diem limits.</span>
+              </div>
+            </div>
+            <a href="contact.html" style="color: var(--copper); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;">
+              Inquire for corporate rates ↗
+            </a>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- Reservation Checkout Modal -->
+  <div class="modal-backdrop" id="reserve-modal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close-btn" data-close-modal aria-label="Close modal">✕</button>
+      <div id="reserve-modal-content">
+        <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--copper); font-weight: 600;">Instant Direct Booking</span>
+        <h2 style="font: 400 2rem var(--serif); margin: 6px 0 16px; color: var(--ink);">Confirm Your Stay</h2>
+        
+        <div id="reserve-summary">
+          <!-- Summary injected dynamically -->
+        </div>
+
+        <form id="confirm-booking-form" class="ticket-form" style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label for="guest-fullname">Primary Guest Full Name *</label>
+            <input type="text" id="guest-fullname" placeholder="e.g. Aaron Miller" required>
+          </div>
+          <div class="ticket-form-grid">
+            <div>
+              <label for="guest-email">Email Address *</label>
+              <input type="email" id="guest-email" placeholder="aaron@company.com" required>
+            </div>
+            <div>
+              <label for="guest-phone">Phone Number *</label>
+              <input type="tel" id="guest-phone" placeholder="+1 (410) 000-0000" required>
+            </div>
+          </div>
+          <div>
+            <label for="stay-purpose">Purpose of Stay</label>
+            <select id="stay-purpose">
+              <option value="medical">Healthcare / Medical Travel (Hopkins / Bayview / UMD)</option>
+              <option value="corporate">Executive Business / Corporate Project</option>
+              <option value="relocation">Relocation / Housing Transition</option>
+              <option value="leisure">Leisure / Weekend Waterfront Stay</option>
+            </select>
+          </div>
+          <div style="background: #faf8f5; border: 1px solid var(--line); border-radius: 4px; padding: 14px; font-size: 0.74rem; color: var(--ink-soft); line-height: 1.5;">
+            💳 <strong>Payment Method:</strong> Secure Direct Authorization (Credit Card / Corporate Billing). You will receive instant digital keycards & check-in codes upon booking confirmation.
+          </div>
+          <button type="submit" class="btn-book" style="padding: 16px; font-size: 0.75rem; text-align: center; justify-content: center; margin-top: 8px;">
+            Complete Reservation <span>↗</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox Photos Modal -->
+  <div class="modal-backdrop" id="photos-modal" aria-hidden="true">
+    <div class="modal-window" style="max-width: 860px;">
+      <button type="button" class="modal-close-btn" data-close-modal aria-label="Close modal">✕</button>
+      <div id="photos-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__middle section-pad" style="border-top: none;">
+      <div class="footer__brand">
+        <span class="brand__monogram">CS</span>
+        <p>Chase Street<br>Properties</p>
+      </div>
+      <div class="footer__column">
+        <span>Residences</span>
+        <a href="properties.html?neighborhood=Canton">Canton Residences</a>
+        <a href="properties.html?neighborhood=Fells%20Point">Fells Point Stays</a>
+        <a href="properties.html?neighborhood=Inner%20Harbor">Inner Harbor Homes</a>
+        <a href="properties.html?neighborhood=Mount%20Vernon">Mount Vernon Suites</a>
+      </div>
+      <div class="footer__column">
+        <span>Client Portals</span>
+        <a href="portal.html">Resident & Guest Portal</a>
+        <a href="portal.html">Property Owner Portal</a>
+        <a href="portal.html">Operations & Staff Access</a>
+        <a href="property-management.html">Owner ROI Calculator</a>
+      </div>
+      <div class="footer__column">
+        <span>Contact & Visit</span>
+        <p>3037 Hudson Street<br>Baltimore, MD 21224</p>
+        <a href="tel:+14102188462">+1 410 218 8462</a>
+        <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+      </div>
+    </div>
+    <div class="footer__bottom section-pad">
+      <span>© 2026 Chase Street Properties</span>
+      <span>Furnished Executive Stays · Baltimore, Maryland</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="properties-data.js"></script>
+  <script src="property-detail.js"></script>
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.querySelector('.menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    menuBtn?.addEventListener('click', () => {
+      const open = !mobileMenu.classList.contains('is-open');
+      mobileMenu.classList.toggle('is-open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+  </script>
+</body>
+</html>

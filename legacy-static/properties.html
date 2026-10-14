@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore Chase Street Properties' collection of furnished executive residences in Baltimore's most walkable waterfront neighborhoods. Canton, Fells Point, Inner Harbor, and Mount Vernon.">
+  <meta name="theme-color" content="#17231f">
+  <title>The Residences & Stays — Chase Street Properties Baltimore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="portal-inner.css">
+  
+  <!-- Structured Data: ItemList of LodgingBusiness -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Chase Street Properties Baltimore Residences",
+    "description": "Furnished executive residences and mid-term apartments in Baltimore, MD",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Quiet Retreat at Canton Square",
+        "url": "https://www.chasestreetproperties.net/property-detail.html?pid=1"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "The Townhouse at Hudson Street",
+        "url": "https://www.chasestreetproperties.net/property-detail.html?pid=2"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Harbor House at Pratt",
+        "url": "https://www.chasestreetproperties.net/property-detail.html?pid=3"
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header class="site-header is-solid" data-header>
+    <a class="brand" href="index.html" aria-label="Chase Street Properties, home">
+      <span class="brand__monogram">CS</span>
+      <span class="brand__name">Chase Street <small>Properties</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="properties.html" class="is-active">The Stays</a>
+      <a href="about.html">Our Story</a>
+      <a href="property-management.html">For Owners</a>
+      <a href="baltimore-guide.html">Baltimore Guide</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="nav-portal-pill" href="portal.html" title="Access Resident & Owner Portals">
+        <span class="pulse-dot"></span> Portals Hub
+      </a>
+      <a class="header-book" href="properties.html">Book a stay <span>↗</span></a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" aria-hidden="true">
+    <nav aria-label="Mobile navigation">
+      <a href="properties.html"><span>01</span> The Stays</a>
+      <a href="about.html"><span>02</span> Our Story</a>
+      <a href="property-management.html"><span>03</span> For Owners</a>
+      <a href="baltimore-guide.html"><span>04</span> Baltimore Guide</a>
+      <a href="contact.html"><span>05</span> Contact</a>
+      <a href="portal.html" style="color: var(--sand);"><span>06</span> Portals Hub ↗</a>
+    </nav>
+    <div class="mobile-menu__footer">
+      <a href="tel:+14102188462">+1 410 218 8462</a>
+      <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+    </div>
+  </div>
+
+  <main id="main">
+    <!-- Inner Hero -->
+    <section class="page-hero">
+      <div class="page-hero__inner">
+        <div class="breadcrumbs">
+          <a href="index.html">Home</a>
+          <span class="sep">/</span>
+          <span>The Residences</span>
+        </div>
+        <h1>Considered homes.<br><em>Curated for your stay.</em></h1>
+        <p class="lead">
+          Explore our handpicked collection of fully furnished Baltimore residences. Move-in ready with gigabit fiber WiFi, dedicated workspaces, and frictionless self check-in across Canton, Fells Point, Harbor East, and Inner Harbor.
+        </p>
+        <div class="page-hero__meta">
+          <div><span>Portfolio:</span> <strong>40+ Furnished Units</strong></div>
+          <div><span>Minimum Stay:</span> <strong>3 Nights</strong></div>
+          <div><span>Locations:</span> <strong>Waterfront & Medical Hubs</strong></div>
+          <div><span>Support:</span> <strong>24/7 Local Concierge</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Toolbar -->
+    <section class="filter-section" aria-label="Filter residences">
+      <div class="filter-bar">
+        <div class="filter-bar__group" id="neighborhood-filters">
+          <button type="button" class="filter-chip is-active" data-neighborhood="all">All Neighborhoods</button>
+          <button type="button" class="filter-chip" data-neighborhood="Canton">Canton</button>
+          <button type="button" class="filter-chip" data-neighborhood="Fells Point">Fells Point</button>
+          <button type="button" class="filter-chip" data-neighborhood="Inner Harbor">Inner Harbor</button>
+          <button type="button" class="filter-chip" data-neighborhood="Harbor East">Harbor East</button>
+          <button type="button" class="filter-chip" data-neighborhood="Mount Vernon">Mount Vernon</button>
+        </div>
+
+        <div class="filter-bar__group">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="search-input" placeholder="Search by name, street, or amenity..." aria-label="Search stays">
+          </div>
+
+          <select class="filter-select" id="bedroom-select" aria-label="Filter by bedrooms">
+            <option value="all">Any Bedrooms</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3+ Bedrooms</option>
+          </select>
+
+          <select class="filter-select" id="sort-select" aria-label="Sort stays">
+            <option value="featured">Featured Stays</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Highest Rated</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="properties-container">
+      <div class="results-header">
+        <div class="results-count" id="results-count">
+          Showing <strong>6</strong> residences in Baltimore
+        </div>
+        <div style="font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.1em;">
+          Direct Booking Guaranteed Best Rate
+        </div>
+      </div>
+
+      <div class="properties-grid" id="properties-grid">
+        <!-- Rendered by properties.js from CSP_PROPERTIES -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Quick View Modal -->
+  <div class="modal-backdrop" id="quick-modal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close-btn" data-close-modal aria-label="Close modal">✕</button>
+      <div id="quick-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__middle section-pad" style="border-top: none;">
+      <div class="footer__brand">
+        <span class="brand__monogram">CS</span>
+        <p>Chase Street<br>Properties</p>
+      </div>
+      <div class="footer__column">
+        <span>Residences</span>
+        <a href="properties.html?neighborhood=Canton">Canton Residences</a>
+        <a href="properties.html?neighborhood=Fells%20Point">Fells Point Stays</a>
+        <a href="properties.html?neighborhood=Inner%20Harbor">Inner Harbor Homes</a>
+        <a href="properties.html?neighborhood=Mount%20Vernon">Mount Vernon Suites</a>
+      </div>
+      <div class="footer__column">
+        <span>Client Portals</span>
+        <a href="portal.html">Resident & Guest Portal</a>
+        <a href="portal.html">Property Owner Portal</a>
+        <a href="portal.html">Operations & Staff Access</a>
+        <a href="property-management.html">Owner ROI Calculator</a>
+      </div>
+      <div class="footer__column">
+        <span>Contact & Visit</span>
+        <p>3037 Hudson Street<br>Baltimore, MD 21224</p>
+        <a href="tel:+14102188462">+1 410 218 8462</a>
+        <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+      </div>
+    </div>
+    <div class="footer__bottom section-pad">
+      <span>© <span id="year">2026</span> Chase Street Properties</span>
+      <span>Furnished Executive Stays · Baltimore, Maryland</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="properties-data.js"></script>
+  <script src="properties.js"></script>
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.querySelector('.menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    menuBtn?.addEventListener('click', () => {
+      const open = !mobileMenu.classList.contains('is-open');
+      mobileMenu.classList.toggle('is-open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+  </script>
+</body>
+</html>

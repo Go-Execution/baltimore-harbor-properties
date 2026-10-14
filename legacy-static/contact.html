@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Contact Chase Street Properties in Baltimore. Inquire about corporate housing, medical fellow rotations, property management, or guest support.">
+  <meta name="theme-color" content="#17231f">
+  <title>Contact & Corporate Stays — Chase Street Properties</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="portal-inner.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header class="site-header is-solid" data-header>
+    <a class="brand" href="index.html" aria-label="Chase Street Properties, home">
+      <span class="brand__monogram">CS</span>
+      <span class="brand__name">Chase Street <small>Properties</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="properties.html">The Stays</a>
+      <a href="about.html">Our Story</a>
+      <a href="property-management.html">For Owners</a>
+      <a href="baltimore-guide.html">Baltimore Guide</a>
+      <a href="contact.html" class="is-active">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="nav-portal-pill" href="portal.html">
+        <span class="pulse-dot"></span> Portals Hub
+      </a>
+      <a class="header-book" href="properties.html">Find a stay <span>↗</span></a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" aria-hidden="true">
+    <nav aria-label="Mobile navigation">
+      <a href="properties.html"><span>01</span> The Stays</a>
+      <a href="about.html"><span>02</span> Our Story</a>
+      <a href="property-management.html"><span>03</span> For Owners</a>
+      <a href="baltimore-guide.html"><span>04</span> Baltimore Guide</a>
+      <a href="contact.html"><span>05</span> Contact</a>
+      <a href="portal.html" style="color: var(--sand);"><span>06</span> Portals Hub ↗</a>
+    </nav>
+    <div class="mobile-menu__footer">
+      <a href="tel:+14102188462">+1 410 218 8462</a>
+      <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+    </div>
+  </div>
+
+  <main id="main">
+    <!-- Hero Banner -->
+    <section class="page-hero">
+      <div class="page-hero__inner">
+        <div class="breadcrumbs">
+          <a href="index.html">Home</a>
+          <span class="sep">/</span>
+          <span>Contact Us</span>
+        </div>
+        <h1>Make Baltimore Feel Like Home.<br><em>Start a Conversation.</em></h1>
+        <p class="lead">
+          Tell us what brings you to Baltimore. Whether you require a month-long corporate relocation, medical fellowship housing, or full-service property management for your home, our team responds promptly.
+        </p>
+        <div class="page-hero__meta">
+          <div><span>Phone / Text:</span> <strong>+1 (410) 218-8462</strong></div>
+          <div><span>Direct Email:</span> <strong>info@chasestreetproperties.net</strong></div>
+          <div><span>Headquarters:</span> <strong>3037 Hudson St, Baltimore</strong></div>
+          <div><span>Response Time:</span> <strong>Under 1 Hour</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two-Column Contact Section -->
+    <section class="section-pad" style="padding-top: 80px; padding-bottom: 90px; max-width: 1380px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 70px; align-items: start;">
+        <!-- Contact Form -->
+        <div class="portal-card" style="box-shadow: 0 16px 36px rgba(23,35,31,0.08);">
+          <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--copper); font-weight: 600;">Direct Inquiry</span>
+          <h2 style="font: 400 2.2rem var(--serif); margin: 6px 0 20px; color: var(--ink);">How Can We Help You?</h2>
+
+          <form id="contact-form" class="ticket-form" style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="ticket-form-grid">
+              <div>
+                <label for="c-name">Full Name *</label>
+                <input type="text" id="c-name" placeholder="e.g. Dr. Julian Hayes" required>
+              </div>
+              <div>
+                <label for="c-email">Email Address *</label>
+                <input type="email" id="c-email" placeholder="julian@hopkinsmedicine.org" required>
+              </div>
+            </div>
+
+            <div class="ticket-form-grid">
+              <div>
+                <label for="c-phone">Phone Number *</label>
+                <input type="tel" id="c-phone" placeholder="+1 (410) 000-0000" required>
+              </div>
+              <div>
+                <label for="c-type">Nature of Inquiry *</label>
+                <select id="c-type">
+                  <option value="corporate">Executive Corporate Relocation (30+ Days)</option>
+                  <option value="medical">Healthcare / Fellow Rotation (Hopkins / UMMC)</option>
+                  <option value="booking">General Stay Reservation Assistance</option>
+                  <option value="owner">Property Owner Management Inquiry</option>
+                  <option value="support">Active Guest Support Request</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="ticket-form-grid">
+              <div>
+                <label for="c-dates">Target Move-in Date / Stay Window</label>
+                <input type="text" id="c-dates" placeholder="e.g. Nov 1, 2026 – Dec 15, 2026">
+              </div>
+              <div>
+                <label for="c-guests">Number of Guests</label>
+                <input type="number" id="c-guests" min="1" max="10" placeholder="e.g. 2">
+              </div>
+            </div>
+
+            <div class="form-group-full">
+              <label for="c-message">Tell us about your requirements *</label>
+              <textarea id="c-message" placeholder="Please mention preferred neighborhoods (Canton, Fells Point, Inner Harbor), dedicated workspace needs, parking requirements, or pet accommodation..." required></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+              <span style="font-size: 0.68rem; color: var(--ink-soft);">🔒 We never share your contact information.</span>
+              <button type="submit" class="btn-book" style="padding: 14px 28px; font-size: 0.75rem;">
+                Send Message to Concierge ↗
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right Side: Contact Details & Office Card -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <div style="background: var(--forest); color: #fff; padding: 36px; border-radius: 6px; box-shadow: 0 16px 36px rgba(23,35,31,0.12);">
+            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--sand); font-weight: 600;">Chase Street Headquarters</span>
+            <h3 style="font: 400 2rem var(--serif); margin: 8px 0 16px; color: #fff;">Baltimore Office</h3>
+            
+            <p style="font-size: 0.88rem; line-height: 1.7; color: #c9cecb; margin-bottom: 24px;">
+              Located on historic Hudson Street in the heart of Canton, just blocks from O'Donnell Square and Canton Waterfront Park.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.82rem; border-top: 1px solid rgba(255,255,255,0.16); padding-top: 20px;">
+              <div>
+                <span style="display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--sand);">Visit In Person</span>
+                <strong style="color: #fff; font-size: 0.95rem;">3037 Hudson Street, Baltimore, MD 21224</strong>
+              </div>
+
+              <div>
+                <span style="display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--sand);">Direct Phone & SMS</span>
+                <a href="tel:+14102188462" style="color: #fff; font-weight: 500; font-size: 0.95rem;">+1 (410) 218-8462</a>
+              </div>
+
+              <div>
+                <span style="display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--sand);">Email Concierge</span>
+                <a href="mailto:info@chasestreetproperties.net" style="color: #fff; font-weight: 500; font-size: 0.95rem;">info@chasestreetproperties.net</a>
+              </div>
+
+              <div>
+                <span style="display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--sand);">Concierge Hours</span>
+                <span style="color: #c9cecb;">Daily 8:00 AM – 8:00 PM EST (24/7 on-call emergency support)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Portal Access Card -->
+          <div style="background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 28px;">
+            <h4 style="font: 400 1.4rem var(--serif); margin: 0 0 8px; color: var(--ink);">Already an in-stay resident or owner?</h4>
+            <p style="font-size: 0.82rem; color: var(--ink-soft); line-height: 1.6; margin: 0 0 18px;">
+              Access your digital keycode, submit maintenance work orders, view owner financial statements, or chat with staff via the Portals Hub.
+            </p>
+            <a href="portal.html" class="btn-book" style="width: 100%; text-align: center; justify-content: center; padding: 12px;">
+              Open Portals Hub ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comprehensive FAQ Accordion -->
+    <section style="background: #fdfbf7; padding: 90px var(--gutter); border-top: 1px solid var(--line);">
+      <div style="max-width: 900px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 50px;">
+          <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--copper); font-weight: 600;">Answers & Clarifications</span>
+          <h2 style="font: 400 clamp(2.4rem, 4vw, 3.8rem)/1.1 var(--serif); margin: 8px 0; color: var(--ink);">Frequently Asked Questions</h2>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- FAQ 1 -->
+          <details style="background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px 24px; cursor: pointer;">
+            <summary style="font: 500 1.05rem var(--serif); color: var(--ink); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              <span>What is the minimum stay requirement at Chase Street Properties?</span>
+              <span style="color: var(--copper); font-size: 1.3rem;">+</span>
+            </summary>
+            <p style="margin: 14px 0 0; font-size: 0.86rem; line-height: 1.7; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 12px;">
+              Our minimum stay is 3 nights for short-term visits, though the majority of our guests stay between 2 weeks to 6 months for medical rotations, corporate assignments, and home transitions. Generous weekly and monthly tiered discounts apply automatically.
+            </p>
+          </details>
+
+          <!-- FAQ 2 -->
+          <details style="background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px 24px; cursor: pointer;">
+            <summary style="font: 500 1.05rem var(--serif); color: var(--ink); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              <span>How does check-in work? Can I arrive late at night?</span>
+              <span style="color: var(--copper); font-size: 1.3rem;">+</span>
+            </summary>
+            <p style="margin: 14px 0 0; font-size: 0.86rem; line-height: 1.7; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 12px;">
+              All residences feature commercial-grade keyless smart locks. Prior to arrival, you receive a unique, encrypted 4-digit PIN code via email and SMS (also accessible anytime on your Resident Portal). Check in 24/7 at your convenience after 3:00 PM without waiting for anyone.
+            </p>
+          </details>
+
+          <!-- FAQ 3 -->
+          <details style="background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px 24px; cursor: pointer;">
+            <summary style="font: 500 1.05rem var(--serif); color: var(--ink); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              <span>Are utilities, high-speed WiFi, and housekeeping included?</span>
+              <span style="color: var(--copper); font-size: 1.3rem;">+</span>
+            </summary>
+            <p style="margin: 14px 0 0; font-size: 0.86rem; line-height: 1.7; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 12px;">
+              Yes! Everything is 100% turnkey. Central heating/cooling, electricity, gas, water, and dedicated gigabit fiber internet (600–1000 Mbps) are covered in your rate. Mid-stay deep cleaning is easily scheduled on-demand via the Resident Portal for $75.
+            </p>
+          </details>
+
+          <!-- FAQ 4 -->
+          <details style="background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px 24px; cursor: pointer;">
+            <summary style="font: 500 1.05rem var(--serif); color: var(--ink); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              <span>Can you bill directly to my hospital, university, or corporate employer?</span>
+              <span style="color: var(--copper); font-size: 1.3rem;">+</span>
+            </summary>
+            <p style="margin: 14px 0 0; font-size: 0.86rem; line-height: 1.7; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 12px;">
+              Absolutely. We routinely manage direct billing, purchase orders, and corporate master agreements for Johns Hopkins Health System, University of Maryland, military contractors, and national healthcare staffing agencies. Contact our desk for automated ACH/invoice billing.
+            </p>
+          </details>
+
+          <!-- FAQ 5 -->
+          <details style="background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px 24px; cursor: pointer;">
+            <summary style="font: 500 1.05rem var(--serif); color: var(--ink); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              <span>What is the pet policy?</span>
+              <span style="color: var(--copper); font-size: 1.3rem;">+</span>
+            </summary>
+            <p style="margin: 14px 0 0; font-size: 0.86rem; line-height: 1.7; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 12px;">
+              Many of our Canton and Fells Point properties feature private fenced courtyards and are pet-friendly for well-trained dogs with prior approval ($50 one-time pet fee). Canton Waterfront Park and Patterson Park are wonderful destinations for dogs!
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__middle section-pad" style="border-top: none;">
+      <div class="footer__brand">
+        <span class="brand__monogram">CS</span>
+        <p>Chase Street<br>Properties</p>
+      </div>
+      <div class="footer__column">
+        <span>Residences</span>
+        <a href="properties.html?neighborhood=Canton">Canton Residences</a>
+        <a href="properties.html?neighborhood=Fells%20Point">Fells Point Stays</a>
+        <a href="properties.html?neighborhood=Inner%20Harbor">Inner Harbor Homes</a>
+        <a href="properties.html?neighborhood=Mount%20Vernon">Mount Vernon Suites</a>
+      </div>
+      <div class="footer__column">
+        <span>Portals & Services</span>
+        <a href="portal.html">Resident & Guest Portal</a>
+        <a href="portal.html">Property Owner Portal</a>
+        <a href="property-management.html">Owner Turnkey Management</a>
+        <a href="contact.html">Corporate Housing Desk</a>
+      </div>
+      <div class="footer__column">
+        <span>Contact & Visit</span>
+        <p>3037 Hudson Street<br>Baltimore, MD 21224</p>
+        <a href="tel:+14102188462">+1 410 218 8462</a>
+        <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+      </div>
+    </div>
+    <div class="footer__bottom section-pad">
+      <span>© 2026 Chase Street Properties</span>
+      <span>Furnished Executive Stays · Baltimore, MD</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.querySelector('.menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    menuBtn?.addEventListener('click', () => {
+      const open = !mobileMenu.classList.contains('is-open');
+      mobileMenu.classList.toggle('is-open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    // Contact Form handling
+    const contactForm = document.getElementById('contact-form');
+    contactForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('c-name').value;
+      alert(`Thank you, ${name}! Your inquiry has been delivered directly to the Chase Street concierge team. We will get back to you shortly.`);
+      contactForm.reset();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chase Street Properties Unified Portals Hub. Seamless self check-in, keyless smart locks, maintenance requests, and owner revenue reporting.">
+  <meta name="theme-color" content="#17231f">
+  <title>Portals Hub — Chase Street Properties Baltimore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="portal-inner.css">
+</head>
+<body class="portal-wrapper">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Demo Switcher Top Bar -->
+  <aside class="demo-bar" aria-label="Demo Role Switcher">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="demo-bar__badge">Interactive Portals</span>
+      <span>Select a live test persona to explore all portal capabilities:</span>
+    </div>
+    <div class="demo-bar__buttons">
+      <button type="button" class="demo-btn is-active" data-role="guest">👤 Guest: Aaron Miller</button>
+      <button type="button" class="demo-btn" data-role="owner">🏢 Owner: Eleanor Vance</button>
+      <button type="button" class="demo-btn" data-role="admin">⚙️ Team: Operations Admin</button>
+    </div>
+  </aside>
+
+  <!-- Site Header -->
+  <header class="site-header is-solid" data-header style="position: relative;">
+    <a class="brand" href="index.html" aria-label="Chase Street Properties, home">
+      <span class="brand__monogram">CS</span>
+      <span class="brand__name">Chase Street <small>Properties</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="properties.html">The Stays</a>
+      <a href="about.html">Our Story</a>
+      <a href="property-management.html">For Owners</a>
+      <a href="baltimore-guide.html">Baltimore Guide</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="nav-portal-pill" href="portal.html" style="background: var(--copper); border-color: var(--copper); color: #fff;">
+        <span class="pulse-dot"></span> Portals Active
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" aria-hidden="true">
+    <nav aria-label="Mobile navigation">
+      <a href="properties.html"><span>01</span> The Stays</a>
+      <a href="about.html"><span>02</span> Our Story</a>
+      <a href="property-management.html"><span>03</span> For Owners</a>
+      <a href="baltimore-guide.html"><span>04</span> Baltimore Guide</a>
+      <a href="contact.html"><span>05</span> Contact</a>
+      <a href="portal.html" style="color: var(--sand);"><span>06</span> Portals Hub ↗</a>
+    </nav>
+  </div>
+
+  <!-- Role Switcher Tabs Bar -->
+  <nav class="portal-tabs-nav" aria-label="Portal Navigation Tabs">
+    <div class="portal-tabs-nav__inner">
+      <button type="button" class="portal-tab-btn is-active" data-role="guest">
+        <span>🔑</span> Resident & Guest Portal
+      </button>
+      <button type="button" class="portal-tab-btn" data-role="owner">
+        <span>📊</span> Property Owner & Investor Portal
+      </button>
+      <button type="button" class="portal-tab-btn" data-role="admin">
+        <span>⚡</span> Operations & Management Portal
+      </button>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="portal-layout">
+      <!-- Left Sidebar -->
+      <aside class="portal-sidebar">
+        <!-- User Profile Card -->
+        <div class="user-profile-card">
+          <div class="user-avatar" id="sidebar-avatar">CS</div>
+          <div class="user-info">
+            <h3 id="sidebar-name">Aaron Miller</h3>
+            <span id="sidebar-badge">In-Stay Resident</span>
+          </div>
+        </div>
+
+        <!-- Portal Nav Links -->
+        <nav class="portal-nav-menu" aria-label="Portal section navigation">
+          <a class="portal-nav-link is-active" href="#overview">
+            <span>🏠 Stay Overview</span>
+          </a>
+          <a class="portal-nav-link" href="#access">
+            <span>🔐 Smart Lock & Access</span>
+          </a>
+          <a class="portal-nav-link" href="#wifi">
+            <span>📶 Gigabit Fiber WiFi</span>
+          </a>
+          <a class="portal-nav-link" href="#maintenance">
+            <span>🛠️ Maintenance Concierge</span>
+            <span class="portal-nav-badge">2 Active</span>
+          </a>
+          <a class="portal-nav-link" href="#perks">
+            <span>☕ Neighborhood Perks</span>
+          </a>
+          <a class="portal-nav-link" href="contact.html">
+            <span>📞 24/7 House Support</span>
+          </a>
+        </nav>
+
+        <!-- Emergency / Concierge Box -->
+        <div class="emergency-help-box">
+          <strong>24/7 Baltimore Support</strong>
+          <p style="margin: 0 0 8px;">Direct line to on-call property supervisor & maintenance dispatch:</p>
+          <a href="tel:+14102188462" style="font-weight: 600; color: #633614; text-decoration: underline;">
+            +1 (410) 218-8462
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Portal Content Panels -->
+      <section class="portal-main">
+
+        <!-- ========================================== -->
+        <!-- ROLE 1: GUEST & RESIDENT PORTAL PANEL       -->
+        <!-- ========================================== -->
+        <div id="panel-guest">
+          <!-- Hero Access Keycard -->
+          <div class="access-hero-card">
+            <div class="access-header">
+              <div>
+                <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--sand); font-weight: 600;">Current Active Stay</span>
+                <h2 class="access-property-title">The Townhouse at Hudson Street</h2>
+                <div class="access-stay-dates">3037 Hudson St, Canton · Oct 12 – Oct 26, 2026 (11 Nights Remaining)</div>
+              </div>
+              <span class="p-badge p-badge--copper">Live Stay</span>
+            </div>
+
+            <!-- Credentials Box -->
+            <div class="access-credentials-grid">
+              <div class="cred-box">
+                <span>Front Keypad PIN</span>
+                <div class="cred-code-wrap">
+                  <strong>4892#</strong>
+                  <button type="button" class="copy-btn" data-copy="4892#">Copy PIN</button>
+                </div>
+              </div>
+
+              <div class="cred-box">
+                <span>WiFi Network</span>
+                <div class="cred-code-wrap">
+                  <strong style="font-size: 0.95rem;">ChaseStreet-5G</strong>
+                  <button type="button" class="copy-btn" data-copy="ChaseStreet-Hudson-5G">Copy</button>
+                </div>
+              </div>
+
+              <div class="cred-box">
+                <span>WiFi Password</span>
+                <div class="cred-code-wrap">
+                  <strong style="font-size: 0.85rem;">Waterfront2026!</strong>
+                  <button type="button" class="copy-btn" data-copy="BaltimoreWaterfront2026!">Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Tiles -->
+          <div style="margin-top: 28px;">
+            <div class="panel-header">
+              <div>
+                <h2>Resident Services & Controls</h2>
+                <p>On-demand conveniences tailored for your stay in Baltimore</p>
+              </div>
+            </div>
+
+            <div class="quick-tiles-grid">
+              <div class="quick-tile" id="add-cleaning-btn">
+                <div class="quick-tile-icon">🧹</div>
+                <div>
+                  <h4>Mid-Stay Housekeeping</h4>
+                  <p>Fresh percale linens, bathroom deep sanitization, and trash turnover.</p>
+                </div>
+                <span class="action-hint">Request Service ($75) →</span>
+              </div>
+
+              <div class="quick-tile" onclick="alert('Your assigned parking space is Bay #3 behind 3037 Hudson St. Keycard in kitchen.');">
+                <div class="quick-tile-icon">🚗</div>
+                <div>
+                  <h4>Reserved Parking Spot</h4>
+                  <p>Private fenced space Bay #3 behind property with 24/7 camera monitoring.</p>
+                </div>
+                <span class="action-hint">View Access Code →</span>
+              </div>
+
+              <div class="quick-tile" onclick="alert('House Manual: Nest set to 70F. Trash collection is Tuesday morning. Espresso pods in top right cabinet.');">
+                <div class="quick-tile-icon">📖</div>
+                <div>
+                  <h4>Digital House Manual</h4>
+                  <p>Appliance guides, Nest thermostat operation, and neighborhood garbage schedule.</p>
+                </div>
+                <span class="action-hint">Open Manual →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Maintenance Request Submitter & Status List -->
+          <div class="portal-card" style="margin-top: 30px;" id="maintenance">
+            <div class="panel-header" style="margin-bottom: 14px;">
+              <div>
+                <h3>Maintenance & Concierge Requests</h3>
+                <p class="subtitle">Submit any maintenance or comfort request for swift resolution by our local Canton team.</p>
+              </div>
+              <span class="p-badge">Avg Response: 22 Mins</span>
+            </div>
+
+            <!-- Form -->
+            <form id="submit-ticket-form" class="ticket-form" style="background: #fdfbf7; padding: 22px; border: 1px solid var(--line); border-radius: 4px;">
+              <div class="ticket-form-grid">
+                <div>
+                  <label for="ticket-title">Issue Summary *</label>
+                  <input type="text" id="ticket-title" placeholder="e.g. Living room AC thermostat adjustment" required>
+                </div>
+
+                <div>
+                  <label for="ticket-category">Category *</label>
+                  <select id="ticket-category" required>
+                    <option value="HVAC">Climate / HVAC / Heat</option>
+                    <option value="Plumbing">Plumbing & Water</option>
+                    <option value="WiFi/Tech">WiFi / Television / Smart Locks</option>
+                    <option value="Housekeeping">Linens & Housekeeping Supplies</option>
+                    <option value="Noise/Exterior">Exterior / Noise / Parking</option>
+                    <option value="General">Other / General Question</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="ticket-urgency">Priority Level</label>
+                  <select id="ticket-urgency">
+                    <option value="Normal">Normal (Addressed within 2-4 hours)</option>
+                    <option value="Urgent">Urgent (Needs attention within 1 hour)</option>
+                    <option value="Emergency">Emergency (Immediate Dispatch)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="ticket-room">Location in Home</label>
+                  <input type="text" id="ticket-room" placeholder="e.g. Master Bedroom / Kitchen">
+                </div>
+
+                <div class="form-group-full">
+                  <label for="ticket-desc">Details & Description *</label>
+                  <textarea id="ticket-desc" placeholder="Please describe what you are experiencing so our technicians bring the right tools..." required></textarea>
+                </div>
+              </div>
+
+              <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn-book" style="padding: 12px 24px;">
+                  Dispatch Request to Concierge ↗
+                </button>
+              </div>
+            </form>
+
+            <!-- Ticket Tracking List -->
+            <div style="margin-top: 24px;">
+              <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-soft); margin: 0 0 12px;">
+                Active & Recent Work Orders
+              </h4>
+              <div class="tickets-list" id="guest-tickets-list">
+                <!-- Injected dynamically by portal.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Neighborhood Perks -->
+          <div class="portal-card" style="margin-top: 30px;" id="perks">
+            <h3>Chase Street Local Resident Perks</h3>
+            <p class="subtitle">Exclusive privileges negotiated with our favorite neighborhood partners in Canton and Fells Point.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+              <div style="background: #faf8f5; border: 1px solid var(--line); border-radius: 4px; padding: 18px;">
+                <strong style="color: var(--ink); display: block; font-size: 0.9rem;">☕ Canton Coffee Roasters</strong>
+                <p style="margin: 4px 0 10px; font-size: 0.78rem; color: var(--ink-soft);">15% off all espresso drinks & fresh pastries. Show your digital keycard or use code <strong>CSGUEST15</strong>.</p>
+              </div>
+              <div style="background: #faf8f5; border: 1px solid var(--line); border-radius: 4px; padding: 18px;">
+                <strong style="color: var(--ink); display: block; font-size: 0.9rem;">🚤 Baltimore Water Taxi</strong>
+                <p style="margin: 4px 0 10px; font-size: 0.78rem; color: var(--ink-soft);">Unlimited daily harbor crossing pass at 20% resident discount. Step on board at Canton Waterfront Park.</p>
+              </div>
+              <div style="background: #faf8f5; border: 1px solid var(--line); border-radius: 4px; padding: 18px;">
+                <strong style="color: var(--ink); display: block; font-size: 0.9rem;">🏋️ Merritt Clubs Canton</strong>
+                <p style="margin: 4px 0 10px; font-size: 0.78rem; color: var(--ink-soft);">Complimentary guest day-passes to rooftop pool and full fitness club (3 blocks away).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ROLE 2: PROPERTY OWNER & INVESTOR PANEL     -->
+        <!-- ========================================== -->
+        <div id="panel-owner" style="display: none;">
+          <div class="panel-header">
+            <div>
+              <h2>Property Owner Portfolio Dashboard</h2>
+              <p>Real-time occupancy, revenue yield, and maintenance approvals for Eleanor Vance</p>
+            </div>
+            <button type="button" class="btn-book download-statement-btn" data-month="October 2026">
+              Download October Statement (PDF) ↗
+            </button>
+          </div>
+
+          <!-- KPI Metric Cards -->
+          <div class="metrics-row">
+            <div class="kpi-card">
+              <span class="kpi-label">October Gross Revenue</span>
+              <div class="kpi-val">$9,480</div>
+              <span class="kpi-trend">▲ +14.2% vs. Long-Term Lease</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Net Owner Payout</span>
+              <div class="kpi-val" style="color: var(--copper);">$7,584</div>
+              <span class="kpi-trend" style="color: var(--ink-soft);">Direct ACH scheduled Nov 1</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Portfolio Occupancy</span>
+              <div class="kpi-val">94.2%</div>
+              <span class="kpi-trend">▲ 28 nights booked</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Average Daily Rate (ADR)</span>
+              <div class="kpi-val">$158</div>
+              <span class="kpi-trend">▲ Optimized by dynamic AI</span>
+            </div>
+          </div>
+
+          <!-- Maintenance Authorizations -->
+          <div class="portal-card" style="margin-top: 30px;">
+            <div class="panel-header" style="margin-bottom: 12px;">
+              <div>
+                <h3>Owner Maintenance Approvals</h3>
+                <p class="subtitle">Review capital items and routine service recommendations requiring your sign-off.</p>
+              </div>
+            </div>
+            <div class="tickets-list" id="owner-approvals-list">
+              <!-- Rendered dynamically by portal.js -->
+            </div>
+          </div>
+
+          <!-- Statements & Financial History Table -->
+          <div class="portal-card" style="margin-top: 30px;">
+            <div class="panel-header" style="margin-bottom: 12px;">
+              <div>
+                <h3>Historical Financial Statements</h3>
+                <p class="subtitle">Audited monthly statements detailing nightly revenue, turnover cleaning fees, and net disbursements.</p>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="portal-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Properties</th>
+                    <th>Gross Booking</th>
+                    <th>Mgmt Fee (20%)</th>
+                    <th>Net Disbursement</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>October 2026</strong></td>
+                    <td>3037 Hudson & 2904 O'Donnell</td>
+                    <td>$9,480.00</td>
+                    <td>$1,896.00</td>
+                    <td><strong style="color: var(--copper);">$7,584.00</strong></td>
+                    <td><span class="ticket-badge badge-yellow">Processing</span></td>
+                    <td><button class="btn-outline download-statement-btn" data-month="October 2026" style="padding: 4px 10px; font-size: 0.65rem;">PDF ↗</button></td>
+                  </tr>
+                  <tr>
+                    <td><strong>September 2026</strong></td>
+                    <td>3037 Hudson & 2904 O'Donnell</td>
+                    <td>$9,820.00</td>
+                    <td>$1,964.00</td>
+                    <td><strong style="color: var(--copper);">$7,856.00</strong></td>
+                    <td><span class="ticket-badge badge-green">Disbursed (ACH)</span></td>
+                    <td><button class="btn-outline download-statement-btn" data-month="September 2026" style="padding: 4px 10px; font-size: 0.65rem;">PDF ↗</button></td>
+                  </tr>
+                  <tr>
+                    <td><strong>August 2026</strong></td>
+                    <td>3037 Hudson & 2904 O'Donnell</td>
+                    <td>$10,240.00</td>
+                    <td>$2,048.00</td>
+                    <td><strong style="color: var(--copper);">$8,192.00</strong></td>
+                    <td><span class="ticket-badge badge-green">Disbursed (ACH)</span></td>
+                    <td><button class="btn-outline download-statement-btn" data-month="August 2026" style="padding: 4px 10px; font-size: 0.65rem;">PDF ↗</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Owner Blackout Dates Simulator -->
+          <div class="portal-card" style="margin-top: 30px;">
+            <h3>Owner Personal Stay Calendar Lock</h3>
+            <p class="subtitle">Want to enjoy your Baltimore property? Lock out personal dates with zero commission.</p>
+            <form id="owner-blackout-form" class="ticket-form" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+              <div>
+                <label for="blackout-property">Select Property</label>
+                <select id="blackout-property">
+                  <option value="hudson">3037 Hudson Street (The Townhouse)</option>
+                  <option value="odonnell">2904 O'Donnell Street (Quiet Retreat)</option>
+                </select>
+              </div>
+              <div>
+                <label for="blackout-start">Start Date</label>
+                <input type="date" id="blackout-start" required>
+              </div>
+              <div>
+                <label for="blackout-end">End Date</label>
+                <input type="date" id="blackout-end" required>
+              </div>
+              <button type="submit" class="btn-book" style="padding: 11px 20px;">
+                Lock Personal Stay 🔒
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ROLE 3: OPERATIONS & ADMIN PANEL           -->
+        <!-- ========================================== -->
+        <div id="panel-admin" style="display: none;">
+          <div class="panel-header">
+            <div>
+              <h2>Chase Street Mission Control</h2>
+              <p>Centralized reservations, occupancy monitoring, and work order dispatch</p>
+            </div>
+            <a href="properties.html" class="btn-outline">View Public Catalog ↗</a>
+          </div>
+
+          <!-- Admin Metric Cards -->
+          <div class="metrics-row">
+            <div class="kpi-card">
+              <span class="kpi-label">Occupancy Rate</span>
+              <div class="kpi-val">92.8%</div>
+              <span class="kpi-trend">39 of 42 units filled</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Today's Check-ins</span>
+              <div class="kpi-val" style="color: var(--copper);">4</div>
+              <span class="kpi-trend" style="color: var(--ink-soft);">Keys & codes dispatched</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Active Work Orders</span>
+              <div class="kpi-val">2</div>
+              <span class="kpi-trend" style="color: #3b82f6;">Technicians assigned</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Cleanliness Score</span>
+              <div class="kpi-val">4.99</div>
+              <span class="kpi-trend">★ Top 1% Baltimore Stays</span>
+            </div>
+          </div>
+
+          <!-- Live Reservations Table -->
+          <div class="portal-card" style="margin-top: 30px;">
+            <div class="panel-header" style="margin-bottom: 14px;">
+              <div>
+                <h3>Active & Upcoming Guest Pipeline</h3>
+                <p class="subtitle">Direct bookings, corporate allocations, and incoming medical fellows.</p>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="portal-table">
+                <thead>
+                  <tr>
+                    <th>Ref ID</th>
+                    <th>Guest Name</th>
+                    <th>Property</th>
+                    <th>Dates</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-reservations-body">
+                  <!-- Rendered dynamically by portal.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Inventory Fast Manager -->
+          <div class="portal-card" style="margin-top: 30px;">
+            <h3>Quick Inventory Unit Status</h3>
+            <p class="subtitle">Toggle live availability across booking channels with one touch.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+              <div style="background: #faf8f5; border: 1px solid var(--line); border-radius: 4px; padding: 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="display: block; font-size: 0.9rem;">3037 Hudson Street</strong>
+                  <span style="font-size: 0.72rem; color: var(--ink-soft);">Canton · $149/night</span>
+                </div>
+                <span class="ticket-badge badge-green">Occupied (Aaron M.)</span>
+              </div>
+
+              <div style="background: #faf8f5; border: 1px solid var(--line); border-radius: 4px; padding: 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="display: block; font-size: 0.9rem;">2904 O'Donnell Street</strong>
+                  <span style="font-size: 0.72rem; color: var(--ink-soft);">Canton · $99/night</span>
+                </div>
+                <span class="ticket-badge badge-yellow">Turnover (Today)</span>
+              </div>
+
+              <div style="background: #faf8f5; border: 1px solid var(--line); border-radius: 4px; padding: 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="display: block; font-size: 0.9rem;">712 E Pratt Street</strong>
+                  <span style="font-size: 0.72rem; color: var(--ink-soft);">Inner Harbor · $189/night</span>
+                </div>
+                <span class="ticket-badge badge-green">Occupied (Corp Stay)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__middle section-pad" style="border-top: none;">
+      <div class="footer__brand">
+        <span class="brand__monogram">CS</span>
+        <p>Chase Street<br>Properties</p>
+      </div>
+      <div class="footer__column">
+        <span>Residences</span>
+        <a href="properties.html">All Stays Catalog</a>
+        <a href="about.html">Our Story</a>
+        <a href="property-management.html">Owner Services</a>
+        <a href="baltimore-guide.html">Baltimore Guide</a>
+      </div>
+      <div class="footer__column">
+        <span>Portals Quick Links</span>
+        <a href="portal.html">Resident Smart Access</a>
+        <a href="portal.html">Maintenance Dispatch</a>
+        <a href="portal.html">Owner Revenue Yield</a>
+        <a href="portal.html">Staff Mission Control</a>
+      </div>
+      <div class="footer__column">
+        <span>Support Dispatch</span>
+        <p>3037 Hudson Street<br>Baltimore, MD 21224</p>
+        <a href="tel:+14102188462">+1 410 218 8462</a>
+        <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+      </div>
+    </div>
+    <div class="footer__bottom section-pad">
+      <span>© 2026 Chase Street Properties</span>
+      <span>Unified Client Portals Hub · Baltimore, MD</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="portal.js"></script>
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.querySelector('.menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    menuBtn?.addEventListener('click', () => {
+      const open = !mobileMenu.classList.contains('is-open');
+      mobileMenu.classList.toggle('is-open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+  </script>
+</body>
+</html>

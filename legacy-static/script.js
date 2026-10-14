@@ -113,9 +113,9 @@ bookingForm.addEventListener('submit', (event) => {
     checkout.focus();
     return;
   }
-  const guests = bookingForm.elements.guests.options[bookingForm.elements.guests.selectedIndex].text;
-  bookingMessage.textContent = `Showing the best homes for ${guests} · ${checkin.value} to ${checkout.value}`;
-  document.getElementById('stays').scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+  const guests = bookingForm.elements.guests.value;
+  bookingMessage.textContent = `Redirecting to available homes for ${guests} guests...`;
+  window.location.href = `properties.html?checkin=${encodeURIComponent(checkin.value)}&checkout=${encodeURIComponent(checkout.value)}&guests=${encodeURIComponent(guests)}`;
 });
 
 document.addEventListener('keydown', (event) => {
