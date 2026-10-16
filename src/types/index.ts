@@ -31,8 +31,18 @@ export interface Property {
   description: string;
   amenities: Amenity[];
   commute: Commute[];
+  reviews?: PropertyReview[];
+  viewType?: string;
+  bedType?: string;
   status?: 'Active' | 'Inactive' | 'Maintenance';
   featured?: boolean;
+}
+
+export interface PropertyReview {
+  author: string;
+  date: string;
+  text: string;
+  rating?: number;
 }
 
 export interface MaintenanceTicket {

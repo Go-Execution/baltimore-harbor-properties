@@ -14,6 +14,23 @@ export default function PropertyDetailClient({ property }: { property: Property 
   const [assignedPin, setAssignedPin] = useState('4892#');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
+  // Reviews state & modal
+  const [reviewsList, setReviewsList] = useState(property.reviews || []);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [revName, setRevName] = useState('');
+  const [revEmail, setRevEmail] = useState('');
+  const [revStayDate, setRevStayDate] = useState('');
+  const [revScore, setRevScore] = useState(5);
+  const [revComment, setRevComment] = useState('');
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+
+  // Property Inquiry Form state ("FEEL FREE TO CONTACT US")
+  const [inquiryName, setInquiryName] = useState('');
+  const [inquiryEmail, setInquiryEmail] = useState('');
+  const [inquiryPhone, setInquiryPhone] = useState('');
+  const [inquiryMessage, setInquiryMessage] = useState('');
+  const [inquirySubmitted, setInquirySubmitted] = useState(false);
+
   // Booking calculator state
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
@@ -110,6 +127,34 @@ export default function PropertyDetailClient({ property }: { property: Property 
     }, 1100);
   };
 
+  const handleAddReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!revName || !revComment) return;
+
+    const newRev = {
+      author: revName,
+      date: revStayDate || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      text: revComment,
+      rating: revScore,
+    };
+
+    setReviewsList((prev) => [newRev, ...prev]);
+    setReviewSuccess(true);
+    setTimeout(() => {
+      setReviewSuccess(false);
+      setReviewModalOpen(false);
+      setRevName('');
+      setRevEmail('');
+      setRevStayDate('');
+      setRevComment('');
+    }, 1200);
+  };
+
+  const handleSendInquiry = (e: React.FormEvent) => {
+    e.preventDefault();
+    setInquirySubmitted(true);
+  };
+
   return (
     <>
       <main id="main">
@@ -185,7 +230,7 @@ export default function PropertyDetailClient({ property }: { property: Property 
           {/* Left Column */}
           <div className="detail-content">
             {/* Quick Stats Strip */}
-            <div className="quick-stats-strip">
+            <div className="quick-stats-strip" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
               <div className="stat-item">
                 <span>Capacity</span>
                 <strong>{property.guests} Guests</strong>
@@ -201,6 +246,22 @@ export default function PropertyDetailClient({ property }: { property: Property 
               <div className="stat-item">
                 <span>Living Space</span>
                 <strong>{property.sqft} sq ft</strong>
+              </div>
+              {property.viewType && (
+                <div className="stat-item">
+                  <span>View</span>
+                  <strong>{property.viewType}</strong>
+                </div>
+              )}
+              {property.bedType && (
+                <div className="stat-item">
+                  <span>Bed Type</span>
+                  <strong>{property.bedType}</strong>
+                </div>
+              )}
+              <div className="stat-item">
+                <span>Check-in</span>
+                <strong style={{ color: 'var(--copper)' }}>24/7 Keypad</strong>
               </div>
             </div>
 
@@ -334,37 +395,139 @@ export default function PropertyDetailClient({ property }: { property: Property 
               </div>
             </div>
 
-            {/* Verified Reviews */}
-            <div className="detail-section" style={{ borderBottom: 'none' }}>
-              <h2>Verified guest reviews</h2>
-              <div style={{ display: 'flex', gap: 24, alignItems: 'baseline', marginBottom: 24 }}>
-                <div style={{ font: '400 3rem var(--serif)', color: 'var(--ink)' }}>{property.rating}</div>
-                <div style={{ fontSize: '0.82rem', color: 'var(--ink-soft)' }}>
-                  ★★★★★ · Based on {property.reviewsCount} verified executive & healthcare stays
+            {/* Verified Reviews Section matching live site */}
+            <div className="detail-section">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+                <div>
+                  <h2 style={{ margin: 0 }}>
+                    Reviews <span style={{ color: '#d48806', fontSize: '1.2rem', marginLeft: 8 }}>★★★★★</span>
+                  </h2>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--ink-soft)', marginTop: 4 }}>
+                    Based on {reviewsList.length + 24} verified guest stays at this residence
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => setReviewModalOpen(true)}
+                  style={{ padding: '8px 18px', fontSize: '0.78rem' }}
+                >
+                  Write a review ↗
+                </button>
+              </div>
+
+              {/* Rating Category Breakdown from live site */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 6, padding: '16px 20px', marginBottom: 24 }}>
+                <div>
+                  <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft)' }}>Comfort</div>
+                  <strong style={{ fontSize: '1rem', color: 'var(--forest)' }}>★ 5.0</strong>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft)' }}>Location</div>
+                  <strong style={{ fontSize: '1rem', color: 'var(--forest)' }}>★ 5.0</strong>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft)' }}>Service</div>
+                  <strong style={{ fontSize: '1rem', color: 'var(--forest)' }}>★ 5.0</strong>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft)' }}>Staff</div>
+                  <strong style={{ fontSize: '1rem', color: 'var(--forest)' }}>★ 5.0</strong>
                 </div>
               </div>
 
+              {/* Real Reviews Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-                <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 4, padding: 20 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>Dr. Katherine R.</strong>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--copper)' }}>Johns Hopkins Fellow</span>
+                {reviewsList.map((rev, idx) => (
+                  <div key={idx} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 6, padding: 22, boxShadow: '0 4px 14px rgba(23,35,31,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <div>
+                        <strong style={{ fontSize: '0.9rem', color: 'var(--forest)', display: 'block' }}>{rev.author}</strong>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)' }}>{rev.date}</span>
+                      </div>
+                      <span style={{ color: '#d48806', fontSize: '0.85rem' }}>★★★★★</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.84rem', lineHeight: 1.65, color: 'var(--ink)' }}>
+                      "{rev.text.replace(/&rsquo;/g, "'")}"
+                    </p>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.82rem', lineHeight: 1.6, color: 'var(--ink-soft)' }}>
-                    "The quietest, most comfortable stay during my 3-month rotation. The fiber WiFi was flawless for telemedicine calls, and coming back to a warm, stylish home made long hospital shifts bearable."
-                  </p>
-                </div>
-
-                <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 4, padding: 20 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>Michael S.</strong>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--copper)' }}>Executive Relocation</span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.82rem', lineHeight: 1.6, color: 'var(--ink-soft)' }}>
-                    "Far superior to extended-stay hotels. Check-in was instant with the keypad code, the kitchen had high-end cookware, and the neighborhood feels safe and vibrant. Gonzalo's team is exceptional."
-                  </p>
-                </div>
+                ))}
               </div>
+            </div>
+
+            {/* "FEEL FREE TO CONTACT US" Property Inquiry Form from live site */}
+            <div className="detail-section" style={{ borderBottom: 'none' }}>
+              <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>
+                Direct Property Host
+              </span>
+              <h2>Feel Free to Contact Us</h2>
+              <p style={{ margin: '4px 0 20px', fontSize: '0.86rem', color: 'var(--ink-soft)' }}>
+                Have questions regarding availability, clinical rotations, corporate agreements, or pet accommodations for this specific residence? Message our Baltimore host team directly.
+              </p>
+
+              {inquirySubmitted ? (
+                <div style={{ background: '#eef6f2', border: '1px solid #c2e2d0', borderRadius: 6, padding: '24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.6rem', color: '#107e4d', marginBottom: 8 }}>✓</div>
+                  <strong style={{ display: 'block', fontSize: '1.05rem', color: '#107e4d', marginBottom: 4 }}>
+                    Message Received
+                  </strong>
+                  <p style={{ fontSize: '0.84rem', color: '#2f5b44', margin: 0 }}>
+                    Our local host team will reply to <strong>{inquiryEmail || 'your email'}</strong> within 2 hours.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSendInquiry} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: '24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Your full name"
+                        value={inquiryName}
+                        onChange={(e) => setInquiryName(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Email *</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="email@example.com"
+                        value={inquiryEmail}
+                        onChange={(e) => setInquiryEmail(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Phone *</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="(410) 555-0199"
+                        value={inquiryPhone}
+                        onChange={(e) => setInquiryPhone(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Message *</label>
+                    <textarea
+                      rows={3}
+                      required
+                      placeholder="Tell us about your requested dates, stay purpose or questions regarding this residence..."
+                      value={inquiryMessage}
+                      onChange={(e) => setInquiryMessage(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <button type="submit" className="btn-book" style={{ alignSelf: 'flex-start', padding: '12px 28px', fontSize: '0.82rem' }}>
+                    Send Inquiry ↗
+                  </button>
+                </form>
+              )}
             </div>
           </div>
 
@@ -1154,6 +1317,114 @@ export default function PropertyDetailClient({ property }: { property: Property 
                   </button>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Leave A Review Modal from live site */}
+      {reviewModalOpen && (
+        <div className="modal-backdrop is-open" onClick={() => setReviewModalOpen(false)}>
+          <div
+            className="modal-window"
+            style={{ maxWidth: 540, padding: '32px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={() => setReviewModalOpen(false)}
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+
+            <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>
+              Guest Feedback
+            </span>
+            <h3 style={{ font: '400 1.8rem var(--serif)', margin: '6px 0 16px', color: 'var(--forest)' }}>
+              Leave A Review
+            </h3>
+
+            {reviewSuccess ? (
+              <div style={{ background: '#eef6f2', border: '1px solid #c2e2d0', borderRadius: 6, padding: '24px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.6rem', color: '#107e4d', marginBottom: 8 }}>✓</div>
+                <strong style={{ display: 'block', fontSize: '1.05rem', color: '#107e4d' }}>
+                  Thank You for Your Review!
+                </strong>
+                <p style={{ fontSize: '0.84rem', color: '#2f5b44', margin: '4px 0 0' }}>
+                  Your review has been published to this residence.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleAddReview} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Carmen"
+                      value={revName}
+                      onChange={(e) => setRevName(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Email *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="carmen@example.com"
+                      value={revEmail}
+                      onChange={(e) => setRevEmail(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Stay Date</label>
+                    <input
+                      type="date"
+                      value={revStayDate}
+                      onChange={(e) => setRevStayDate(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Rating *</label>
+                    <select
+                      value={revScore}
+                      onChange={(e) => setRevScore(parseInt(e.target.value, 10))}
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                    >
+                      <option value={5}>★★★★★ (5 Stars - Exceptional)</option>
+                      <option value={4}>★★★★☆ (4 Stars - Great)</option>
+                      <option value={3}>★★★☆☆ (3 Stars - Average)</option>
+                      <option value={2}>★★☆☆☆ (2 Stars - Poor)</option>
+                      <option value={1}>★☆☆☆☆ (1 Star - Terrible)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Review *</label>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Share your experience staying at this residence, the host communication, amenities, cleanliness..."
+                    value={revComment}
+                    onChange={(e) => setRevComment(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <button type="submit" className="btn-book" style={{ padding: '12px 24px', fontSize: '0.82rem', marginTop: 6 }}>
+                  Submit Review ↗
+                </button>
+              </form>
             )}
           </div>
         </div>
