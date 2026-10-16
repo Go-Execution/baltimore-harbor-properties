@@ -81,6 +81,12 @@ export default function Header() {
           <Link href="/properties" className={isActive('/properties') ? 'is-active' : ''}>
             The Stays
           </Link>
+          <Link href="/attractions" className={isActive('/attractions') ? 'is-active' : ''}>
+            Attractions
+          </Link>
+          <Link href="/corporate-housing" className={isActive('/corporate-housing') ? 'is-active' : ''}>
+            Corporate
+          </Link>
           <Link href="/about" className={isActive('/about') ? 'is-active' : ''}>
             Our Story
           </Link>
@@ -88,7 +94,7 @@ export default function Header() {
             For Owners
           </Link>
           <Link href="/baltimore-guide" className={isActive('/baltimore-guide') ? 'is-active' : ''}>
-            Baltimore Guide
+            Guide
           </Link>
           <Link href="/contact" className={isActive('/contact') ? 'is-active' : ''}>
             Contact
@@ -118,27 +124,39 @@ export default function Header() {
       <div className={`mobile-menu ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
         <nav aria-label="Mobile navigation">
           <Link href="/properties" onClick={() => setMenuOpen(false)}>
-            <span>01</span> The Stays
+            <span>01</span> The Stays (Vacation Rentals)
+          </Link>
+          <Link href="/attractions" onClick={() => setMenuOpen(false)}>
+            <span>02</span> Baltimore Attractions
+          </Link>
+          <Link href="/corporate-housing" onClick={() => setMenuOpen(false)}>
+            <span>03</span> Corporate & Medical Housing
           </Link>
           <Link href="/about" onClick={() => setMenuOpen(false)}>
-            <span>02</span> Our Story
+            <span>04</span> Our Story
           </Link>
           <Link href="/property-management" onClick={() => setMenuOpen(false)}>
-            <span>03</span> For Owners
+            <span>05</span> For Owners & ROI
           </Link>
           <Link href="/baltimore-guide" onClick={() => setMenuOpen(false)}>
-            <span>04</span> Baltimore Guide
+            <span>06</span> Baltimore Guide
+          </Link>
+          <Link href="/policies" onClick={() => setMenuOpen(false)}>
+            <span>07</span> Stay Policies & Rules
           </Link>
           <Link href="/contact" onClick={() => setMenuOpen(false)}>
-            <span>05</span> Contact
+            <span>08</span> Contact Concierge
           </Link>
           <Link href="/portal" onClick={() => setMenuOpen(false)} style={{ color: 'var(--sand)' }}>
-            <span>06</span> Portals Hub ↗
+            <span>09</span> Portals Hub ↗
+          </Link>
+          <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: 'var(--copper)' }}>
+            <span>10</span> Admin Hub ↗
           </Link>
         </nav>
         <div className="mobile-menu__footer">
-          <a href="tel:+14102188462">+1 410 218 8462</a>
-          <a href="mailto:info@chasestreetproperties.net">info@chasestreetproperties.net</a>
+          <a href="tel:+14102188462">+1 (410) 218-8462</a>
+          <a href="mailto:gonzalojouan@hotmail.com">gonzalojouan@hotmail.com</a>
         </div>
       </div>
     </>

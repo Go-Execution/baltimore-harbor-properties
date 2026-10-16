@@ -270,5 +270,129 @@ export const PROPERTIES: Property[] = [
       { destination: "Johns Hopkins Hospital", time: "6 min drive" },
       { destination: "Inner Harbor Waterfront", time: "4 min walk" }
     ]
+  },
+  {
+    id: 7,
+    title: "Baltimore Harbor & Convention Center Executive Suite",
+    subtitle: "Furnished 2-bedroom executive harbor residence with chef kitchen near UMMC",
+    neighborhood: "Inner Harbor",
+    address: "39 S Charles Street, Baltimore, MD 21201",
+    price: 169,
+    cleaningFee: 110,
+    taxRate: 0.095,
+    guests: 4,
+    bedrooms: 2,
+    beds: 2,
+    bathrooms: 2,
+    sqft: 1350,
+    rating: 4.96,
+    reviewsCount: 36,
+    badges: ["Hopkins / UMMC Preferred", "Convention Center"],
+    coverImage: "https://www.chasestreetproperties.net/uploads/property_list_img/39kitchen_1661521342.jpg",
+    gallery: [
+      "https://www.chasestreetproperties.net/uploads/property_list_img/39kitchen_1661521342.jpg",
+      "https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg",
+      "https://www.chasestreetproperties.net/uploads/about/39reception2.jpg",
+      "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80"
+    ],
+    description: "Centrally positioned in downtown Baltimore between the Inner Harbor and the University of Maryland Medical Center. Features an expansive open kitchen, two quiet private bedroom suites, and direct walking proximity to the Baltimore Convention Center.",
+    amenities: [
+      { name: "Gigabit Fiber WiFi (1000 Mbps)", icon: "📶", category: "Connectivity" },
+      { name: "Executive Dual Desk Workstation", icon: "💻", category: "Workspace" },
+      { name: "Full Island Kitchen with Stainless Appliances", icon: "🍳", category: "Kitchen" },
+      { name: "In-Unit High Efficiency Washer & Dryer", icon: "🧺", category: "Laundry" },
+      { name: "Keyless PIN Smart Entry", icon: "🔐", category: "Access" },
+      { name: "Central Nest Climate Control", icon: "❄️", category: "HVAC" },
+      { name: "Smart 55\" 4K Streaming TV", icon: "📺", category: "Entertainment" },
+      { name: "Secure Elevator Access Building", icon: "🛗", category: "Building" }
+    ],
+    commute: [
+      { destination: "Baltimore Convention Center", time: "3 min walk" },
+      { destination: "UMMC Main Hospital", time: "5 min walk" },
+      { destination: "Inner Harbor Waterfront", time: "4 min walk" },
+      { destination: "Johns Hopkins Hospital", time: "7 min drive" }
+    ]
+  },
+  {
+    id: 8,
+    title: "Baltimore Harbor View Suite (UMMC / Hopkins)",
+    subtitle: "Modern 1-bedroom oasis with dedicated workspace and harbor access",
+    neighborhood: "Inner Harbor",
+    address: "100 Light Street, Baltimore, MD 21202",
+    price: 139,
+    cleaningFee: 95,
+    taxRate: 0.095,
+    guests: 2,
+    bedrooms: 1,
+    beds: 1,
+    bathrooms: 1,
+    sqft: 890,
+    rating: 4.95,
+    reviewsCount: 29,
+    badges: ["Harbor Views", "Medical Fellow Preferred"],
+    coverImage: "https://www.chasestreetproperties.net/uploads/property_list_img/b9eca411-ecdf-4b30-a923-3113b713b17b_1660170321_1660230599_1660669298_1661531750.jpg",
+    gallery: [
+      "https://www.chasestreetproperties.net/uploads/property_list_img/b9eca411-ecdf-4b30-a923-3113b713b17b_1660170321_1660230599_1660669298_1661531750.jpg",
+      "https://www.chasestreetproperties.net/uploads/property_list_img/3c_1661520095.jpg",
+      "https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80"
+    ],
+    description: "An elegant, light-filled 1-bedroom residence overlooking Light Street and the Inner Harbor. Perfect for traveling medical fellows, visiting lecturers, and executive consultants seeking a tranquil, secure home in the center of the city.",
+    amenities: [
+      { name: "Panoramic City & Harbor Skyline Vistas", icon: "🏙️", category: "View" },
+      { name: "High-Speed Fiber WiFi (600 Mbps)", icon: "📶", category: "Connectivity" },
+      { name: "Ergonomic Desk & Herman Miller Chair", icon: "💻", category: "Workspace" },
+      { name: "Nespresso Coffee Bar", icon: "☕", category: "Kitchen" },
+      { name: "Keyless Touchpad Lock", icon: "🔐", category: "Access" },
+      { name: "In-Unit Laundry", icon: "🧺", category: "Laundry" }
+    ],
+    commute: [
+      { destination: "Inner Harbor Promenade", time: "2 min walk" },
+      { destination: "UMMC Downtown Campus", time: "6 min drive" },
+      { destination: "Johns Hopkins Hospital", time: "8 min drive" },
+      { destination: "Water Taxi Terminal", time: "3 min walk" }
+    ]
+  },
+  {
+    id: 9,
+    title: "Urban 1-Bedroom in the Heart of Baltimore Harbor",
+    subtitle: "Sunlit downtown retreat with secure indoor garage parking and dining balcony",
+    neighborhood: "Inner Harbor",
+    address: "300 E Pratt Street, Baltimore, MD 21202",
+    price: 139,
+    cleaningFee: 95,
+    taxRate: 0.095,
+    guests: 2,
+    bedrooms: 1,
+    beds: 1,
+    bathrooms: 1,
+    sqft: 920,
+    rating: 4.97,
+    reviewsCount: 33,
+    badges: ["Indoor Parking", "Balcony View"],
+    coverImage: "https://www.chasestreetproperties.net/uploads/property_list_img/3Cdinning2_1661521046.jpg",
+    gallery: [
+      "https://www.chasestreetproperties.net/uploads/property_list_img/3Cdinning2_1661521046.jpg",
+      "https://www.chasestreetproperties.net/uploads/property_list_img/3c_1661520095.jpg",
+      "https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+    ],
+    description: "A serene, high-floor harbor residence with private dining balcony, full granite kitchen, and reserved indoor garage parking. Walk to Pratt Street dining, Harborplace pavilions, and the National Aquarium in minutes.",
+    amenities: [
+      { name: "Reserved Secure Garage Parking Space", icon: "🚗", category: "Parking" },
+      { name: "Private Dining Balcony", icon: "🌅", category: "Outdoor" },
+      { name: "Ultra-Fast Fiber WiFi", icon: "📶", category: "Connectivity" },
+      { name: "Executive Workspace Setup", icon: "💻", category: "Workspace" },
+      { name: "Fully Equipped Granite Kitchen", icon: "🍳", category: "Kitchen" },
+      { name: "Keyless Electronic Smart Lock", icon: "🔐", category: "Access" },
+      { name: "In-Unit High Efficiency Washer & Dryer", icon: "🧺", category: "Laundry" }
+    ],
+    commute: [
+      { destination: "National Aquarium", time: "3 min walk" },
+      { destination: "Pratt Street Dining Corridor", time: "1 min walk" },
+      { destination: "University of Maryland Medical Center", time: "5 min drive" },
+      { destination: "Johns Hopkins Hospital", time: "7 min drive" }
+    ]
   }
 ];

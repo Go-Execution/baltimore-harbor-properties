@@ -31,14 +31,25 @@ export default function Footer({ showTopCta = true }: { showTopCta?: boolean }) 
           <Link href="/properties?neighborhood=Fells%20Point">Fells Point Stays</Link>
           <Link href="/properties?neighborhood=Inner%20Harbor">Inner Harbor Homes</Link>
           <Link href="/properties?neighborhood=Mount%20Vernon">Mount Vernon Suites</Link>
+          <Link href="/properties">All 40+ Residences ↗</Link>
         </div>
 
         <div className="footer__column">
-          <span>Client Portals</span>
+          <span>Explore & Services</span>
+          <Link href="/attractions">Baltimore Attractions</Link>
+          <Link href="/corporate-housing">Corporate & Medical Housing</Link>
+          <Link href="/baltimore-guide">Neighborhood Guide</Link>
+          <Link href="/about">Our Story & Ethos</Link>
+          <Link href="/property-management">Turnkey Management & ROI</Link>
+        </div>
+
+        <div className="footer__column">
+          <span>Portals & Standards</span>
           <Link href="/portal">Resident & Guest Portal</Link>
           <Link href="/portal">Property Owner Portal</Link>
           <Link href="/admin">Dedicated Admin Hub ↗</Link>
-          <Link href="/property-management">Owner ROI Calculator</Link>
+          <Link href="/policies">Stay Policies & Rules</Link>
+          <Link href="/contact">Contact Concierge</Link>
         </div>
 
         <div className="footer__column">
