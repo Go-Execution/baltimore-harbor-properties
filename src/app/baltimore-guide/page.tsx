@@ -184,18 +184,24 @@ export default function BaltimoreGuidePage() {
           </div>
 
           <div className="places">
-            <a className="place place--harbor image-reveal is-visible" href="https://baltimore.org/what-to-do/baltimore-inner-harbor/" target="_blank" rel="noreferrer">
+            <Link className="place place--harbor image-reveal is-visible" href="/attractions/inner-harbor">
               <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg" alt="Baltimore Inner Harbor" />
-              <span>01</span><h3>Inner Harbor</h3><p>Waterfront Promenade · 8 min</p>
-            </a>
-            <a className="place place--walters image-reveal is-visible" href="https://thewalters.org/" target="_blank" rel="noreferrer">
+              <span>01</span><h3>Inner Harbor</h3><p>Waterfront Promenade · 8 min · Guide & Stays ↗</p>
+            </Link>
+            <Link className="place place--walters image-reveal is-visible" href="/attractions/walters-art-museum">
               <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-walters-art-museum-staircase.jpg" alt="Walters Art Museum Grand Staircase" />
-              <span>02</span><h3>The Walters Art Museum</h3><p>Mount Vernon · 12 min</p>
-            </a>
-            <a className="place place--fort image-reveal is-visible" href="https://www.nps.gov/fomc/index.htm" target="_blank" rel="noreferrer">
+              <span>02</span><h3>The Walters Art Museum</h3><p>Mount Vernon · 12 min · Guide & Stays ↗</p>
+            </Link>
+            <Link className="place place--fort image-reveal is-visible" href="/attractions/fort-mchenry">
               <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-fort-mchenry-national-monument.jpg" alt="Fort McHenry Monument" />
-              <span>03</span><h3>Fort McHenry</h3><p>Historic Harbor Fortress · 10 min</p>
-            </a>
+              <span>03</span><h3>Fort McHenry</h3><p>Historic Harbor Fortress · 10 min · Guide & Stays ↗</p>
+            </Link>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: 40 }}>
+            <Link href="/attractions" className="btn-outline" style={{ padding: '12px 28px', fontSize: '0.82rem' }}>
+              Explore All 6 Baltimore Landmark Guides & Nearby Stays ↗
+            </Link>
           </div>
         </section>
       </main>

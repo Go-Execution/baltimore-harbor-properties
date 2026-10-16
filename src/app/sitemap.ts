@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { PROPERTIES } from '@/data/properties';
+import { ATTRACTIONS } from '@/data/attractions';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.chasestreetproperties.net';
@@ -9,6 +10,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
+  }));
+
+  const attractionUrls = ATTRACTIONS.map((attr) => ({
+    url: `${baseUrl}/attractions/${attr.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
   }));
 
   const staticUrls: MetadataRoute.Sitemap = [
@@ -46,7 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/attractions`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/corporate-housing`,
@@ -74,5 +82,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  return [...staticUrls, ...propertyUrls];
+  return [...staticUrls, ...propertyUrls, ...attractionUrls];
 }

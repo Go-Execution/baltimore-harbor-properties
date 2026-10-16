@@ -245,17 +245,17 @@ export default function HomePage() {
             </div>
           </div>
           <div className="places">
-            <Link className="place place--harbor" href="/baltimore-guide">
+            <Link className="place place--harbor" href="/attractions/inner-harbor">
               <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg" alt="Baltimore Inner Harbor" loading="lazy" />
-              <span>01</span><h3>Inner Harbor</h3><p>Waterfront · 8 min</p>
+              <span>01</span><h3>Inner Harbor</h3><p>Waterfront · 8 min · Guide & Stays ↗</p>
             </Link>
-            <Link className="place place--walters" href="/baltimore-guide">
+            <Link className="place place--walters" href="/attractions/walters-art-museum">
               <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-walters-art-museum-staircase.jpg" alt="Grand staircase inside the Walters Art Museum" loading="lazy" />
-              <span>02</span><h3>The Walters</h3><p>Art & culture · 12 min</p>
+              <span>02</span><h3>The Walters</h3><p>Art & culture · 12 min · Guide & Stays ↗</p>
             </Link>
-            <Link className="place place--fort" href="/baltimore-guide">
+            <Link className="place place--fort" href="/attractions/fort-mchenry">
               <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-fort-mchenry-national-monument.jpg" alt="Fort McHenry National Monument" loading="lazy" />
-              <span>03</span><h3>Fort McHenry</h3><p>History · 10 min</p>
+              <span>03</span><h3>Fort McHenry</h3><p>History · 10 min · Guide & Stays ↗</p>
             </Link>
           </div>
         </section>
