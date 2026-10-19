@@ -1,8 +1,7 @@
 {
   "name": "chase-street-properties",
   "version": "1.0.0",
-  "description": "",
-  "main": "portal.js",
+  "description": "Chase Street Properties — Next.js 14 Production Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

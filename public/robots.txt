@@ -1,0 +1,7 @@
+# Chase Street Properties Static Assets
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /portal?persona=admin
+
+Sitemap: https://www.chasestreetproperties.net/sitemap.xml
