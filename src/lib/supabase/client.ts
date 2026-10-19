@@ -1,18 +1,28 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const DEFAULT_SUPABASE_URL = 'https://luxexntcevwwvhkzusjb.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_YxYaGaO2PAKOFUyFn2h6Kg__0LbIMEH';
+
+export function getSupabaseUrl(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+}
+
+export function getSupabaseAnonKey(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+}
 
 /**
  * Checks whether Supabase is configured with valid credentials
  */
 export function isSupabaseConfigured(): boolean {
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
   return Boolean(
-    supabaseUrl &&
-    supabaseAnonKey &&
-    supabaseUrl.startsWith('https://') &&
-    !supabaseUrl.includes('placeholder') &&
-    !supabaseUrl.includes('your-project')
+    url &&
+    key &&
+    url.startsWith('https://') &&
+    !url.includes('placeholder') &&
+    !url.includes('your-project')
   );
 }
 
@@ -28,7 +38,9 @@ export function getSupabaseClient(): SupabaseClient | null {
   }
 
   if (!supabaseInstance) {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    const url = getSupabaseUrl();
+    const key = getSupabaseAnonKey();
+    supabaseInstance = createClient(url, key, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
