@@ -5,17 +5,41 @@ import Link from 'next/link';
 import { MaintenanceTicket, OwnerApproval, Reservation } from '@/types';
 import Footer from '@/components/Footer';
 import AdminPropertyManager from '@/components/AdminPropertyManager';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { supabaseSignIn, supabaseSignUp, supabaseSignOut, supabaseGetCurrentUser, UserProfile } from '@/lib/supabase/auth';
+import { dbFetchReservations, dbCreateTicket, dbFetchTickets } from '@/lib/supabase/database';
+import { getStoredReservations } from '@/utils/propertyStore';
 
 const STORAGE_KEY = 'csp_nextjs_portal_state_v1';
+const AUTH_KEY = 'csp_nextjs_portal_auth_v1';
 
 export default function PortalPage() {
+  // Authentication & Session State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [authTab, setAuthTab] = useState<'signin' | 'signup' | 'code'>('signin');
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Form Inputs for Auth
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupRole, setSignupRole] = useState<'guest' | 'owner'>('guest');
+  const [directBookingCode, setDirectBookingCode] = useState('');
+  const [directPin, setDirectPin] = useState('');
+
+  // Portal Role State
   const [currentRole, setCurrentRole] = useState<'guest' | 'owner' | 'admin'>('guest');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isCloudLive, setIsCloudLive] = useState<boolean>(false);
 
   // Guest State
   const [guestTickets, setGuestTickets] = useState<MaintenanceTicket[]>([
-    { id: 'TKT-104', title: 'HVAC Filter & Thermostat Calibration', category: 'HVAC', status: 'Dispatched', date: 'Oct 13, 2026', urgency: 'Normal' },
-    { id: 'TKT-089', title: 'Additional Down Pillows Request', category: 'Housekeeping', status: 'Resolved', date: 'Oct 12, 2026', urgency: 'Normal' }
+    { id: 'TKT-104', title: 'HVAC Filter & Thermostat Calibration', category: 'HVAC', status: 'Dispatched', date: 'Oct 13, 2026', urgency: 'Normal', room: 'Living Area' },
+    { id: 'TKT-089', title: 'Additional Down Pillows Request', category: 'Housekeeping', status: 'Resolved', date: 'Oct 12, 2026', urgency: 'Normal', room: 'Master Bedroom' }
   ]);
   const [ticketTitle, setTicketTitle] = useState('');
   const [ticketCategory, setTicketCategory] = useState('HVAC');
@@ -31,51 +55,65 @@ export default function PortalPage() {
   const [blackoutStart, setBlackoutStart] = useState('');
   const [blackoutEnd, setBlackoutEnd] = useState('');
 
-  // Admin State
-  const [adminReservations, setAdminReservations] = useState<Reservation[]>([
-    { id: 'RES-8821', guest: 'Aaron Miller', property: 'The Townhouse (Hudson)', dates: 'Oct 12 - Oct 26', status: 'In-Stay', total: '$2,478.40' },
-    { id: 'RES-8824', guest: 'Dr. Sarah Jenkins', property: 'Quiet Retreat (Canton)', dates: 'Oct 15 - Nov 12', status: 'Arriving Today', total: '$3,180.00' },
-    { id: 'RES-8829', guest: 'Marcus Vance', property: 'Harbor House (Pratt)', dates: 'Oct 18 - Oct 22', status: 'Confirmed', total: '$928.00' },
-    { id: 'RES-8833', guest: 'Claire Dupont', property: 'The Captain\'s Loft (Thames)', dates: 'Oct 20 - Nov 05', status: 'Confirmed', total: '$2,875.00' }
-  ]);
+  // Admin State (Reservations from Supabase / Store)
+  const [adminReservations, setAdminReservations] = useState<Reservation[]>([]);
 
-  // Load from LocalStorage
+  // Initialize Auth & Data on Load
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.currentRole) setCurrentRole(parsed.currentRole);
-        if (parsed.guestTickets) setGuestTickets(parsed.guestTickets);
-        if (parsed.ownerApprovals) setOwnerApprovals(parsed.ownerApprovals);
+    setIsCloudLive(isSupabaseConfigured());
+
+    // Check for active session in Supabase or local auth cache
+    async function initSession() {
+      if (isSupabaseConfigured()) {
+        const user = await supabaseGetCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          setCurrentRole(user.role);
+          setIsAuthenticated(true);
+        }
+      } else {
+        try {
+          const cachedAuth = localStorage.getItem(AUTH_KEY);
+          if (cachedAuth) {
+            const parsed = JSON.parse(cachedAuth);
+            if (parsed && parsed.email) {
+              setCurrentUser(parsed);
+              setCurrentRole(parsed.role || 'guest');
+              setIsAuthenticated(true);
+            }
+          }
+        } catch (e) {}
       }
-    } catch (e) {
-      console.error(e);
+
+      // Load cached tickets & approvals
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.guestTickets) setGuestTickets(parsed.guestTickets);
+          if (parsed.ownerApprovals) setOwnerApprovals(parsed.ownerApprovals);
+        }
+      } catch (e) {}
+
+      // Load reservations from Supabase / LocalStore
+      loadReservations();
     }
+
+    initSession();
   }, []);
 
-  const saveToStorage = (updatedRole = currentRole, updatedTickets = guestTickets, updatedApprovals = ownerApprovals) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        currentRole: updatedRole,
-        guestTickets: updatedTickets,
-        ownerApprovals: updatedApprovals
-      }));
-    } catch (e) {
-      console.error(e);
+  const loadReservations = async () => {
+    const { data } = await dbFetchReservations();
+    if (data && data.length > 0) {
+      setAdminReservations(data);
+    } else {
+      setAdminReservations(getStoredReservations());
     }
   };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3200);
-  };
-
-  const switchRole = (role: 'guest' | 'owner' | 'admin') => {
-    setCurrentRole(role);
-    saveToStorage(role, guestTickets, ownerApprovals);
-    const labels = { guest: 'Guest: Aaron Miller', owner: 'Owner: Eleanor Vance', admin: 'Operations Admin' };
-    showToast(`Switched view to ${labels[role]}`);
   };
 
   const handleCopy = (text: string) => {
@@ -86,8 +124,118 @@ export default function PortalPage() {
     });
   };
 
-  // Submit Ticket
-  const handleSubmitTicket = (e: React.FormEvent) => {
+  // Sign In Handler
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+
+    const res = await supabaseSignIn(loginEmail, loginPassword);
+    setAuthLoading(false);
+
+    if (res.error) {
+      setAuthError(res.error);
+      return;
+    }
+
+    const user: UserProfile = {
+      id: res.data?.user?.id || 'demo-user',
+      email: loginEmail,
+      full_name: res.data?.user?.user_metadata?.full_name || loginEmail.split('@')[0],
+      role: res.role || 'guest',
+    };
+
+    setCurrentUser(user);
+    setCurrentRole(user.role);
+    setIsAuthenticated(true);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    showToast(`Welcome back, ${user.full_name || user.email}!`);
+  };
+
+  // Sign Up Handler
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+
+    const res = await supabaseSignUp(signupEmail, signupPassword, signupName, signupRole);
+    setAuthLoading(false);
+
+    if (res.error) {
+      setAuthError(res.error);
+      return;
+    }
+
+    const user: UserProfile = {
+      id: res.data?.user?.id || 'demo-user-signup',
+      email: signupEmail,
+      full_name: signupName,
+      role: signupRole,
+    };
+
+    setCurrentUser(user);
+    setCurrentRole(signupRole);
+    setIsAuthenticated(true);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    showToast(`Account created! Welcome to Chase Street Portals.`);
+  };
+
+  // Instant Access via Booking Code & PIN
+  const handleCodeAccess = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = directBookingCode.trim().toUpperCase();
+    const cleanPin = directPin.trim();
+
+    if (!cleanCode) {
+      setAuthError('Please enter a valid Reservation Reference (e.g. CSP-2026-8941).');
+      return;
+    }
+
+    const matchedRes = adminReservations.find(
+      (r) => r.id.toUpperCase() === cleanCode || r.id.includes(cleanCode.replace('CSP-', ''))
+    );
+
+    const user: UserProfile = {
+      id: 'guest-' + cleanCode,
+      email: matchedRes?.guestEmail || 'resident@chasestreetproperties.net',
+      full_name: matchedRes?.guest || 'Resident Guest',
+      role: 'guest',
+    };
+
+    setCurrentUser(user);
+    setCurrentRole('guest');
+    setIsAuthenticated(true);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    showToast(`Welcome! Stay dashboard unlocked for ${cleanCode}`);
+  };
+
+  // One-Click Demo Access
+  const handleDemoLogin = (role: 'guest' | 'owner' | 'admin') => {
+    const demoProfiles: Record<string, UserProfile> = {
+      guest: { id: 'demo-guest', email: 'aaron.miller@jhmi.edu', full_name: 'Aaron Miller (Johns Hopkins Fellow)', role: 'guest' },
+      owner: { id: 'demo-owner', email: 'eleanor.vance@vanceholdings.com', full_name: 'Eleanor Vance (Property Investor)', role: 'owner' },
+      admin: { id: 'demo-admin', email: 'gonzalo@chasestreetproperties.net', full_name: 'Gonzalo Jouan (Host & Operations Director)', role: 'admin' },
+    };
+
+    const user = demoProfiles[role];
+    setCurrentUser(user);
+    setCurrentRole(role);
+    setIsAuthenticated(true);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    showToast(`Logged in as ${user.full_name}`);
+  };
+
+  // Sign Out Handler
+  const handleSignOut = async () => {
+    await supabaseSignOut();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    localStorage.removeItem(AUTH_KEY);
+    showToast('Signed out of Chase Street Portals.');
+  };
+
+  // Submit Maintenance Ticket (Dispatches to Supabase & Local State)
+  const handleSubmitTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ticketTitle || !ticketDesc) {
       showToast('Please fill out ticket title and description.');
@@ -103,24 +251,43 @@ export default function PortalPage() {
       status: 'Dispatched',
       date: 'Today, Just now',
       description: ticketDesc,
-      room: ticketRoom
+      room: ticketRoom || 'General'
     };
 
     const updated = [newTicket, ...guestTickets];
     setGuestTickets(updated);
-    saveToStorage(currentRole, updated, ownerApprovals);
+
+    // Save to Supabase (and local storage fallback)
+    await dbCreateTicket(newTicket);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        currentRole,
+        guestTickets: updated,
+        ownerApprovals
+      }));
+    } catch (e) {}
+
     setTicketTitle('');
     setTicketRoom('');
     setTicketDesc('');
-    showToast(`Work order ${newId} dispatched to Chase Street Concierge!`);
+    showToast(`Work order ${newId} dispatched to Chase Street Concierge & Supabase!`);
   };
 
-  // Approve / Decline Owner work orders
+  // Owner Approve / Decline
   const handleApprovalAction = (index: number, newStatus: 'Approved' | 'Declined') => {
     const updated = [...ownerApprovals];
     updated[index].status = newStatus;
     setOwnerApprovals(updated);
-    saveToStorage(currentRole, guestTickets, updated);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        currentRole,
+        guestTickets,
+        ownerApprovals: updated
+      }));
+    } catch (e) {}
+
     showToast(`Work order ${updated[index].id} marked as ${newStatus}.`);
   };
 
@@ -133,687 +300,848 @@ export default function PortalPage() {
         </div>
       )}
 
-      {/* Top Demo Bar */}
-      <aside className="demo-bar" aria-label="Demo Role Switcher">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="demo-bar__badge">Interactive Portals</span>
-          <span>Select a live test persona to explore all portal capabilities:</span>
-        </div>
-        <div className="demo-bar__buttons">
-          <button
-            type="button"
-            className={`demo-btn ${currentRole === 'guest' ? 'is-active' : ''}`}
-            onClick={() => switchRole('guest')}
-          >
-            👤 Guest: Aaron Miller
-          </button>
-          <button
-            type="button"
-            className={`demo-btn ${currentRole === 'owner' ? 'is-active' : ''}`}
-            onClick={() => switchRole('owner')}
-          >
-            🏢 Owner: Eleanor Vance
-          </button>
-          <button
-            type="button"
-            className={`demo-btn ${currentRole === 'admin' ? 'is-active' : ''}`}
-            onClick={() => switchRole('admin')}
-          >
-            ⚙️ Team: Operations Admin
-          </button>
-        </div>
-      </aside>
+      {/* ========================================================================= */}
+      {/* 1. AUTHENTICATION & ACCESS GATEWAY (When not authenticated)              */}
+      {/* ========================================================================= */}
+      {!isAuthenticated ? (
+        <main id="main" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px var(--gutter)', background: 'var(--paper)' }}>
+          <div style={{ maxWidth: 540, width: '100%', background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: '40px 36px', boxShadow: '0 20px 50px rgba(23,35,31,0.06)' }}>
+            
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <span className="brand__monogram" style={{ display: 'inline-block', width: 44, height: 44, lineHeight: '44px', background: 'var(--forest)', color: '#fff', borderRadius: '50%', fontWeight: 700, fontSize: '0.95rem', marginBottom: 12 }}>
+                CS
+              </span>
+              <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700, marginBottom: 4 }}>
+                Private Member & Resident Gateway
+              </span>
+              <h1 style={{ font: '400 clamp(1.8rem, 3.5vw, 2.4rem)/1.15 var(--serif)', color: 'var(--forest)', margin: 0 }}>
+                Chase Street Portals Access
+              </h1>
+              <p style={{ fontSize: '0.86rem', color: 'var(--ink-soft)', margin: '8px 0 0', lineHeight: 1.6 }}>
+                Secure gateway for guests, property owners, and operations staff.
+              </p>
 
-      {/* Role Navigation Tabs */}
-      <nav className="portal-tabs-nav" aria-label="Portal Navigation Tabs">
-        <div className="portal-tabs-nav__inner">
-          <button
-            type="button"
-            className={`portal-tab-btn ${currentRole === 'guest' ? 'is-active' : ''}`}
-            onClick={() => switchRole('guest')}
-          >
-            <span>🔑</span> Resident & Guest Portal
-          </button>
-          <button
-            type="button"
-            className={`portal-tab-btn ${currentRole === 'owner' ? 'is-active' : ''}`}
-            onClick={() => switchRole('owner')}
-          >
-            <span>📊</span> Property Owner & Investor Portal
-          </button>
-          <button
-            type="button"
-            className={`portal-tab-btn ${currentRole === 'admin' ? 'is-active' : ''}`}
-            onClick={() => switchRole('admin')}
-          >
-            <span>⚡</span> Operations & Management Portal
-          </button>
-        </div>
-      </nav>
-
-      <main id="main">
-        <div className="portal-layout">
-          {/* Sidebar */}
-          <aside className="portal-sidebar">
-            <div className="user-profile-card">
-              <div className="user-avatar">CS</div>
-              <div className="user-info">
-                <h3>{currentRole === 'guest' ? 'Aaron Miller' : currentRole === 'owner' ? 'Eleanor Vance' : 'Chase Street Team'}</h3>
-                <span>{currentRole === 'guest' ? 'In-Stay Resident' : currentRole === 'owner' ? 'Property Investor' : 'Operations Supervisor'}</span>
+              {/* Supabase Status Pill */}
+              <div style={{ marginTop: 12 }}>
+                {isCloudLive ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', padding: '4px 10px', background: '#eef6f2', color: '#107e4d', borderRadius: 20, fontWeight: 600 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#107e4d' }}></span>
+                    Supabase Cloud DB Active (RLS Protected)
+                  </span>
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', padding: '4px 10px', background: '#fef7e6', color: '#b45309', borderRadius: 20, fontWeight: 600 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }}></span>
+                    Local Secure Session (Supabase Ready in .env.local)
+                  </span>
+                )}
               </div>
             </div>
 
-            <nav className="portal-nav-menu" aria-label="Portal section navigation">
-              <a className="portal-nav-link is-active" href="#overview">
-                <span>🏠 Overview</span>
-              </a>
-              {currentRole === 'guest' && (
-                <>
-                  <a className="portal-nav-link" href="#access">
-                    <span>🔐 Access & WiFi</span>
-                  </a>
-                  <a className="portal-nav-link" href="#maintenance">
-                    <span>🛠️ Maintenance</span>
-                    <span className="portal-nav-badge">{guestTickets.length} Active</span>
-                  </a>
-                  <a className="portal-nav-link" href="#perks">
-                    <span>☕ Neighborhood Perks</span>
-                  </a>
-                </>
-              )}
-              {currentRole === 'owner' && (
-                <>
-                  <a className="portal-nav-link" href="#revenue">
-                    <span>📈 Revenue & Yield</span>
-                  </a>
-                  <a className="portal-nav-link" href="#approvals">
-                    <span>✍️ Approvals</span>
-                    <span className="portal-nav-badge">
-                      {ownerApprovals.filter(a => a.status === 'Pending').length} Pending
-                    </span>
-                  </a>
-                  <a className="portal-nav-link" href="#statements">
-                    <span>📄 Statements</span>
-                  </a>
-                </>
-              )}
-              {currentRole === 'admin' && (
-                <>
-                  <a className="portal-nav-link" href="#reservations">
-                    <span>📅 Guest Pipeline</span>
-                  </a>
-                  <a className="portal-nav-link" href="#units">
-                    <span>🏢 Unit Inventory</span>
-                  </a>
-                </>
-              )}
-              <Link className="portal-nav-link" href="/contact">
-                <span>📞 Concierge Desk</span>
-              </Link>
-            </nav>
-
-            <div className="emergency-help-box">
-              <strong>24/7 Baltimore Support</strong>
-              <p style={{ margin: '0 0 8px' }}>Direct line to on-call supervisor & maintenance dispatch:</p>
-              <a href="tel:+14102188462" style={{ fontWeight: 600, color: '#633614', textDecoration: 'underline' }}>
-                +1 (410) 218-8462
-              </a>
+            {/* Access Tabs */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, background: '#faf8f5', padding: 4, borderRadius: 8, marginBottom: 24 }}>
+              <button
+                type="button"
+                onClick={() => { setAuthTab('signin'); setAuthError(null); }}
+                style={{
+                  padding: '9px 4px',
+                  fontSize: '0.76rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  background: authTab === 'signin' ? '#fff' : 'transparent',
+                  color: authTab === 'signin' ? 'var(--forest)' : 'var(--ink-soft)',
+                  boxShadow: authTab === 'signin' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthTab('code'); setAuthError(null); }}
+                style={{
+                  padding: '9px 4px',
+                  fontSize: '0.76rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  background: authTab === 'code' ? '#fff' : 'transparent',
+                  color: authTab === 'code' ? 'var(--forest)' : 'var(--ink-soft)',
+                  boxShadow: authTab === 'code' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Stay Code Access
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthTab('signup'); setAuthError(null); }}
+                style={{
+                  padding: '9px 4px',
+                  fontSize: '0.76rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  background: authTab === 'signup' ? '#fff' : 'transparent',
+                  color: authTab === 'signup' ? 'var(--forest)' : 'var(--ink-soft)',
+                  boxShadow: authTab === 'signup' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Register
+              </button>
             </div>
-          </aside>
 
-          {/* Main Content Panels */}
-          <section className="portal-main">
-            {/* ===================================== */}
-            {/* GUEST ROLE PANEL                     */}
-            {/* ===================================== */}
-            {currentRole === 'guest' && (
-              <div id="panel-guest">
-                {/* Access Hero Keycard */}
-                <div className="access-hero-card" id="access">
-                  <div className="access-header">
+            {/* Error Message */}
+            {authError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '10px 14px', borderRadius: 6, fontSize: '0.8rem', marginBottom: 18 }}>
+                {authError}
+              </div>
+            )}
+
+            {/* TAB 1: SIGN IN */}
+            {authTab === 'signin' && (
+              <form onSubmit={handleSignIn} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g. aaron.miller@jhmi.edu"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••••••"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="btn-book"
+                  style={{ width: '100%', padding: '12px', fontSize: '0.85rem', marginTop: 6 }}
+                >
+                  {authLoading ? 'Authenticating with Supabase...' : 'Sign In to Portal →'}
+                </button>
+              </form>
+            )}
+
+            {/* TAB 2: STAY CODE & PIN ACCESS */}
+            {authTab === 'code' && (
+              <form onSubmit={handleCodeAccess} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft)', margin: '0 0 4px', lineHeight: 1.6 }}>
+                  Arriving guest? Enter the booking reference from your confirmation email or reservation receipt for instant keyless access.
+                </p>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Booking Reference Code *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. CSP-2026-8941"
+                    value={directBookingCode}
+                    onChange={(e) => setDirectBookingCode(e.target.value)}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem', textTransform: 'uppercase' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Door PIN (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 4892#"
+                    value={directPin}
+                    onChange={(e) => setDirectPin(e.target.value)}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn-book"
+                  style={{ width: '100%', padding: '12px', fontSize: '0.85rem', marginTop: 6 }}
+                >
+                  Unlock Stay Dashboard ↗
+                </button>
+              </form>
+            )}
+
+            {/* TAB 3: REGISTER */}
+            {authTab === 'signup' && (
+              <form onSubmit={handleSignUp} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Dr. Jordan Hayes"
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="jordan.hayes@jhmi.edu"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Create Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="Minimum 6 characters"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                    Account Role
+                  </label>
+                  <select
+                    value={signupRole}
+                    onChange={(e) => setSignupRole(e.target.value as 'guest' | 'owner')}
+                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
+                  >
+                    <option value="guest">Resident / Visiting Fellow (Guest Portal)</option>
+                    <option value="owner">Property Owner / Investor (Owner Portal)</option>
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="btn-book"
+                  style={{ width: '100%', padding: '12px', fontSize: '0.85rem', marginTop: 6 }}
+                >
+                  {authLoading ? 'Creating Account in Supabase...' : 'Register Secure Account ↗'}
+                </button>
+              </form>
+            )}
+
+            {/* Quick Demo One-Click Access Divider */}
+            <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
+              <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--ink-soft)', fontWeight: 700, textAlign: 'center', marginBottom: 12 }}>
+                Instant One-Click Demo Access
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('guest')}
+                  className="btn-outline"
+                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <span>👤</span>
+                  <div style={{ textAlign: 'left', flex: 1 }}>
+                    <strong>Resident Guest</strong>: Aaron Miller (Hopkins Fellow)
+                  </div>
+                  <span style={{ color: 'var(--copper)', fontWeight: 600 }}>Enter ↗</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('owner')}
+                  className="btn-outline"
+                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <span>🏢</span>
+                  <div style={{ textAlign: 'left', flex: 1 }}>
+                    <strong>Property Owner</strong>: Eleanor Vance (Investor Portfolio)
+                  </div>
+                  <span style={{ color: 'var(--copper)', fontWeight: 600 }}>Enter ↗</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('admin')}
+                  className="btn-outline"
+                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <span>⚙️</span>
+                  <div style={{ textAlign: 'left', flex: 1 }}>
+                    <strong>Host Operations Admin</strong>: Gonzalo Jouan (Team Hub)
+                  </div>
+                  <span style={{ color: 'var(--copper)', fontWeight: 600 }}>Enter ↗</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </main>
+      ) : (
+
+      /* ========================================================================= */
+      /* 2. AUTHENTICATED PORTAL DASHBOARD (When logged in)                        */
+      /* ========================================================================= */
+      <>
+        {/* User Session Bar */}
+        <aside className="demo-bar" aria-label="Portal Header Bar" style={{ background: 'var(--forest)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span className="demo-bar__badge" style={{ background: 'var(--copper)', color: '#fff' }}>
+              {currentRole === 'guest' ? 'Resident Portal' : currentRole === 'owner' ? 'Owner Portal' : 'Operations Admin'}
+            </span>
+            <span style={{ color: '#fff', fontSize: '0.82rem' }}>
+              Logged in as: <strong>{currentUser?.full_name || currentUser?.email}</strong> ({currentUser?.email})
+            </span>
+            {isCloudLive && (
+              <span style={{ fontSize: '0.7rem', color: '#86efac', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#86efac' }}></span> Supabase Synced
+              </span>
+            )}
+          </div>
+          <div className="demo-bar__buttons" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {/* View Switcher for Admins/Testers */}
+            <select
+              value={currentRole}
+              onChange={(e) => setCurrentRole(e.target.value as any)}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 4,
+                padding: '4px 8px',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+              }}
+              title="Switch portal view"
+            >
+              <option value="guest" style={{ color: '#000' }}>View as: Resident Guest</option>
+              <option value="owner" style={{ color: '#000' }}>View as: Property Owner</option>
+              <option value="admin" style={{ color: '#000' }}>View as: Operations Admin</option>
+            </select>
+
+            <button
+              type="button"
+              className="demo-btn"
+              onClick={handleSignOut}
+              style={{ background: 'rgba(239,68,68,0.2)', borderColor: 'rgba(239,68,68,0.4)', color: '#fca5a5' }}
+            >
+              Sign Out ✕
+            </button>
+          </div>
+        </aside>
+
+        {/* Role Navigation Tabs */}
+        <nav className="portal-tabs-nav" aria-label="Portal Navigation Tabs">
+          <div className="portal-tabs-nav__inner">
+            <button
+              type="button"
+              className={`portal-tab-btn ${currentRole === 'guest' ? 'is-active' : ''}`}
+              onClick={() => setCurrentRole('guest')}
+            >
+              <span>🔑</span> Resident & Guest Portal
+            </button>
+            <button
+              type="button"
+              className={`portal-tab-btn ${currentRole === 'owner' ? 'is-active' : ''}`}
+              onClick={() => setCurrentRole('owner')}
+            >
+              <span>📊</span> Property Owner & Investor Portal
+            </button>
+            <button
+              type="button"
+              className={`portal-tab-btn ${currentRole === 'admin' ? 'is-active' : ''}`}
+              onClick={() => setCurrentRole('admin')}
+            >
+              <span>⚡</span> Operations & Management Portal
+            </button>
+          </div>
+        </nav>
+
+        <main id="main">
+          <div className="portal-layout">
+            {/* Left Sidebar */}
+            <aside className="portal-sidebar">
+              <div className="user-profile-card">
+                <div className="user-avatar">
+                  {currentUser?.full_name ? currentUser.full_name.charAt(0) : 'CS'}
+                </div>
+                <div className="user-info">
+                  <h3>{currentUser?.full_name || 'Resident Guest'}</h3>
+                  <span className="user-role-badge">
+                    {currentRole === 'guest' ? 'Resident Member' : currentRole === 'owner' ? 'Property Investor' : 'Operations Host'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Navigation */}
+              <div className="sidebar-widget">
+                <span className="widget-title">Portal Shortcuts</span>
+                <ul className="stay-meta-list">
+                  <li>
+                    <span className="label">Current Stay</span>
+                    <span className="value">Canton Townhouse</span>
+                  </li>
+                  <li>
+                    <span className="label">Front Door PIN</span>
+                    <span className="value" style={{ color: 'var(--copper)', fontWeight: 700 }}>4892#</span>
+                  </li>
+                  <li>
+                    <span className="label">WiFi Network</span>
+                    <span className="value">CSP-HighSpeed</span>
+                  </li>
+                  <li>
+                    <span className="label">WiFi Password</span>
+                    <span className="value">waterfront2026</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Host Support */}
+              <div className="sidebar-widget">
+                <span className="widget-title">Local Host Support</span>
+                <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', margin: '0 0 10px', lineHeight: 1.5 }}>
+                  Need fresh linens, early check-out, or local recommendations?
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <a href="tel:+14102188462" className="btn-outline" style={{ fontSize: '0.72rem', padding: '6px 10px', textAlign: 'center' }}>
+                    📞 Call Host: (410) 218-8462
+                  </a>
+                  <a href="mailto:info@chasestreetproperties.net" className="btn-outline" style={{ fontSize: '0.72rem', padding: '6px 10px', textAlign: 'center' }}>
+                    ✉️ Email Concierge
+                  </a>
+                </div>
+              </div>
+
+              {/* Database info widget */}
+              <div className="sidebar-widget" style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 6, padding: '14px' }}>
+                <span className="widget-title" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Data Security</span>
+                <p style={{ fontSize: '0.74rem', color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.5 }}>
+                  {isCloudLive ? 'All tickets & reservations sync with Supabase PostgreSQL with RLS encryption.' : 'Local secure sandbox active. Add Supabase credentials in .env.local for production database.'}
+                </p>
+              </div>
+            </aside>
+
+            {/* Main Portal Viewports */}
+            <div className="portal-content">
+              {/* ========================================================= */}
+              {/* 1. GUEST PORTAL VIEWPORT                                  */}
+              {/* ========================================================= */}
+              {currentRole === 'guest' && (
+                <div className="portal-view">
+                  <div className="welcome-banner">
                     <div>
-                      <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--sand)', fontWeight: 600 }}>
-                        Current Active Stay
+                      <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sand)', fontWeight: 600 }}>
+                        Welcome to Baltimore
                       </span>
-                      <h2 className="access-property-title">The Townhouse at Hudson Street</h2>
-                      <div className="access-stay-dates">3037 Hudson St, Canton · Oct 12 – Oct 26, 2026 (11 Nights Remaining)</div>
+                      <h2>Your Stay at The Townhouse at Hudson Street</h2>
+                      <p>3037 Hudson Street, Canton · Active Stay through Oct 28, 2026</p>
                     </div>
-                    <span className="p-badge p-badge--copper">Live Stay</span>
-                  </div>
-
-                  <div className="access-credentials-grid">
-                    <div className="cred-box">
-                      <span>Front Keypad PIN</span>
-                      <div className="cred-code-wrap">
-                        <strong>4892#</strong>
-                        <button type="button" className="copy-btn" onClick={() => handleCopy('4892#')}>Copy PIN</button>
-                      </div>
-                    </div>
-
-                    <div className="cred-box">
-                      <span>WiFi Network</span>
-                      <div className="cred-code-wrap">
-                        <strong style={{ fontSize: '0.95rem' }}>ChaseStreet-5G</strong>
-                        <button type="button" className="copy-btn" onClick={() => handleCopy('ChaseStreet-Hudson-5G')}>Copy</button>
-                      </div>
-                    </div>
-
-                    <div className="cred-box">
-                      <span>WiFi Password</span>
-                      <div className="cred-code-wrap">
-                        <strong style={{ fontSize: '0.85rem' }}>Waterfront2026!</strong>
-                        <button type="button" className="copy-btn" onClick={() => handleCopy('BaltimoreWaterfront2026!')}>Copy</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Action Tiles */}
-                <div style={{ marginTop: 28 }}>
-                  <div className="panel-header">
-                    <div>
-                      <h2>Resident Services & Controls</h2>
-                      <p>On-demand conveniences tailored for your stay in Baltimore</p>
-                    </div>
-                  </div>
-
-                  <div className="quick-tiles-grid">
-                    <div className="quick-tile" onClick={() => showToast('Mid-stay deep housekeeping scheduled for tomorrow at 11:00 AM ($75 billed).')}>
-                      <div className="quick-tile-icon">🧹</div>
-                      <div>
-                        <h4>Mid-Stay Housekeeping</h4>
-                        <p>Fresh percale linens, bathroom deep sanitization, and trash turnover.</p>
-                      </div>
-                      <span className="action-hint">Request Service ($75) →</span>
-                    </div>
-
-                    <div className="quick-tile" onClick={() => showToast('Parking Space: Bay #3 behind 3037 Hudson St. Keycard on kitchen island.')}>
-                      <div className="quick-tile-icon">🚗</div>
-                      <div>
-                        <h4>Reserved Parking Spot</h4>
-                        <p>Private fenced space Bay #3 behind property with 24/7 camera monitoring.</p>
-                      </div>
-                      <span className="action-hint">View Space Info →</span>
-                    </div>
-
-                    <div className="quick-tile" onClick={() => showToast('House Manual: Nest set to 70°F. Trash collection is Tuesday morning.')}>
-                      <div className="quick-tile-icon">📖</div>
-                      <div>
-                        <h4>Digital House Manual</h4>
-                        <p>Appliance guides, Nest thermostat operation, and neighborhood schedule.</p>
-                      </div>
-                      <span className="action-hint">Open Manual →</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Maintenance Submitter & Tracker */}
-                <div className="portal-card" style={{ marginTop: 30 }} id="maintenance">
-                  <div className="panel-header" style={{ marginBottom: 14 }}>
-                    <div>
-                      <h3>Maintenance & Concierge Requests</h3>
-                      <p className="subtitle">Submit any maintenance or comfort request for swift resolution by our local Canton team.</p>
-                    </div>
-                    <span className="p-badge">Avg Response: 22 Mins</span>
-                  </div>
-
-                  <form className="ticket-form" onSubmit={handleSubmitTicket} style={{ background: '#fdfbf7', padding: 22, border: '1px solid var(--line)', borderRadius: 4 }}>
-                    <div className="ticket-form-grid">
-                      <div>
-                        <label htmlFor="t-title">Issue Summary *</label>
-                        <input
-                          type="text"
-                          id="t-title"
-                          placeholder="e.g. Living room AC thermostat adjustment"
-                          value={ticketTitle}
-                          onChange={(e) => setTicketTitle(e.target.value)}
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="t-cat">Category *</label>
-                        <select
-                          id="t-cat"
-                          value={ticketCategory}
-                          onChange={(e) => setTicketCategory(e.target.value)}
-                        >
-                          <option value="HVAC">Climate / HVAC / Heat</option>
-                          <option value="Plumbing">Plumbing & Water</option>
-                          <option value="WiFi/Tech">WiFi / Television / Smart Locks</option>
-                          <option value="Housekeeping">Linens & Housekeeping Supplies</option>
-                          <option value="Noise/Exterior">Exterior / Noise / Parking</option>
-                          <option value="General">Other / General Question</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label htmlFor="t-urg">Priority Level</label>
-                        <select
-                          id="t-urg"
-                          value={ticketUrgency}
-                          onChange={(e) => setTicketUrgency(e.target.value as any)}
-                        >
-                          <option value="Normal">Normal (Within 2-4 hours)</option>
-                          <option value="Urgent">Urgent (Within 1 hour)</option>
-                          <option value="Emergency">Emergency (Immediate Dispatch)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label htmlFor="t-room">Location in Home</label>
-                        <input
-                          type="text"
-                          id="t-room"
-                          placeholder="e.g. Master Bedroom / Kitchen"
-                          value={ticketRoom}
-                          onChange={(e) => setTicketRoom(e.target.value)}
-                        />
-                      </div>
-
-                      <div className="form-group-full">
-                        <label htmlFor="t-desc">Details & Description *</label>
-                        <textarea
-                          id="t-desc"
-                          placeholder="Please describe what you are experiencing..."
-                          value={ticketDesc}
-                          onChange={(e) => setTicketDesc(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
-                      <button type="submit" className="btn-book" style={{ padding: '12px 24px' }}>
-                        Dispatch Request to Concierge ↗
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="btn-book"
+                        style={{ background: 'var(--sand)', color: 'var(--forest)' }}
+                        onClick={() => handleCopy('4892#')}
+                      >
+                        Copy Door PIN (4892#)
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}
+                        onClick={() => handleCopy('waterfront2026')}
+                      >
+                        Copy WiFi Password
                       </button>
                     </div>
-                  </form>
+                  </div>
 
-                  {/* Active Tickets List */}
-                  <div style={{ marginTop: 24 }}>
-                    <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--ink-soft)', margin: '0 0 12px' }}>
-                      Active & Recent Work Orders
-                    </h4>
-                    <div className="tickets-list">
-                      {guestTickets.map((t) => (
-                        <div key={t.id} className="ticket-item">
-                          <div className="ticket-info">
-                            <h5>{t.title} <small style={{ color: 'var(--copper)', fontSize: '0.7rem', fontWeight: 400 }}>({t.id})</small></h5>
-                            <p>Category: <strong>{t.category}</strong> · Urgency: <strong>{t.urgency}</strong> · Filed on {t.date}</p>
-                          </div>
+                  {/* Dispatch Maintenance Work Order */}
+                  <div className="section-card" style={{ marginTop: 24 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <div>
+                        <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--copper)', fontWeight: 700 }}>
+                          Fast Local Support
+                        </span>
+                        <h3 style={{ margin: '2px 0 0', font: '400 1.5rem var(--serif)', color: 'var(--forest)' }}>
+                          Dispatch Concierge / Work Order
+                        </h3>
+                      </div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--ink-soft)' }}>
+                        Average response time: &lt; 20 minutes
+                      </span>
+                    </div>
+
+                    <form onSubmit={handleSubmitTicket} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                          Issue / Request Title *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Extra towels, plumbing check, thermostat help"
+                          value={ticketTitle}
+                          onChange={(e) => setTicketTitle(e.target.value)}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                          Category
+                        </label>
+                        <select
+                          value={ticketCategory}
+                          onChange={(e) => setTicketCategory(e.target.value)}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                        >
+                          <option value="HVAC">HVAC / Climate Control</option>
+                          <option value="Plumbing">Plumbing & Water</option>
+                          <option value="Housekeeping">Housekeeping & Linens</option>
+                          <option value="WiFi">WiFi & Connectivity</option>
+                          <option value="Access">Keyless Access / Locks</option>
+                          <option value="General">General Inquiries</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                          Specific Room / Location
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Master Bedroom, Kitchen sink"
+                          value={ticketRoom}
+                          onChange={(e) => setTicketRoom(e.target.value)}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                          Urgency Level
+                        </label>
+                        <select
+                          value={ticketUrgency}
+                          onChange={(e) => setTicketUrgency(e.target.value as any)}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                        >
+                          <option value="Normal">Normal (Routine daytime dispatch)</option>
+                          <option value="Urgent">Urgent (Needs attention today)</option>
+                          <option value="Emergency">Emergency (Immediate on-call staff)</option>
+                        </select>
+                      </div>
+
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
+                          Detailed Description *
+                        </label>
+                        <textarea
+                          rows={2}
+                          required
+                          placeholder="Provide any helpful details for our maintenance technician..."
+                          value={ticketDesc}
+                          onChange={(e) => setTicketDesc(e.target.value)}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
+                        />
+                      </div>
+
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <button type="submit" className="btn-book" style={{ padding: '10px 24px', fontSize: '0.8rem' }}>
+                          Dispatch Work Order to Supabase ↗
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* Active Work Orders Table */}
+                  <div className="section-card" style={{ marginTop: 24 }}>
+                    <h3 style={{ margin: '0 0 14px', font: '400 1.4rem var(--serif)', color: 'var(--forest)' }}>
+                      Active Concierge Requests & Maintenance Tickets
+                    </h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-soft)' }}>
+                            <th style={{ padding: '8px 12px' }}>Ticket ID</th>
+                            <th style={{ padding: '8px 12px' }}>Issue / Title</th>
+                            <th style={{ padding: '8px 12px' }}>Category</th>
+                            <th style={{ padding: '8px 12px' }}>Urgency</th>
+                            <th style={{ padding: '8px 12px' }}>Status</th>
+                            <th style={{ padding: '8px 12px' }}>Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {guestTickets.map((t) => (
+                            <tr key={t.id} style={{ borderBottom: '1px solid var(--line)' }}>
+                              <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{t.id}</td>
+                              <td style={{ padding: '12px', fontWeight: 600 }}>{t.title}</td>
+                              <td style={{ padding: '12px' }}>{t.category}</td>
+                              <td style={{ padding: '12px' }}>
+                                <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: '0.72rem', background: t.urgency === 'Emergency' ? '#fee2e2' : t.urgency === 'Urgent' ? '#fef3c7' : '#f3f4f6', color: t.urgency === 'Emergency' ? '#b91c1c' : t.urgency === 'Urgent' ? '#b45309' : '#374151' }}>
+                                  {t.urgency}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px' }}>
+                                <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: '0.72rem', background: t.status === 'Resolved' ? '#dcfce7' : '#e0f2fe', color: t.status === 'Resolved' ? '#15803d' : '#0369a1', fontWeight: 600 }}>
+                                  {t.status}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px', color: 'var(--ink-soft)' }}>{t.date}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* 2. OWNER PORTAL VIEWPORT                                  */}
+              {/* ========================================================= */}
+              {currentRole === 'owner' && (
+                <div className="portal-view">
+                  <div className="welcome-banner" style={{ background: '#2c3e38' }}>
+                    <div>
+                      <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sand)', fontWeight: 600 }}>
+                        Property Investor Overview
+                      </span>
+                      <h2>Eleanor Vance Portfolio Dashboard</h2>
+                      <p>Managing 2 Executive Residences in Canton & Mount Vernon · Baltimore, MD</p>
+                    </div>
+                  </div>
+
+                  {/* Financial Metrics Strip */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginTop: 24 }}>
+                    <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: 20 }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Monthly Net Revenue</span>
+                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>$7,420.00</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>↑ 8.4% vs last month</span>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: 20 }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Average Occupancy</span>
+                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>94.2%</strong>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>Hopkins & corporate fellows</span>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: 20 }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Average Daily Rate</span>
+                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>$178.50</strong>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--copper)' }}>GSA per-diem aligned</span>
+                    </div>
+                  </div>
+
+                  {/* Pending Maintenance Approvals */}
+                  <div className="section-card" style={{ marginTop: 24 }}>
+                    <h3 style={{ margin: '0 0 14px', font: '400 1.4rem var(--serif)', color: 'var(--forest)' }}>
+                      Maintenance & Repair Approvals
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft)', margin: '0 0 16px' }}>
+                      Items exceeding $150 require owner authorization before work is dispatched.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {ownerApprovals.map((app, idx) => (
+                        <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 6, padding: '16px 20px', flexWrap: 'wrap', gap: 12 }}>
                           <div>
-                            <span className={`ticket-badge ${t.status === 'Resolved' ? 'badge-green' : 'badge-blue'}`}>
-                              {t.status}
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                              <strong style={{ fontSize: '0.88rem', color: 'var(--forest)' }}>{app.item}</strong>
+                              <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'var(--copper)' }}>({app.id})</span>
+                            </div>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>
+                              Property: <strong>{app.property}</strong> · Estimated Cost: <strong>{app.cost}</strong>
                             </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <span style={{ padding: '4px 10px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600, background: app.status === 'Approved' ? '#dcfce7' : app.status === 'Declined' ? '#fee2e2' : '#fef3c7', color: app.status === 'Approved' ? '#15803d' : app.status === 'Declined' ? '#b91c1c' : '#b45309' }}>
+                              {app.status}
+                            </span>
+                            {app.status === 'Pending' && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApprovalAction(idx, 'Approved')}
+                                  className="btn-book"
+                                  style={{ padding: '6px 14px', fontSize: '0.72rem', background: '#16a34a' }}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApprovalAction(idx, 'Declined')}
+                                  className="btn-outline"
+                                  style={{ padding: '6px 12px', fontSize: '0.72rem', borderColor: '#dc2626', color: '#dc2626' }}
+                                >
+                                  Decline
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                </div>
 
-                {/* Neighborhood Perks */}
-                <div className="portal-card" style={{ marginTop: 30 }} id="perks">
-                  <h3>Chase Street Local Resident Perks</h3>
-                  <p className="subtitle">Exclusive privileges negotiated with our favorite neighborhood partners in Canton and Fells Point.</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-                    <div style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 4, padding: 18 }}>
-                      <strong style={{ color: 'var(--ink)', display: 'block', fontSize: '0.9rem' }}>☕ Canton Coffee Roasters</strong>
-                      <p style={{ margin: '4px 0 10px', fontSize: '0.78rem', color: 'var(--ink-soft)' }}>15% off all espresso drinks & fresh pastries. Use code <strong>CSGUEST15</strong>.</p>
-                    </div>
-                    <div style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 4, padding: 18 }}>
-                      <strong style={{ color: 'var(--ink)', display: 'block', fontSize: '0.9rem' }}>🚤 Baltimore Water Taxi</strong>
-                      <p style={{ margin: '4px 0 10px', fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Unlimited daily harbor crossing pass at 20% resident discount.</p>
-                    </div>
-                    <div style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 4, padding: 18 }}>
-                      <strong style={{ color: 'var(--ink)', display: 'block', fontSize: '0.9rem' }}>🏋️ Merritt Clubs Canton</strong>
-                      <p style={{ margin: '4px 0 10px', fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Complimentary guest day-passes to rooftop pool and fitness center.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ===================================== */}
-            {/* OWNER ROLE PANEL                     */}
-            {/* ===================================== */}
-            {currentRole === 'owner' && (
-              <div id="panel-owner">
-                <div className="panel-header" id="revenue">
-                  <div>
-                    <h2>Property Owner Portfolio Dashboard</h2>
-                    <p>Real-time occupancy, revenue yield, and maintenance approvals for Eleanor Vance</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn-book"
-                    onClick={() => showToast('Generating certified PDF statement for October 2026... Download started.')}
-                  >
-                    Download October Statement (PDF) ↗
-                  </button>
-                </div>
-
-                {/* KPI Metrics */}
-                <div className="metrics-row">
-                  <div className="kpi-card">
-                    <span className="kpi-label">October Gross Revenue</span>
-                    <div className="kpi-val">$9,480</div>
-                    <span className="kpi-trend">▲ +14.2% vs. Long-Term Lease</span>
-                  </div>
-
-                  <div className="kpi-card">
-                    <span className="kpi-label">Net Owner Payout</span>
-                    <div className="kpi-val" style={{ color: 'var(--copper)' }}>$7,584</div>
-                    <span className="kpi-trend" style={{ color: 'var(--ink-soft)' }}>Direct ACH scheduled Nov 1</span>
-                  </div>
-
-                  <div className="kpi-card">
-                    <span className="kpi-label">Portfolio Occupancy</span>
-                    <div className="kpi-val">94.2%</div>
-                    <span className="kpi-trend">▲ 28 nights booked</span>
-                  </div>
-
-                  <div className="kpi-card">
-                    <span className="kpi-label">Average Daily Rate (ADR)</span>
-                    <div className="kpi-val">$158</div>
-                    <span className="kpi-trend">▲ Optimized by dynamic AI</span>
-                  </div>
-                </div>
-
-                {/* Approvals */}
-                <div className="portal-card" style={{ marginTop: 30 }} id="approvals">
-                  <div className="panel-header" style={{ marginBottom: 12 }}>
-                    <div>
-                      <h3>Owner Maintenance Approvals</h3>
-                      <p className="subtitle">Review capital items and routine service recommendations requiring your sign-off.</p>
-                    </div>
-                  </div>
-                  <div className="tickets-list">
-                    {ownerApprovals.map((app, idx) => (
-                      <div key={app.id} className="ticket-item">
-                        <div className="ticket-info">
-                          <h5>{app.item}</h5>
-                          <p>Property: <strong>{app.property}</strong> · Estimated Cost: <strong>{app.cost}</strong></p>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <span className={`ticket-badge ${app.status === 'Pending' ? 'badge-yellow' : app.status === 'Approved' ? 'badge-green' : 'badge-yellow'}`}>
-                            {app.status}
-                          </span>
-                          {app.status === 'Pending' && (
-                            <>
-                              <button
-                                type="button"
-                                className="btn-book"
-                                style={{ padding: '6px 12px', fontSize: '0.65rem' }}
-                                onClick={() => handleApprovalAction(idx, 'Approved')}
-                              >
-                                Approve
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-outline"
-                                style={{ padding: '6px 12px', fontSize: '0.65rem' }}
-                                onClick={() => handleApprovalAction(idx, 'Declined')}
-                              >
-                                Decline
-                              </button>
-                            </>
-                          )}
-                        </div>
+                  {/* Owner Blackout Calendar */}
+                  <div className="section-card" style={{ marginTop: 24 }}>
+                    <h3 style={{ margin: '0 0 10px', font: '400 1.4rem var(--serif)', color: 'var(--forest)' }}>
+                      Owner Personal Stay / Blackout Dates
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft)', margin: '0 0 16px' }}>
+                      Block dates when you or your family plan to use your property.
+                    </p>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: 4 }}>Start Date</label>
+                        <input
+                          type="date"
+                          value={blackoutStart}
+                          onChange={(e) => setBlackoutStart(e.target.value)}
+                          style={{ padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.82rem' }}
+                        />
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Financial Statements */}
-                <div className="portal-card" style={{ marginTop: 30 }} id="statements">
-                  <div className="panel-header" style={{ marginBottom: 12 }}>
-                    <div>
-                      <h3>Historical Financial Statements</h3>
-                      <p className="subtitle">Audited monthly statements detailing nightly revenue, turnover cleaning fees, and net disbursements.</p>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: 4 }}>End Date</label>
+                        <input
+                          type="date"
+                          value={blackoutEnd}
+                          onChange={(e) => setBlackoutEnd(e.target.value)}
+                          style={{ padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.82rem' }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-book"
+                        style={{ padding: '10px 20px', fontSize: '0.78rem' }}
+                        onClick={() => {
+                          if (blackoutStart && blackoutEnd) {
+                            showToast(`Blackout dates reserved from ${blackoutStart} to ${blackoutEnd}.`);
+                          } else {
+                            showToast('Please select both start and end dates.');
+                          }
+                        }}
+                      >
+                        Reserve Owner Dates
+                      </button>
                     </div>
                   </div>
-                  <div className="table-responsive">
-                    <table className="portal-table">
-                      <thead>
-                        <tr>
-                          <th>Month</th>
-                          <th>Properties</th>
-                          <th>Gross Booking</th>
-                          <th>Mgmt Fee (20%)</th>
-                          <th>Net Disbursement</th>
-                          <th>Status</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td><strong>October 2026</strong></td>
-                          <td>3037 Hudson & 2904 O'Donnell</td>
-                          <td>$9,480.00</td>
-                          <td>$1,896.00</td>
-                          <td><strong style={{ color: 'var(--copper)' }}>$7,584.00</strong></td>
-                          <td><span className="ticket-badge badge-yellow">Processing</span></td>
-                          <td>
-                            <button
-                              type="button"
-                              className="btn-outline"
-                              style={{ padding: '4px 10px', fontSize: '0.65rem' }}
-                              onClick={() => showToast('Downloading October statement PDF...')}
-                            >
-                              PDF ↗
-                            </button>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><strong>September 2026</strong></td>
-                          <td>3037 Hudson & 2904 O'Donnell</td>
-                          <td>$9,820.00</td>
-                          <td>$1,964.00</td>
-                          <td><strong style={{ color: 'var(--copper)' }}>$7,856.00</strong></td>
-                          <td><span className="ticket-badge badge-green">Disbursed (ACH)</span></td>
-                          <td>
-                            <button
-                              type="button"
-                              className="btn-outline"
-                              style={{ padding: '4px 10px', fontSize: '0.65rem' }}
-                              onClick={() => showToast('Downloading September statement PDF...')}
-                            >
-                              PDF ↗
-                            </button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
                 </div>
+              )}
 
-                {/* Blackout Dates */}
-                <div className="portal-card" style={{ marginTop: 30 }}>
-                  <h3>Owner Personal Stay Calendar Lock</h3>
-                  <p className="subtitle">Want to enjoy your Baltimore property? Lock out personal dates with zero commission.</p>
-                  <form
-                    className="ticket-form"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      showToast(`Dates ${blackoutStart} to ${blackoutEnd} locked for Owner Stay. Syncing with Airbnb, VRBO & CSP Direct.`);
-                    }}
-                    style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}
-                  >
+              {/* ========================================================= */}
+              {/* 3. OPERATIONS & ADMIN PORTAL VIEWPORT                     */}
+              {/* ========================================================= */}
+              {currentRole === 'admin' && (
+                <div className="portal-view">
+                  <div className="welcome-banner" style={{ background: '#1c2824' }}>
                     <div>
-                      <label htmlFor="b-prop">Select Property</label>
-                      <select id="b-prop">
-                        <option value="hudson">3037 Hudson Street (The Townhouse)</option>
-                        <option value="odonnell">2904 O'Donnell Street (Quiet Retreat)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="b-start">Start Date</label>
-                      <input
-                        type="date"
-                        id="b-start"
-                        value={blackoutStart}
-                        onChange={(e) => setBlackoutStart(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="b-end">End Date</label>
-                      <input
-                        type="date"
-                        id="b-end"
-                        value={blackoutEnd}
-                        onChange={(e) => setBlackoutEnd(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <button type="submit" className="btn-book" style={{ padding: '11px 20px' }}>
-                      Lock Personal Stay 🔒
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )}
-
-            {/* ===================================== */}
-            {/* ADMIN ROLE PANEL                     */}
-            {/* ===================================== */}
-            {currentRole === 'admin' && (
-              <div id="panel-admin">
-                <div className="panel-header">
-                  <div>
-                    <h2>Chase Street Mission Control</h2>
-                    <p>Centralized reservations, occupancy monitoring, and work order dispatch</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <Link href="/admin" className="btn-outline" style={{ background: 'var(--copper)', color: '#fff', border: 'none' }}>
-                      Dedicated Admin Hub ↗
-                    </Link>
-                    <Link href="/properties" className="btn-outline">
-                      View Public Catalog ↗
-                    </Link>
-                  </div>
-                </div>
-
-                {/* SOW §2 & §5: Real-time Property Listing Management & Website Policies */}
-                <div style={{ marginBottom: 32 }}>
-                  <AdminPropertyManager />
-                </div>
-
-                {/* Admin KPIs */}
-                <div className="metrics-row">
-                  <div className="kpi-card">
-                    <span className="kpi-label">Occupancy Rate</span>
-                    <div className="kpi-val">92.8%</div>
-                    <span className="kpi-trend">39 of 42 units filled</span>
-                  </div>
-
-                  <div className="kpi-card">
-                    <span className="kpi-label">Today's Check-ins</span>
-                    <div className="kpi-val" style={{ color: 'var(--copper)' }}>4</div>
-                    <span className="kpi-trend" style={{ color: 'var(--ink-soft)' }}>Keys & codes dispatched</span>
-                  </div>
-
-                  <div className="kpi-card">
-                    <span className="kpi-label">Active Work Orders</span>
-                    <div className="kpi-val">2</div>
-                    <span className="kpi-trend" style={{ color: '#3b82f6' }}>Technicians assigned</span>
-                  </div>
-
-                  <div className="kpi-card">
-                    <span className="kpi-label">Cleanliness Score</span>
-                    <div className="kpi-val">4.99</div>
-                    <span className="kpi-trend">★ Top 1% Baltimore Stays</span>
-                  </div>
-                </div>
-
-                {/* Pipeline */}
-                <div className="portal-card" style={{ marginTop: 30 }} id="reservations">
-                  <div className="panel-header" style={{ marginBottom: 14 }}>
-                    <div>
-                      <h3>Active & Upcoming Guest Pipeline</h3>
-                      <p className="subtitle">Direct bookings, corporate allocations, and incoming medical fellows.</p>
+                      <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sand)', fontWeight: 600 }}>
+                        Host Operations Control
+                      </span>
+                      <h2>Chase Street Central Management Hub</h2>
+                      <p>Real-time booking logs, Supabase synchronization, and inventory control</p>
                     </div>
                   </div>
-                  <div className="table-responsive">
-                    <table className="portal-table">
-                      <thead>
-                        <tr>
-                          <th>Ref ID</th>
-                          <th>Guest Name</th>
-                          <th>Property</th>
-                          <th>Dates</th>
-                          <th>Status</th>
-                          <th>Total</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {adminReservations.map((r) => (
-                          <tr key={r.id}>
-                            <td><strong>{r.id}</strong></td>
-                            <td>{r.guest}</td>
-                            <td>{r.property}</td>
-                            <td>{r.dates}</td>
-                            <td>
-                              <span className={`ticket-badge ${r.status === 'In-Stay' ? 'badge-green' : r.status === 'Arriving Today' ? 'badge-yellow' : 'badge-blue'}`}>
-                                {r.status}
-                              </span>
-                            </td>
-                            <td><strong>{r.total}</strong></td>
-                            <td>
-                              <button
-                                type="button"
-                                className="btn-outline"
-                                style={{ padding: '4px 10px', fontSize: '0.62rem' }}
-                                onClick={() => showToast(`Viewing reservation file for ${r.id}`)}
-                              >
-                                Manage
-                              </button>
-                            </td>
+
+                  {/* Real-time Reservations from Supabase */}
+                  <div className="section-card" style={{ marginTop: 24 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                      <div>
+                        <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--copper)', fontWeight: 700 }}>
+                          Live Booking Feed
+                        </span>
+                        <h3 style={{ margin: '2px 0 0', font: '400 1.4rem var(--serif)', color: 'var(--forest)' }}>
+                          Active & Upcoming Guest Reservations ({adminReservations.length})
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={loadReservations}
+                        className="btn-outline"
+                        style={{ padding: '6px 12px', fontSize: '0.72rem' }}
+                      >
+                        ↻ Refresh from Supabase
+                      </button>
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-soft)' }}>
+                            <th style={{ padding: '8px 12px' }}>Code</th>
+                            <th style={{ padding: '8px 12px' }}>Guest Name</th>
+                            <th style={{ padding: '8px 12px' }}>Residence</th>
+                            <th style={{ padding: '8px 12px' }}>Dates</th>
+                            <th style={{ padding: '8px 12px' }}>PIN</th>
+                            <th style={{ padding: '8px 12px' }}>Total</th>
+                            <th style={{ padding: '8px 12px' }}>Status</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Quick Units */}
-                <div className="portal-card" style={{ marginTop: 30 }} id="units">
-                  <h3>Quick Inventory Unit Status</h3>
-                  <p className="subtitle">Toggle live availability across booking channels with one touch.</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-                    <div style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 4, padding: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <strong style={{ display: 'block', fontSize: '0.9rem' }}>3037 Hudson Street</strong>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>Canton · $149/night</span>
-                      </div>
-                      <span className="ticket-badge badge-green">Occupied (Aaron M.)</span>
-                    </div>
-
-                    <div style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 4, padding: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <strong style={{ display: 'block', fontSize: '0.9rem' }}>2904 O'Donnell Street</strong>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>Canton · $99/night</span>
-                      </div>
-                      <span className="ticket-badge badge-yellow">Turnover (Today)</span>
-                    </div>
-
-                    <div style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 4, padding: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <strong style={{ display: 'block', fontSize: '0.9rem' }}>712 E Pratt Street</strong>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>Inner Harbor · $189/night</span>
-                      </div>
-                      <span className="ticket-badge badge-green">Occupied (Corp Stay)</span>
+                        </thead>
+                        <tbody>
+                          {adminReservations.map((res) => (
+                            <tr key={res.id} style={{ borderBottom: '1px solid var(--line)' }}>
+                              <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600, color: 'var(--forest)' }}>
+                                {res.id}
+                              </td>
+                              <td style={{ padding: '12px', fontWeight: 600 }}>
+                                {res.guest}
+                                {res.guestEmail && (
+                                  <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--ink-soft)', fontWeight: 400 }}>
+                                    {res.guestEmail}
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: '12px' }}>{res.property}</td>
+                              <td style={{ padding: '12px', color: 'var(--ink-soft)' }}>{res.dates}</td>
+                              <td style={{ padding: '12px', fontFamily: 'monospace', color: 'var(--copper)', fontWeight: 700 }}>
+                                {res.pinCode || '4892#'}
+                              </td>
+                              <td style={{ padding: '12px', fontWeight: 600 }}>{res.total}</td>
+                              <td style={{ padding: '12px' }}>
+                                <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: '0.72rem', background: res.status === 'In-Stay' ? '#dbeafe' : res.status === 'Arriving Today' ? '#fef3c7' : '#dcfce7', color: res.status === 'In-Stay' ? '#1d4ed8' : res.status === 'Arriving Today' ? '#b45309' : '#15803d', fontWeight: 600 }}>
+                                  {res.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
+
+                  {/* Inventory & Property Manager */}
+                  <div style={{ marginTop: 24 }}>
+                    <AdminPropertyManager />
+                  </div>
                 </div>
-              </div>
-            )}
-          </section>
-        </div>
-      </main>
+              )}
+            </div>
+          </div>
+        </main>
+      </>
+      )}
 
       <Footer showTopCta={false} />
     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Property } from '@/types';
 import Footer from '@/components/Footer';
 import { addReservation } from '@/utils/propertyStore';
+import { dbSaveReservation, dbSubmitInquiry, dbSubmitReview } from '@/lib/supabase/database';
 
 export default function PropertyDetailClient({ property }: { property: Property }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -97,37 +98,35 @@ export default function PropertyDetailClient({ property }: { property: Property 
     setReserveModalOpen(true);
   };
 
-  const handleProcessPayment = (e: React.FormEvent) => {
+  const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessingPayment(true);
 
-    setTimeout(() => {
-      const code = 'CSP-2026-' + Math.floor(1000 + Math.random() * 9000);
-      const pin = Math.floor(1000 + Math.random() * 9000) + '#';
-      setAssignedPin(pin);
-      setConfirmedReservation(code);
+    const code = 'CSP-2026-' + Math.floor(1000 + Math.random() * 9000);
+    const pin = Math.floor(1000 + Math.random() * 9000) + '#';
+    setAssignedPin(pin);
+    setConfirmedReservation(code);
 
-      // Save to shared property & reservations store so Admin sees it in real-time
-      addReservation({
-        id: code,
-        guest: guestName || 'Resident Guest',
-        property: property.title,
-        dates: `${checkin} – ${checkout}`,
-        status: 'Confirmed',
-        total: `$${total.toFixed(2)}`,
-        guestEmail: guestEmail || 'direct-guest@chasestreetproperties.net',
-        guestPhone: guestPhone || '(410) 555-0199',
-        pinCode: pin,
-        nights: diffDays,
-        createdAt: new Date().toISOString(),
-      });
+    // Save to shared property & reservations store and Supabase
+    await dbSaveReservation({
+      id: code,
+      guest: guestName || 'Resident Guest',
+      property: property.title,
+      dates: `${checkin} – ${checkout}`,
+      status: 'Confirmed',
+      total: `$${total.toFixed(2)}`,
+      guestEmail: guestEmail || 'direct-guest@chasestreetproperties.net',
+      guestPhone: guestPhone || '(410) 555-0199',
+      pinCode: pin,
+      nights: diffDays,
+      createdAt: new Date().toISOString(),
+    });
 
-      setIsProcessingPayment(false);
-      setCheckoutStep(4);
-    }, 1100);
+    setIsProcessingPayment(false);
+    setCheckoutStep(4);
   };
 
-  const handleAddReview = (e: React.FormEvent) => {
+  const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!revName || !revComment) return;
 
@@ -140,6 +139,15 @@ export default function PropertyDetailClient({ property }: { property: Property 
 
     setReviewsList((prev) => [newRev, ...prev]);
     setReviewSuccess(true);
+
+    await dbSubmitReview({
+      propertyId: property.id,
+      author: revName,
+      email: revEmail,
+      rating: revScore,
+      comment: revComment,
+    });
+
     setTimeout(() => {
       setReviewSuccess(false);
       setReviewModalOpen(false);
@@ -150,9 +158,16 @@ export default function PropertyDetailClient({ property }: { property: Property 
     }, 1200);
   };
 
-  const handleSendInquiry = (e: React.FormEvent) => {
+  const handleSendInquiry = async (e: React.FormEvent) => {
     e.preventDefault();
     setInquirySubmitted(true);
+    await dbSubmitInquiry({
+      name: inquiryName,
+      email: inquiryEmail,
+      phone: inquiryPhone,
+      message: inquiryMessage,
+      propertyId: property.id,
+    });
   };
 
   return (

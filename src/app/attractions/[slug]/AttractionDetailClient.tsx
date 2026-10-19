@@ -7,6 +7,7 @@ import { Property } from '@/types';
 import Footer from '@/components/Footer';
 import QuickViewModal from '@/components/QuickViewModal';
 import { addReservation } from '@/utils/propertyStore';
+import { dbSaveReservation } from '@/lib/supabase/database';
 
 interface Props {
   attraction: BaltimoreAttraction;
@@ -93,34 +94,32 @@ export default function AttractionDetailClient({
     setReserveModalOpen(true);
   };
 
-  const handleProcessPayment = (e: React.FormEvent) => {
+  const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessingPayment(true);
 
-    setTimeout(() => {
-      const code = 'CSP-2026-' + Math.floor(1000 + Math.random() * 9000);
-      const pin = Math.floor(1000 + Math.random() * 9000) + '#';
-      setAssignedPin(pin);
-      setConfirmedReservation(code);
+    const code = 'CSP-2026-' + Math.floor(1000 + Math.random() * 9000);
+    const pin = Math.floor(1000 + Math.random() * 9000) + '#';
+    setAssignedPin(pin);
+    setConfirmedReservation(code);
 
-      // Save to store so Admin and Portal see this immediately
-      addReservation({
-        id: code,
-        guest: guestName || 'Resident Guest',
-        property: currentProp ? currentProp.title : attraction.title + ' Nearby Stay',
-        dates: `${checkin} – ${checkout}`,
-        status: 'Confirmed',
-        total: `$${total.toFixed(2)}`,
-        guestEmail: guestEmail || 'attraction-guest@chasestreetproperties.net',
-        guestPhone: guestPhone || '(410) 555-0199',
-        pinCode: pin,
-        nights: diffDays,
-        createdAt: new Date().toISOString(),
-      });
+    // Save to store and Supabase so Admin and Portal see this immediately
+    await dbSaveReservation({
+      id: code,
+      guest: guestName || 'Resident Guest',
+      property: currentProp ? currentProp.title : attraction.title + ' Nearby Stay',
+      dates: `${checkin} – ${checkout}`,
+      status: 'Confirmed',
+      total: `$${total.toFixed(2)}`,
+      guestEmail: guestEmail || 'attraction-guest@chasestreetproperties.net',
+      guestPhone: guestPhone || '(410) 555-0199',
+      pinCode: pin,
+      nights: diffDays,
+      createdAt: new Date().toISOString(),
+    });
 
-      setIsProcessingPayment(false);
-      setCheckoutStep(4);
-    }, 1100);
+    setIsProcessingPayment(false);
+    setCheckoutStep(4);
   };
 
   return (
