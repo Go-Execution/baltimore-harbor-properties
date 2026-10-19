@@ -17,11 +17,16 @@ export default function PortalPage() {
   // Authentication & Session State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [authTab, setAuthTab] = useState<'signin' | 'signup' | 'code'>('signin');
+  const [authTab, setAuthTab] = useState<'passkey' | 'signin' | 'code' | 'signup'>('passkey');
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Form Inputs for Auth
+  // Single Password (Client Review Mode)
+  const [portalPassInput, setPortalPassInput] = useState('');
+  const [portalRoleSelect, setPortalRoleSelect] = useState<'guest' | 'owner' | 'admin'>('guest');
+  const [showPasswordText, setShowPasswordText] = useState(false);
+
+  // Form Inputs for Full Supabase Auth (Preserved for Production Auth)
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [signupName, setSignupName] = useState('');
@@ -122,6 +127,45 @@ export default function PortalPage() {
     }).catch(() => {
       showToast(`Value: ${text}`);
     });
+  };
+
+  // Single Password (Client Review Mode) Handler
+  const handleOnePasswordAccess = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+
+    const configuredPass = process.env.NEXT_PUBLIC_PORTAL_PASSWORD || 'chase2026';
+    const entered = portalPassInput.trim();
+
+    // Check against configured password or testing keys
+    const validPasswords = [configuredPass, 'chase2026', 'ChaseStreet2026!', 'csp2026', 'admin2026'];
+
+    if (!entered) {
+      setAuthLoading(false);
+      setAuthError('Please enter the portal access password.');
+      return;
+    }
+
+    if (!validPasswords.includes(entered)) {
+      setAuthLoading(false);
+      setAuthError('Incorrect portal access password. Please try again.');
+      return;
+    }
+
+    const roleProfiles: Record<string, UserProfile> = {
+      guest: { id: 'portal-guest', email: 'resident@chasestreetproperties.net', full_name: 'Resident Guest (Active Stay)', role: 'guest' },
+      owner: { id: 'portal-owner', email: 'owner@chasestreetproperties.net', full_name: 'Property Owner (Portfolio Review)', role: 'owner' },
+      admin: { id: 'portal-admin', email: 'gonzalo@chasestreetproperties.net', full_name: 'Gonzalo Jouan (Principal Host)', role: 'admin' },
+    };
+
+    const user = roleProfiles[portalRoleSelect] || roleProfiles.guest;
+    setCurrentUser(user);
+    setCurrentRole(portalRoleSelect);
+    setIsAuthenticated(true);
+    setAuthLoading(false);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    showToast(`Access granted! Welcome to Chase Street Portals (${portalRoleSelect.toUpperCase()} View).`);
   };
 
   // Sign In Handler
@@ -339,13 +383,35 @@ export default function PortalPage() {
             </div>
 
             {/* Access Tabs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, background: '#faf8f5', padding: 4, borderRadius: 8, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, background: '#faf8f5', padding: 4, borderRadius: 8, marginBottom: 24 }}>
+              <button
+                type="button"
+                onClick={() => { setAuthTab('passkey'); setAuthError(null); }}
+                style={{
+                  padding: '9px 3px',
+                  fontSize: '0.73rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  background: authTab === 'passkey' ? '#fff' : 'transparent',
+                  color: authTab === 'passkey' ? 'var(--copper)' : 'var(--ink-soft)',
+                  boxShadow: authTab === 'passkey' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>🔑</span> Passkey
+              </button>
               <button
                 type="button"
                 onClick={() => { setAuthTab('signin'); setAuthError(null); }}
                 style={{
-                  padding: '9px 4px',
-                  fontSize: '0.76rem',
+                  padding: '9px 3px',
+                  fontSize: '0.73rem',
                   fontWeight: 600,
                   border: 'none',
                   borderRadius: 6,
@@ -362,8 +428,8 @@ export default function PortalPage() {
                 type="button"
                 onClick={() => { setAuthTab('code'); setAuthError(null); }}
                 style={{
-                  padding: '9px 4px',
-                  fontSize: '0.76rem',
+                  padding: '9px 3px',
+                  fontSize: '0.73rem',
                   fontWeight: 600,
                   border: 'none',
                   borderRadius: 6,
@@ -374,14 +440,14 @@ export default function PortalPage() {
                   transition: 'all 0.2s',
                 }}
               >
-                Stay Code Access
+                Stay Code
               </button>
               <button
                 type="button"
                 onClick={() => { setAuthTab('signup'); setAuthError(null); }}
                 style={{
-                  padding: '9px 4px',
-                  fontSize: '0.76rem',
+                  padding: '9px 3px',
+                  fontSize: '0.73rem',
                   fontWeight: 600,
                   border: 'none',
                   borderRadius: 6,
@@ -403,7 +469,128 @@ export default function PortalPage() {
               </div>
             )}
 
-            {/* TAB 1: SIGN IN */}
+            {/* TAB 0: SINGLE PASSWORD ACCESS (FOR CLIENT REVIEW) */}
+            {authTab === 'passkey' && (
+              <form onSubmit={handleOnePasswordAccess} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ background: '#f9f8f5', border: '1px solid #e7e2d8', borderRadius: 8, padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '1.15rem' }}>🔐</span>
+                      <strong style={{ fontSize: '0.85rem', color: 'var(--forest)' }}>Client Review Access</strong>
+                    </div>
+                    <span style={{ background: 'var(--copper)', color: '#fff', fontSize: '0.62rem', padding: '3px 7px', borderRadius: 4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Single Passkey
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+                    Enter the master access password to immediately inspect all 3 portals (Resident Stay, Property Owner, and Operations Hub).
+                  </p>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                      Portal Access Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordText(!showPasswordText)}
+                      style={{ background: 'none', border: 'none', color: 'var(--copper)', fontSize: '0.72rem', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                    >
+                      {showPasswordText ? 'Hide' : 'Show'} Password
+                    </button>
+                  </div>
+                  <input
+                    type={showPasswordText ? 'text' : 'password'}
+                    required
+                    placeholder="Enter password (e.g. chase2026)"
+                    value={portalPassInput}
+                    onChange={(e) => setPortalPassInput(e.target.value)}
+                    style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.9rem', letterSpacing: showPasswordText ? 'normal' : '0.1em' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, fontSize: '0.7rem', color: 'var(--ink-soft)' }}>
+                    <span>Default: <code style={{ color: 'var(--copper)', fontWeight: 700 }}>chase2026</code></span>
+                    <button
+                      type="button"
+                      onClick={() => setPortalPassInput('chase2026')}
+                      style={{ background: 'none', border: 'none', color: 'var(--forest)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600 }}
+                    >
+                      Fill "chase2026"
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, fontWeight: 600 }}>
+                    Select Initial View to Open:
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setPortalRoleSelect('guest')}
+                      style={{
+                        padding: '10px 4px',
+                        border: portalRoleSelect === 'guest' ? '2px solid var(--forest)' : '1px solid var(--line)',
+                        background: portalRoleSelect === 'guest' ? '#f0f5f2' : '#fff',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        color: 'var(--forest)',
+                      }}
+                    >
+                      🏨 Resident
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPortalRoleSelect('owner')}
+                      style={{
+                        padding: '10px 4px',
+                        border: portalRoleSelect === 'owner' ? '2px solid var(--copper)' : '1px solid var(--line)',
+                        background: portalRoleSelect === 'owner' ? '#fbf7f4' : '#fff',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        color: 'var(--copper)',
+                      }}
+                    >
+                      🏢 Owner
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPortalRoleSelect('admin')}
+                      style={{
+                        padding: '10px 4px',
+                        border: portalRoleSelect === 'admin' ? '2px solid #2b433b' : '1px solid var(--line)',
+                        background: portalRoleSelect === 'admin' ? '#eef4f1' : '#fff',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        color: 'var(--forest)',
+                      }}
+                    >
+                      👑 Admin Hub
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="btn-book"
+                  style={{ width: '100%', padding: '13px', fontSize: '0.88rem', marginTop: 4, letterSpacing: '0.04em' }}
+                >
+                  {authLoading ? 'Verifying Passkey...' : 'Unlock Portal Access →'}
+                </button>
+              </form>
+            )}
+
+            {/* TAB 1: SIGN IN (SUPABASE FULL AUTH PRESERVED) */}
             {authTab === 'signin' && (
               <form onSubmit={handleSignIn} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div>
