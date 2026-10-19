@@ -37,6 +37,10 @@ export default function Header() {
     return pathname.startsWith(href);
   };
 
+  if (pathname?.startsWith('/portal') || pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   const showBanner = isLoaded && settings.bannerEnabled === 'true' && settings.bannerText;
 
   return (

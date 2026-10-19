@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Property } from '@/types';
 import { usePropertyStore } from '@/utils/usePropertyStore';
+import { FiHome, FiSliders, FiPlus, FiRefreshCw, FiEye, FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
 
 const NEIGHBORHOOD_OPTIONS = ['Canton', 'Fells Point', 'Inner Harbor', 'Harbor East', 'Mount Vernon', 'Federal Hill'];
 
@@ -203,9 +204,13 @@ export default function AdminPropertyManager() {
               fontWeight: 600,
               fontSize: '0.75rem',
               cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
             }}
           >
-            🏠 Property Listings ({properties.length})
+            <FiHome />
+            <span>Property Listings ({properties.length})</span>
           </button>
           <button
             type="button"
@@ -219,9 +224,13 @@ export default function AdminPropertyManager() {
               fontWeight: 600,
               fontSize: '0.75rem',
               cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
             }}
           >
-            ⚙️ Website Policies & Info
+            <FiSliders />
+            <span>Website Policies & Info</span>
           </button>
         </div>
       </div>
@@ -324,10 +333,14 @@ export default function AdminPropertyManager() {
                   fontSize: '0.74rem',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
                 title="Restore default 6 Baltimore listings"
               >
-                ↺ Reset Defaults
+                <FiRefreshCw />
+                <span>Reset Defaults</span>
               </button>
 
               <button
@@ -342,12 +355,13 @@ export default function AdminPropertyManager() {
                   fontSize: '0.78rem',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
                 }}
               >
-                <span>+</span> Add New Property
+                <FiPlus />
+                <span>Add New Property</span>
               </button>
             </div>
           </div>
@@ -440,10 +454,14 @@ export default function AdminPropertyManager() {
                                 textDecoration: 'none',
                                 fontSize: '0.72rem',
                                 fontWeight: 500,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
                               }}
                               title="Preview public listing"
                             >
-                              👁️ View
+                              <FiEye />
+                              <span>View</span>
                             </Link>
 
                             <button
@@ -458,9 +476,13 @@ export default function AdminPropertyManager() {
                                 fontSize: '0.72rem',
                                 fontWeight: 600,
                                 cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
                               }}
                             >
-                              ✏️ Edit
+                              <FiEdit2 />
+                              <span>Edit</span>
                             </button>
 
                             <button
@@ -472,12 +494,15 @@ export default function AdminPropertyManager() {
                                 border: '1px solid rgba(211,47,47,0.3)',
                                 background: 'transparent',
                                 color: '#d32f2f',
-                                fontSize: '0.72rem',
+                                fontSize: '0.8rem',
                                 cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                               }}
                               title="Delete listing"
                             >
-                              🗑️
+                              <FiTrash2 />
                             </button>
                           </div>
                         </td>
@@ -671,9 +696,10 @@ export default function AdminPropertyManager() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.6rem', color: 'var(--ink-soft)', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', fontSize: '1.4rem', color: 'var(--ink-soft)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                title="Close modal"
               >
-                ✕
+                <FiX />
               </button>
             </div>
 

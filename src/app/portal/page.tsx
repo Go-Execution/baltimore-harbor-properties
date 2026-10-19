@@ -3,12 +3,37 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MaintenanceTicket, OwnerApproval, Reservation } from '@/types';
-import Footer from '@/components/Footer';
 import AdminPropertyManager from '@/components/AdminPropertyManager';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { supabaseSignIn, supabaseSignUp, supabaseSignOut, supabaseGetCurrentUser, UserProfile } from '@/lib/supabase/auth';
 import { dbFetchReservations, dbCreateTicket, dbFetchTickets } from '@/lib/supabase/database';
 import { getStoredReservations } from '@/utils/propertyStore';
+import {
+  FiKey,
+  FiTrendingUp,
+  FiShield,
+  FiLock,
+  FiUnlock,
+  FiUser,
+  FiLogOut,
+  FiEye,
+  FiEyeOff,
+  FiCopy,
+  FiCheck,
+  FiPhone,
+  FiMail,
+  FiWifi,
+  FiHome,
+  FiAlertCircle,
+  FiTool,
+  FiCheckCircle,
+  FiClock,
+  FiCalendar,
+  FiDatabase,
+  FiLayers,
+  FiArrowRight,
+  FiExternalLink,
+} from 'react-icons/fi';
 
 const STORAGE_KEY = 'csp_nextjs_portal_state_v1';
 const AUTH_KEY = 'csp_nextjs_portal_auth_v1';
@@ -348,10 +373,42 @@ export default function PortalPage() {
       {/* 1. AUTHENTICATION & ACCESS GATEWAY (When not authenticated)              */}
       {/* ========================================================================= */}
       {!isAuthenticated ? (
-        <main id="main" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px var(--gutter)', background: 'var(--paper)' }}>
-          <div style={{ maxWidth: 540, width: '100%', background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: '40px 36px', boxShadow: '0 20px 50px rgba(23,35,31,0.06)' }}>
-            
-            {/* Header */}
+        <>
+          <header className="portal-app-header">
+            <div className="portal-app-header__inner">
+              <Link href="/" className="portal-app-header__brand" title="Return to public site">
+                <span className="portal-app-header__monogram">CS</span>
+                <div className="portal-app-header__title">
+                  <strong>Chase Street Properties</strong>
+                  <span>Executive Portals Hub</span>
+                </div>
+              </Link>
+              <div className="portal-app-header__actions">
+                <Link
+                  href="/"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '7px 14px',
+                    borderRadius: 4,
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    color: '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.74rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  <span>← Back to Website</span>
+                </Link>
+              </div>
+            </div>
+          </header>
+
+          <main id="main" style={{ minHeight: '82vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px var(--gutter)', background: 'var(--paper)' }}>
+            <div style={{ maxWidth: 540, width: '100%', background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: '40px 36px', boxShadow: '0 20px 50px rgba(23,35,31,0.06)' }}>
+              
+              {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
               <span className="brand__monogram" style={{ display: 'inline-block', width: 44, height: 44, lineHeight: '44px', background: 'var(--forest)', color: '#fff', borderRadius: '50%', fontWeight: 700, fontSize: '0.95rem', marginBottom: 12 }}>
                 CS
@@ -401,10 +458,11 @@ export default function PortalPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 4,
+                  gap: 5,
                 }}
               >
-                <span>🔑</span> Passkey
+                <FiKey />
+                <span>Passkey</span>
               </button>
               <button
                 type="button"
@@ -420,9 +478,14 @@ export default function PortalPage() {
                   color: authTab === 'signin' ? 'var(--forest)' : 'var(--ink-soft)',
                   boxShadow: authTab === 'signin' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
                 }}
               >
-                Sign In
+                <FiUser />
+                <span>Sign In</span>
               </button>
               <button
                 type="button"
@@ -438,9 +501,14 @@ export default function PortalPage() {
                   color: authTab === 'code' ? 'var(--forest)' : 'var(--ink-soft)',
                   boxShadow: authTab === 'code' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
                 }}
               >
-                Stay Code
+                <FiLock />
+                <span>Stay Code</span>
               </button>
               <button
                 type="button"
@@ -456,9 +524,14 @@ export default function PortalPage() {
                   color: authTab === 'signup' ? 'var(--forest)' : 'var(--ink-soft)',
                   boxShadow: authTab === 'signup' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
                 }}
               >
-                Register
+                <FiLayers />
+                <span>Register</span>
               </button>
             </div>
 
@@ -475,7 +548,7 @@ export default function PortalPage() {
                 <div style={{ background: '#f9f8f5', border: '1px solid #e7e2d8', borderRadius: 8, padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: '1.15rem' }}>🔐</span>
+                      <FiLock style={{ color: 'var(--copper)', fontSize: '1.2rem' }} />
                       <strong style={{ fontSize: '0.85rem', color: 'var(--forest)' }}>Client Review Access</strong>
                     </div>
                     <span style={{ background: 'var(--copper)', color: '#fff', fontSize: '0.62rem', padding: '3px 7px', borderRadius: 4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -495,9 +568,10 @@ export default function PortalPage() {
                     <button
                       type="button"
                       onClick={() => setShowPasswordText(!showPasswordText)}
-                      style={{ background: 'none', border: 'none', color: 'var(--copper)', fontSize: '0.72rem', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                      style={{ background: 'none', border: 'none', color: 'var(--copper)', fontSize: '0.72rem', cursor: 'pointer', padding: 0, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                     >
-                      {showPasswordText ? 'Hide' : 'Show'} Password
+                      {showPasswordText ? <FiEyeOff /> : <FiEye />}
+                      <span>{showPasswordText ? 'Hide' : 'Show'} Password</span>
                     </button>
                   </div>
                   <input
@@ -538,9 +612,14 @@ export default function PortalPage() {
                         fontSize: '0.74rem',
                         fontWeight: 600,
                         color: 'var(--forest)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 5,
                       }}
                     >
-                      🏨 Resident
+                      <FiHome />
+                      <span>Resident</span>
                     </button>
                     <button
                       type="button"
@@ -555,9 +634,14 @@ export default function PortalPage() {
                         fontSize: '0.74rem',
                         fontWeight: 600,
                         color: 'var(--copper)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 5,
                       }}
                     >
-                      🏢 Owner
+                      <FiTrendingUp />
+                      <span>Owner</span>
                     </button>
                     <button
                       type="button"
@@ -572,9 +656,14 @@ export default function PortalPage() {
                         fontSize: '0.74rem',
                         fontWeight: 600,
                         color: 'var(--forest)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 5,
                       }}
                     >
-                      👑 Admin Hub
+                      <FiShield />
+                      <span>Admin Hub</span>
                     </button>
                   </div>
                 </div>
@@ -748,97 +837,118 @@ export default function PortalPage() {
                   type="button"
                   onClick={() => handleDemoLogin('guest')}
                   className="btn-outline"
-                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 8 }}
+                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 10 }}
                 >
-                  <span>👤</span>
+                  <FiUser style={{ color: 'var(--forest)', fontSize: '1.05rem' }} />
                   <div style={{ textAlign: 'left', flex: 1 }}>
                     <strong>Resident Guest</strong>: Aaron Miller (Hopkins Fellow)
                   </div>
-                  <span style={{ color: 'var(--copper)', fontWeight: 600 }}>Enter ↗</span>
+                  <span style={{ color: 'var(--copper)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>Enter <FiArrowRight /></span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDemoLogin('owner')}
                   className="btn-outline"
-                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 8 }}
+                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 10 }}
                 >
-                  <span>🏢</span>
+                  <FiTrendingUp style={{ color: 'var(--copper)', fontSize: '1.05rem' }} />
                   <div style={{ textAlign: 'left', flex: 1 }}>
                     <strong>Property Owner</strong>: Eleanor Vance (Investor Portfolio)
                   </div>
-                  <span style={{ color: 'var(--copper)', fontWeight: 600 }}>Enter ↗</span>
+                  <span style={{ color: 'var(--copper)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>Enter <FiArrowRight /></span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDemoLogin('admin')}
                   className="btn-outline"
-                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 8 }}
+                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 10 }}
                 >
-                  <span>⚙️</span>
+                  <FiShield style={{ color: 'var(--forest)', fontSize: '1.05rem' }} />
                   <div style={{ textAlign: 'left', flex: 1 }}>
                     <strong>Host Operations Admin</strong>: Gonzalo Jouan (Team Hub)
                   </div>
-                  <span style={{ color: 'var(--copper)', fontWeight: 600 }}>Enter ↗</span>
+                  <span style={{ color: 'var(--copper)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>Enter <FiArrowRight /></span>
                 </button>
               </div>
             </div>
 
           </div>
         </main>
+        </>
       ) : (
 
       /* ========================================================================= */
       /* 2. AUTHENTICATED PORTAL DASHBOARD (When logged in)                        */
       /* ========================================================================= */
       <>
-        {/* User Session Bar */}
-        <aside className="demo-bar" aria-label="Portal Header Bar" style={{ background: 'var(--forest)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <span className="demo-bar__badge" style={{ background: 'var(--copper)', color: '#fff' }}>
-              {currentRole === 'guest' ? 'Resident Portal' : currentRole === 'owner' ? 'Owner Portal' : 'Operations Admin'}
-            </span>
-            <span style={{ color: '#fff', fontSize: '0.82rem' }}>
-              Logged in as: <strong>{currentUser?.full_name || currentUser?.email}</strong> ({currentUser?.email})
-            </span>
-            {isCloudLive && (
-              <span style={{ fontSize: '0.7rem', color: '#86efac', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#86efac' }}></span> Supabase Synced
-              </span>
-            )}
-          </div>
-          <div className="demo-bar__buttons" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {/* View Switcher for Admins/Testers */}
-            <select
-              value={currentRole}
-              onChange={(e) => setCurrentRole(e.target.value as any)}
-              style={{
-                background: 'rgba(255,255,255,0.15)',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 4,
-                padding: '4px 8px',
-                fontSize: '0.72rem',
-                cursor: 'pointer',
-              }}
-              title="Switch portal view"
-            >
-              <option value="guest" style={{ color: '#000' }}>View as: Resident Guest</option>
-              <option value="owner" style={{ color: '#000' }}>View as: Property Owner</option>
-              <option value="admin" style={{ color: '#000' }}>View as: Operations Admin</option>
-            </select>
+        {/* Dedicated Standalone Portal Header */}
+        <header className="portal-app-header">
+          <div className="portal-app-header__inner">
+            <Link href="/" className="portal-app-header__brand" title="Return to public site">
+              <span className="portal-app-header__monogram">CS</span>
+              <div className="portal-app-header__title">
+                <strong>Chase Street Properties</strong>
+                <span>Executive Portals Hub</span>
+              </div>
+            </Link>
 
-            <button
-              type="button"
-              className="demo-btn"
-              onClick={handleSignOut}
-              style={{ background: 'rgba(239,68,68,0.2)', borderColor: 'rgba(239,68,68,0.4)', color: '#fca5a5' }}
-            >
-              Sign Out ✕
-            </button>
-          </div>
-        </aside>
+            <div className="portal-app-header__actions">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: isCloudLive ? '#34d399' : '#f59e0b', display: 'inline-block' }}></span>
+                <span style={{ color: '#d1d5db', fontSize: '0.76rem' }}>
+                  {currentUser?.full_name || currentUser?.email}
+                </span>
+                <span style={{ background: 'rgba(170,118,84,0.3)', color: 'var(--sand)', padding: '3px 8px', borderRadius: 4, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                  {currentRole === 'guest' ? 'Resident' : currentRole === 'owner' ? 'Owner' : 'Host Admin'}
+                </span>
+              </div>
 
-        {/* Role Navigation Tabs */}
+              <Link
+                href="/"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 12px',
+                  borderRadius: 4,
+                  border: '1px solid rgba(255,255,255,0.22)',
+                  color: '#fff',
+                  textDecoration: 'none',
+                  fontSize: '0.74rem',
+                  fontWeight: 500,
+                  transition: 'background 0.2s',
+                }}
+              >
+                <span>Public Site</span>
+                <FiExternalLink />
+              </Link>
+
+              <button
+                type="button"
+                onClick={handleSignOut}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 12px',
+                  borderRadius: 4,
+                  background: 'rgba(239,68,68,0.2)',
+                  border: '1px solid rgba(239,68,68,0.4)',
+                  color: '#fca5a5',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
+              >
+                <FiLogOut />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Role Navigation Tabs with React Icons */}
         <nav className="portal-tabs-nav" aria-label="Portal Navigation Tabs">
           <div className="portal-tabs-nav__inner">
             <button
@@ -846,21 +956,24 @@ export default function PortalPage() {
               className={`portal-tab-btn ${currentRole === 'guest' ? 'is-active' : ''}`}
               onClick={() => setCurrentRole('guest')}
             >
-              <span>🔑</span> Resident & Guest Portal
+              <FiKey />
+              <span>Resident & Guest Portal</span>
             </button>
             <button
               type="button"
               className={`portal-tab-btn ${currentRole === 'owner' ? 'is-active' : ''}`}
               onClick={() => setCurrentRole('owner')}
             >
-              <span>📊</span> Property Owner & Investor Portal
+              <FiTrendingUp />
+              <span>Property Owner & Investor Portal</span>
             </button>
             <button
               type="button"
               className={`portal-tab-btn ${currentRole === 'admin' ? 'is-active' : ''}`}
               onClick={() => setCurrentRole('admin')}
             >
-              <span>⚡</span> Operations & Management Portal
+              <FiShield />
+              <span>Operations & Management Portal</span>
             </button>
           </div>
         </nav>
@@ -886,19 +999,19 @@ export default function PortalPage() {
                 <span className="widget-title">Portal Shortcuts</span>
                 <ul className="stay-meta-list">
                   <li>
-                    <span className="label">Current Stay</span>
+                    <span className="label"><FiHome style={{ color: 'var(--forest)' }} /> Current Stay</span>
                     <span className="value">Canton Townhouse</span>
                   </li>
                   <li>
-                    <span className="label">Front Door PIN</span>
+                    <span className="label"><FiKey style={{ color: 'var(--copper)' }} /> Front Door PIN</span>
                     <span className="value" style={{ color: 'var(--copper)', fontWeight: 700 }}>4892#</span>
                   </li>
                   <li>
-                    <span className="label">WiFi Network</span>
+                    <span className="label"><FiWifi style={{ color: 'var(--forest)' }} /> WiFi Network</span>
                     <span className="value">CSP-HighSpeed</span>
                   </li>
                   <li>
-                    <span className="label">WiFi Password</span>
+                    <span className="label"><FiLock style={{ color: 'var(--forest)' }} /> WiFi Password</span>
                     <span className="value">waterfront2026</span>
                   </li>
                 </ul>
@@ -907,22 +1020,27 @@ export default function PortalPage() {
               {/* Host Support */}
               <div className="sidebar-widget">
                 <span className="widget-title">Local Host Support</span>
-                <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', margin: '0 0 10px', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', margin: '0 0 12px', lineHeight: 1.5 }}>
                   Need fresh linens, early check-out, or local recommendations?
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <a href="tel:+14102188462" className="btn-outline" style={{ fontSize: '0.72rem', padding: '6px 10px', textAlign: 'center' }}>
-                    📞 Call Host: (410) 218-8462
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <a href="tel:+14102188462" className="btn-outline" style={{ fontSize: '0.74rem', padding: '8px 12px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    <FiPhone style={{ color: 'var(--forest)' }} />
+                    <span>Call Host: (410) 218-8462</span>
                   </a>
-                  <a href="mailto:info@chasestreetproperties.net" className="btn-outline" style={{ fontSize: '0.72rem', padding: '6px 10px', textAlign: 'center' }}>
-                    ✉️ Email Concierge
+                  <a href="mailto:info@chasestreetproperties.net" className="btn-outline" style={{ fontSize: '0.74rem', padding: '8px 12px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    <FiMail style={{ color: 'var(--copper)' }} />
+                    <span>Email Concierge</span>
                   </a>
                 </div>
               </div>
 
               {/* Database info widget */}
               <div className="sidebar-widget" style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 6, padding: '14px' }}>
-                <span className="widget-title" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Data Security</span>
+                <span className="widget-title" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <FiDatabase style={{ color: 'var(--forest)' }} />
+                  <span>Data Security</span>
+                </span>
                 <p style={{ fontSize: '0.74rem', color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.5 }}>
                   {isCloudLive ? 'All tickets & reservations sync with Supabase PostgreSQL with RLS encryption.' : 'Local secure sandbox active. Add Supabase credentials in .env.local for production database.'}
                 </p>
@@ -938,7 +1056,7 @@ export default function PortalPage() {
                 <div className="portal-view">
                   <div className="welcome-banner">
                     <div>
-                      <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sand)', fontWeight: 600 }}>
+                      <span className="eyebrow">
                         Welcome to Baltimore
                       </span>
                       <h2>Your Stay at The Townhouse at Hudson Street</h2>
@@ -948,18 +1066,20 @@ export default function PortalPage() {
                       <button
                         type="button"
                         className="btn-book"
-                        style={{ background: 'var(--sand)', color: 'var(--forest)' }}
+                        style={{ background: 'var(--sand)', color: 'var(--forest)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                         onClick={() => handleCopy('4892#')}
                       >
-                        Copy Door PIN (4892#)
+                        <FiKey />
+                        <span>Copy Door PIN (4892#)</span>
                       </button>
                       <button
                         type="button"
                         className="btn-outline"
-                        style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}
+                        style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                         onClick={() => handleCopy('waterfront2026')}
                       >
-                        Copy WiFi Password
+                        <FiWifi />
+                        <span>Copy WiFi Password</span>
                       </button>
                     </div>
                   </div>
@@ -1056,8 +1176,9 @@ export default function PortalPage() {
                       </div>
 
                       <div style={{ gridColumn: 'span 2' }}>
-                        <button type="submit" className="btn-book" style={{ padding: '10px 24px', fontSize: '0.8rem' }}>
-                          Dispatch Work Order to Supabase ↗
+                        <button type="submit" className="btn-book" style={{ padding: '10px 24px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          <span>Dispatch Work Order to Supabase</span>
+                          <FiArrowRight />
                         </button>
                       </div>
                     </form>
@@ -1111,9 +1232,9 @@ export default function PortalPage() {
               {/* ========================================================= */}
               {currentRole === 'owner' && (
                 <div className="portal-view">
-                  <div className="welcome-banner" style={{ background: '#2c3e38' }}>
+                  <div className="welcome-banner">
                     <div>
-                      <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sand)', fontWeight: 600 }}>
+                      <span className="eyebrow">
                         Property Investor Overview
                       </span>
                       <h2>Eleanor Vance Portfolio Dashboard</h2>
@@ -1242,9 +1363,9 @@ export default function PortalPage() {
               {/* ========================================================= */}
               {currentRole === 'admin' && (
                 <div className="portal-view">
-                  <div className="welcome-banner" style={{ background: '#1c2824' }}>
+                  <div className="welcome-banner">
                     <div>
-                      <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sand)', fontWeight: 600 }}>
+                      <span className="eyebrow">
                         Host Operations Control
                       </span>
                       <h2>Chase Street Central Management Hub</h2>
@@ -1267,9 +1388,10 @@ export default function PortalPage() {
                         type="button"
                         onClick={loadReservations}
                         className="btn-outline"
-                        style={{ padding: '6px 12px', fontSize: '0.72rem' }}
+                        style={{ padding: '6px 14px', fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                       >
-                        ↻ Refresh from Supabase
+                        <FiCheckCircle style={{ color: 'var(--forest)' }} />
+                        <span>Refresh from Supabase</span>
                       </button>
                     </div>
 
@@ -1330,7 +1452,24 @@ export default function PortalPage() {
       </>
       )}
 
-      <Footer showTopCta={false} />
+      {/* Dedicated Portal Footer */}
+      <footer className="portal-app-footer">
+        <div className="portal-app-footer__inner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontWeight: 700, color: '#fff' }}>Chase Street Properties</span>
+            <span>·</span>
+            <span>Executive Portal Hub</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Link href="/properties">Properties</Link>
+            <Link href="/contact">Host Support</Link>
+            <Link href="/policies">House Rules & Terms</Link>
+          </div>
+          <div>
+            © {new Date().getFullYear()} Chase Street Properties LLC. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
