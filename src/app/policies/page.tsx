@@ -4,8 +4,8 @@ import { Metadata } from 'next';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Stay Standards & House Policies | Chase Street Properties',
-  description: 'Detailed check-in procedures, quiet hours, cancellation terms, pet guidelines, and hospital-grade sanitization standards for Chase Street Properties.',
+  title: 'Stay Standards & House Policies | Baltimore Harbor Properties',
+  description: 'Detailed check-in procedures, quiet hours, cancellation terms, pet guidelines, and hospital-grade sanitization standards for Baltimore Harbor Properties.',
 };
 
 export default function PoliciesPage() {
@@ -22,7 +22,7 @@ export default function PoliciesPage() {
             </div>
             <h1>Clear Standards.<br /><em>Considered Hospitality.</em></h1>
             <p className="lead">
-              To preserve the tranquil, immaculate atmosphere our residents and property owners rely on, all Chase Street Properties residences operate under consistent, transparent standards.
+              To preserve the tranquil, immaculate atmosphere our residents and property owners rely on, all Baltimore Harbor Properties residences operate under consistent, transparent standards.
             </p>
             <div className="page-hero__meta">
               <div><span>Check-in:</span> <strong>3:00 PM (Keyless PIN)</strong></div>

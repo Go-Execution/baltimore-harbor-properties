@@ -308,7 +308,7 @@ export default function AttractionDetailClient({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                   <span style={{ fontSize: '1.2rem' }}>💡</span>
                   <h4 style={{ margin: 0, font: '400 1.3rem var(--serif)', color: 'var(--forest)' }}>
-                    Chase Street Local Concierge Tips
+                    Baltimore Harbor Local Concierge Tips
                   </h4>
                 </div>
                 <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, color: 'var(--ink)', fontSize: '0.88rem', lineHeight: 1.65 }}>
@@ -381,7 +381,7 @@ export default function AttractionDetailClient({
                 <strong style={{ display: 'block', color: 'var(--forest)', marginBottom: 4 }}>
                   🚆 Transit & Parking
                 </strong>
-                Water Taxi terminals, Charm City Circulator (free city bus), and reserved resident parking are available directly adjacent to our Chase Street addresses.
+                Water Taxi terminals, Charm City Circulator (free city bus), and reserved resident parking are available directly adjacent to our Baltimore Harbor addresses.
               </div>
 
               <a
@@ -415,7 +415,7 @@ export default function AttractionDetailClient({
                   Immediate Doorstep Access
                 </span>
                 <h2 style={{ font: '400 clamp(2.2rem, 3.8vw, 3.2rem)/1.1 var(--serif)', margin: '8px 0 6px', color: 'var(--forest)' }}>
-                  Chase Street Residences Near {attraction.title}
+                  Baltimore Harbor Residences Near {attraction.title}
                 </h2>
                 <p style={{ color: 'var(--ink-soft)', fontSize: '0.92rem', maxWidth: 700 }}>
                   Avoid standard hotel surcharges. Stay in fully furnished, private executive apartments and historic brownstones featuring high-speed WiFi, dedicated workspaces, and private entrances.
@@ -758,7 +758,7 @@ export default function AttractionDetailClient({
             <div style={{ borderBottom: '1px solid var(--line)', paddingBottom: 16, marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>
-                  Direct Chase Street Booking
+                  Direct Baltimore Harbor Booking
                 </span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>
                   Step {checkoutStep} of 4

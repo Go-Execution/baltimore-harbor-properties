@@ -21,8 +21,8 @@ export default function Footer({ showTopCta = true }: { showTopCta?: boolean }) 
 
       <div className="footer__middle section-pad" style={{ borderTop: showTopCta ? '1px solid rgba(255,255,255,.18)' : 'none' }}>
         <div className="footer__brand">
-          <span className="brand__monogram">CS</span>
-          <p>Chase Street<br />Properties</p>
+          <span className="brand__monogram">BHP</span>
+          <p>Baltimore Harbor<br />Properties</p>
         </div>
 
         <div className="footer__column">
@@ -61,7 +61,7 @@ export default function Footer({ showTopCta = true }: { showTopCta?: boolean }) 
       </div>
 
       <div className="footer__bottom section-pad">
-        <span>© {currentYear} Chase Street Properties · Gonzalo Jouan</span>
+        <span>© {currentYear} Baltimore Harbor Properties · Gonzalo Jouan</span>
         <span>Furnished Executive & Medical Stays · Baltimore, MD</span>
         <span>Platform engineered by Go Execution</span>
         <a href="#main">Back to top ↑</a>

@@ -1193,7 +1193,7 @@ export default function PropertyDetailClient({ property }: { property: Property 
 
                   <div style={{ background: 'rgba(46, 125, 50, 0.08)', border: '1px solid rgba(46, 125, 50, 0.25)', borderRadius: 6, padding: 12, display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.74rem', color: '#166534' }}>
                     <span>🔒</span>
-                    <span>256-bit TLS Bank-Grade Encryption. Powered by Chase Street Properties Gateway.</span>
+                    <span>256-bit TLS Bank-Grade Encryption. Powered by Baltimore Harbor Properties Gateway.</span>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>

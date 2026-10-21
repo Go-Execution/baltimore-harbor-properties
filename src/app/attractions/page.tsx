@@ -5,7 +5,7 @@ import { ATTRACTIONS } from '@/data/attractions';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Baltimore Attractions & Points of Interest | Chase Street Properties',
+  title: 'Baltimore Attractions & Points of Interest | Baltimore Harbor Properties',
   description:
     "Explore Baltimore's premier cultural landmarks and reserve nearby furnished executive residences: Inner Harbor, The Walters Art Museum, Fort McHenry, Patterson Park, National Aquarium, and Fells Point.",
 };

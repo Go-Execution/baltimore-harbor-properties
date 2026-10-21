@@ -1,5 +1,5 @@
 /**
- * Chase Street Properties — Stays / Properties Catalog Logic
+ * Baltimore Harbor Properties — Stays / Properties Catalog Logic
  */
 
 document.addEventListener('DOMContentLoaded', () => {

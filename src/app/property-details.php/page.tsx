@@ -13,10 +13,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const prop = PROPERTIES.find((p) => p.id === pid) || PROPERTIES[0];
 
   return {
-    title: `${prop.title} | Chase Street Properties`,
+    title: `${prop.title} | Baltimore Harbor Properties`,
     description: prop.description,
     openGraph: {
-      title: `${prop.title} — Chase Street Properties`,
+      title: `${prop.title} — Baltimore Harbor Properties`,
       description: prop.description,
       images: [{ url: prop.coverImage }],
     },

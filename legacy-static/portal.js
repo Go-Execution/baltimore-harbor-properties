@@ -1,5 +1,5 @@
 /**
- * Chase Street Properties — Portals Hub Interactive Engine
+ * Baltimore Harbor Properties — Portals Hub Interactive Engine
  * Supporting Guest / Resident, Property Owner, and Operations Team Portals
  */
 
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
       renderGuestView();
       ticketForm.reset();
-      showToast(`Work order ${newId} dispatched to Chase Street Concierge!`);
+      showToast(`Work order ${newId} dispatched to Baltimore Harbor Concierge!`);
     });
   }
 

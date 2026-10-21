@@ -18,14 +18,14 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const attraction = getAttractionBySlug(params.slug);
   if (!attraction) {
-    return { title: 'Attraction Not Found | Chase Street Properties' };
+    return { title: 'Attraction Not Found | Baltimore Harbor Properties' };
   }
 
   return {
-    title: `${attraction.title} — Visitor Guide & Nearby Furnished Residences | Chase Street Properties`,
-    description: `${attraction.summary} Stay in luxury Chase Street Properties residences located just minutes from ${attraction.title}.`,
+    title: `${attraction.title} — Visitor Guide & Nearby Furnished Residences | Baltimore Harbor Properties`,
+    description: `${attraction.summary} Stay in luxury Baltimore Harbor Properties residences located just minutes from ${attraction.title}.`,
     openGraph: {
-      title: `${attraction.title} | Chase Street Properties Baltimore`,
+      title: `${attraction.title} | Baltimore Harbor Properties Baltimore`,
       description: attraction.summary,
       images: [{ url: attraction.heroImage }],
     },

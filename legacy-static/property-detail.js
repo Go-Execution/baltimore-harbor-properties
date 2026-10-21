@@ -1,5 +1,5 @@
 /**
- * Chase Street Properties — Single Residence Detail Page Logic
+ * Baltimore Harbor Properties — Single Residence Detail Page Logic
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const prop = CSP_PROPERTIES.find(p => p.id === pid) || CSP_PROPERTIES[0];
 
   // Update Page Title and SEO Meta
-  document.title = `${prop.title} — Chase Street Properties`;
+  document.title = `${prop.title} — Baltimore Harbor Properties`;
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content', `${prop.title} in ${prop.neighborhood}, Baltimore. ${prop.subtitle}`);
 

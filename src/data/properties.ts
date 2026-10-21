@@ -255,7 +255,7 @@ export const PROPERTIES: Property[] = [
     ],
     "reviews": [
       {
-        "text": "When I rented my first property from Chase Street Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
+        "text": "When I rented my first property from Baltimore Harbor Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
         "author": "Baraka",
         "date": "January 2017"
       },
@@ -529,7 +529,7 @@ export const PROPERTIES: Property[] = [
         "date": "2-Mar-2022"
       },
       {
-        "text": "When I rented my first property from Chase Street Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
+        "text": "When I rented my first property from Baltimore Harbor Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
         "author": "Baraka",
         "date": "January 2017"
       },
@@ -657,7 +657,7 @@ export const PROPERTIES: Property[] = [
         "date": "5-Apr-2022"
       },
       {
-        "text": "When I rented my first property from Chase Street Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
+        "text": "When I rented my first property from Baltimore Harbor Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
         "author": "Baraka",
         "date": "January 2017"
       },
@@ -965,7 +965,7 @@ export const PROPERTIES: Property[] = [
     ],
     "reviews": [
       {
-        "text": "When I rented my first property from Chase Street Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
+        "text": "When I rented my first property from Baltimore Harbor Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
         "author": "Baraka",
         "date": "January 2017"
       },
@@ -1103,7 +1103,7 @@ export const PROPERTIES: Property[] = [
         "date": "12-Apr-2021"
       },
       {
-        "text": "When I rented my first property from Chase Street Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
+        "text": "When I rented my first property from Baltimore Harbor Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
         "author": "Baraka",
         "date": "January 2017"
       },
@@ -1213,7 +1213,7 @@ export const PROPERTIES: Property[] = [
     ],
     "reviews": [
       {
-        "text": "When I rented my first property from Chase Street Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
+        "text": "When I rented my first property from Baltimore Harbor Properties, I came here for medical treatment and had no idea what to do. Lorraine Jacobs took care of me every step of the way.Had a wonderful stay in downtown Baltimore- excellent location, on point communications, comfortable space, and an inspiring view :)..... Lorraine was an awesome contact person. Would definitely recommend this space for anyone who is looking to stay in the Inner Harbor area.",
         "author": "Baraka",
         "date": "January 2017"
       },

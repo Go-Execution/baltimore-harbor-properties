@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${prop.title} — ${prop.neighborhood}`,
     description: `${prop.title} in ${prop.neighborhood}, Baltimore. ${prop.subtitle}`,
     openGraph: {
-      title: `${prop.title} — Chase Street Properties`,
+      title: `${prop.title} — Baltimore Harbor Properties`,
       description: prop.description,
       images: [{ url: prop.coverImage }],
     },

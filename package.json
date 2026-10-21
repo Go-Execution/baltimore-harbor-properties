@@ -1,7 +1,7 @@
 {
-  "name": "chase-street-properties",
+  "name": "baltimore-harbor-properties",
   "version": "1.0.0",
-  "description": "Chase Street Properties — Next.js 14 Production Platform",
+  "description": "Baltimore Harbor Properties — Next.js 14 Production Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,16 +10,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Go-Execution/chase-street-properties.git"
+    "url": "git+https://github.com/Go-Execution/baltimore-harbor-properties.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/Go-Execution/chase-street-properties/issues"
+    "url": "https://github.com/Go-Execution/baltimore-harbor-properties/issues"
   },
-  "homepage": "https://github.com/Go-Execution/chase-street-properties#readme",
+  "homepage": "https://github.com/Go-Execution/baltimore-harbor-properties#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
     "next": "^14.2.15",

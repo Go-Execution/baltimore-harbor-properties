@@ -181,7 +181,7 @@ export default function ContactPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               <div style={{ background: 'var(--forest)', color: '#fff', padding: 36, borderRadius: 6, boxShadow: '0 16px 36px rgba(23,35,31,0.12)' }}>
                 <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--sand)', fontWeight: 600 }}>
-                  Chase Street Headquarters
+                  Baltimore Harbor Headquarters
                 </span>
                 <h3 style={{ font: '400 2rem var(--serif)', margin: '8px 0 16px', color: '#fff' }}>
                   Baltimore Office
@@ -250,7 +250,7 @@ export default function ContactPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <details style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 4, padding: '20px 24px', cursor: 'pointer' }}>
                 <summary style={{ font: '500 1.05rem var(--serif)', color: 'var(--ink)', listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>What is the minimum stay requirement at Chase Street Properties?</span>
+                  <span>What is the minimum stay requirement at Baltimore Harbor Properties?</span>
                   <span style={{ color: 'var(--copper)', fontSize: '1.3rem' }}>+</span>
                 </summary>
                 <p style={{ margin: '14px 0 0', fontSize: '0.86rem', lineHeight: 1.7, color: 'var(--ink-soft)', borderTop: '1px solid var(--line)', paddingTop: 12 }}>

@@ -21,11 +21,11 @@ export default function HomePage() {
       <div className={`intro ${introFinished ? 'is-finished' : ''}`} aria-hidden="true">
         <div className="intro__grain"></div>
         <div className="intro__mark">
-          <svg viewBox="0 0 120 120" role="img" aria-label="Chase Street Properties">
+          <svg viewBox="0 0 120 120" role="img" aria-label="Baltimore Harbor Properties">
             <path d="M90 28c-8-9-18-13-30-13-25 0-43 19-43 45s18 45 43 45c12 0 23-4 31-13" />
             <path d="M99 40c-4-8-12-12-22-12-13 0-22 7-22 17 0 24 45 11 45 39 0 11-10 20-25 20-10 0-19-4-24-11" />
           </svg>
-          <p>Chase Street Properties</p>
+          <p>Baltimore Harbor Properties</p>
           <span>Baltimore · Maryland</span>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function HomePage() {
             <figure className="story__image story__image--large">
               <img
                 src="https://www.chasestreetproperties.net/images/about.webp"
-                alt="Light-filled furnished living room at Chase Street Properties"
+                alt="Light-filled furnished living room at Baltimore Harbor Properties"
                 loading="lazy"
               />
               <figcaption><span>01</span> Spaces made for real life</figcaption>
@@ -112,7 +112,7 @@ export default function HomePage() {
             </figure>
           </div>
 
-          <div className="story__facts" aria-label="Chase Street Properties facts">
+          <div className="story__facts" aria-label="Baltimore Harbor Properties facts">
             <div><strong>40<sup>+</sup></strong><span>Furnished<br />homes</span></div>
             <div><strong>03<sup>+</sup></strong><span>Night minimum<br />stay</span></div>
             <div><strong>24/7</strong><span>Self check-in<br />& support</span></div>

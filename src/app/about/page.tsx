@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Our Story & Hospitality Standards',
-  description: "Discover Chase Street Properties' story. Curated executive residences, historic Baltimore rowhomes, and authentic local hospitality in Canton, Fells Point, and Inner Harbor.",
+  description: "Discover Baltimore Harbor Properties' story. Curated executive residences, historic Baltimore rowhomes, and authentic local hospitality in Canton, Fells Point, and Inner Harbor.",
 };
 
 export default function AboutPage() {
@@ -47,7 +47,7 @@ export default function AboutPage() {
                 Baltimore is a city of intricate brickwork, marble stoops, salty harbor breezes, and fierce neighborhood pride. When founder Gonzalo Jouan began restoring properties along Hudson Street in Canton, the goal was not to strip out history in pursuit of trendy uniformity, but to highlight original 19th-century pine joists, hand-laid brick fireplaces, and generous proportions—while outfitting them with 21st-century residential infrastructure.
               </p>
               <p style={{ fontSize: '0.95rem', lineHeight: 1.8, color: 'var(--ink-soft)', marginBottom: 30 }}>
-                Today, Chase Street Properties manages more than 40 bespoke residences throughout Canton, Fells Point, Harbor East, and Inner Harbor. We cater especially to Johns Hopkins physicians, travelling clinical specialists, relocating executives, and corporate project directors who require peace of mind and pristine attention to detail.
+                Today, Baltimore Harbor Properties manages more than 40 bespoke residences throughout Canton, Fells Point, Harbor East, and Inner Harbor. We cater especially to Johns Hopkins physicians, travelling clinical specialists, relocating executives, and corporate project directors who require peace of mind and pristine attention to detail.
               </p>
               <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
                 <Link href="/properties" className="btn-book" style={{ padding: '14px 28px' }}>
@@ -63,7 +63,7 @@ export default function AboutPage() {
               <div style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', boxShadow: '0 20px 45px rgba(23, 35, 31, 0.12)' }}>
                 <img
                   src="https://www.chasestreetproperties.net/images/about.webp"
-                  alt="Chase Street Properties historic Baltimore rowhome interior"
+                  alt="Baltimore Harbor Properties historic Baltimore rowhome interior"
                   style={{ width: '100%', display: 'block' }}
                 />
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, background: 'linear-gradient(0deg, rgba(23,35,31,0.9), transparent)', color: '#fff' }}>
@@ -80,7 +80,7 @@ export default function AboutPage() {
           <div style={{ maxWidth: 1380, margin: '0 auto' }}>
             <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--sand)', fontWeight: 600 }}>The Four Pillars</span>
             <h2 style={{ margin: '12px 0 60px', font: '400 clamp(2.4rem, 4.5vw, 4.4rem)/1 var(--serif)', color: '#fff' }}>
-              The Chase Street Standard.<br /><em>No compromises.</em>
+              The Baltimore Harbor Standard.<br /><em>No compromises.</em>
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32 }}>

@@ -1,5 +1,5 @@
 /**
- * Chase Street Properties — Centralized Properties Data
+ * Baltimore Harbor Properties — Centralized Properties Data
  * Baltimore Executive & Furnished Stays
  */
 
@@ -74,7 +74,7 @@ const CSP_PROPERTIES = [
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80"
     ],
-    description: "The signature flagship rowhome of Chase Street Properties. Beautifully restored with exposed red brick, rich hardwood floors, an expansive chef's kitchen, and a private brick patio for sunset dinners. Situated along vibrant Hudson Street, offering effortless proximity to Johns Hopkins medical campuses.",
+    description: "The signature flagship rowhome of Baltimore Harbor Properties. Beautifully restored with exposed red brick, rich hardwood floors, an expansive chef's kitchen, and a private brick patio for sunset dinners. Situated along vibrant Hudson Street, offering effortless proximity to Johns Hopkins medical campuses.",
     amenities: [
       { name: "Gigabit Fiber WiFi (1000 Mbps)", icon: "📶", category: "Connectivity" },
       { name: "Dedicated 32\" 4K Workspace", icon: "💻", category: "Workspace" },

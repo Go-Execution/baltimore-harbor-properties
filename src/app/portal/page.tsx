@@ -190,7 +190,7 @@ export default function PortalPage() {
     setIsAuthenticated(true);
     setAuthLoading(false);
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    showToast(`Access granted! Welcome to Chase Street Portals (${portalRoleSelect.toUpperCase()} View).`);
+    showToast(`Access granted! Welcome to Baltimore Harbor Portals (${portalRoleSelect.toUpperCase()} View).`);
   };
 
   // Sign In Handler
@@ -246,7 +246,7 @@ export default function PortalPage() {
     setCurrentRole(signupRole);
     setIsAuthenticated(true);
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    showToast(`Account created! Welcome to Chase Street Portals.`);
+    showToast(`Account created! Welcome to Baltimore Harbor Portals.`);
   };
 
   // Instant Access via Booking Code & PIN
@@ -300,7 +300,7 @@ export default function PortalPage() {
     setIsAuthenticated(false);
     setCurrentUser(null);
     localStorage.removeItem(AUTH_KEY);
-    showToast('Signed out of Chase Street Portals.');
+    showToast('Signed out of Baltimore Harbor Portals.');
   };
 
   // Submit Maintenance Ticket (Dispatches to Supabase & Local State)
@@ -340,7 +340,7 @@ export default function PortalPage() {
     setTicketTitle('');
     setTicketRoom('');
     setTicketDesc('');
-    showToast(`Work order ${newId} dispatched to Chase Street Concierge & Supabase!`);
+    showToast(`Work order ${newId} dispatched to Baltimore Harbor Concierge & Supabase!`);
   };
 
   // Owner Approve / Decline
@@ -377,9 +377,9 @@ export default function PortalPage() {
           <header className="portal-app-header">
             <div className="portal-app-header__inner">
               <Link href="/" className="portal-app-header__brand" title="Return to public site">
-                <span className="portal-app-header__monogram">CS</span>
+                <span className="portal-app-header__monogram">BHP</span>
                 <div className="portal-app-header__title">
-                  <strong>Chase Street Properties</strong>
+                  <strong>Baltimore Harbor Properties</strong>
                   <span>Executive Portals Hub</span>
                 </div>
               </Link>
@@ -417,7 +417,7 @@ export default function PortalPage() {
                 Private Member & Resident Gateway
               </span>
               <h1 style={{ font: '400 clamp(1.8rem, 3.5vw, 2.4rem)/1.15 var(--serif)', color: 'var(--forest)', margin: 0 }}>
-                Chase Street Portals Access
+                Baltimore Harbor Portals Access
               </h1>
               <p style={{ fontSize: '0.86rem', color: 'var(--ink-soft)', margin: '8px 0 0', lineHeight: 1.6 }}>
                 Secure gateway for guests, property owners, and operations staff.
@@ -885,9 +885,9 @@ export default function PortalPage() {
         <header className="portal-app-header">
           <div className="portal-app-header__inner">
             <Link href="/" className="portal-app-header__brand" title="Return to public site">
-              <span className="portal-app-header__monogram">CS</span>
+              <span className="portal-app-header__monogram">BHP</span>
               <div className="portal-app-header__title">
-                <strong>Chase Street Properties</strong>
+                <strong>Baltimore Harbor Properties</strong>
                 <span>Executive Portals Hub</span>
               </div>
             </Link>
@@ -1368,7 +1368,7 @@ export default function PortalPage() {
                       <span className="eyebrow">
                         Host Operations Control
                       </span>
-                      <h2>Chase Street Central Management Hub</h2>
+                      <h2>Baltimore Harbor Central Management Hub</h2>
                       <p>Real-time booking logs, Supabase synchronization, and inventory control</p>
                     </div>
                   </div>
@@ -1456,7 +1456,7 @@ export default function PortalPage() {
       <footer className="portal-app-footer">
         <div className="portal-app-footer__inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 700, color: '#fff' }}>Chase Street Properties</span>
+            <span style={{ fontWeight: 700, color: '#fff' }}>Baltimore Harbor Properties</span>
             <span>·</span>
             <span>Executive Portal Hub</span>
           </div>
@@ -1466,7 +1466,7 @@ export default function PortalPage() {
             <Link href="/policies">House Rules & Terms</Link>
           </div>
           <div>
-            © {new Date().getFullYear()} Chase Street Properties LLC. All rights reserved.
+            © {new Date().getFullYear()} Baltimore Harbor Properties LLC. All rights reserved.
           </div>
         </div>
       </footer>

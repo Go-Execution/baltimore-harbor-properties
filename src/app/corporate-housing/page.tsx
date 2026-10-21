@@ -101,7 +101,7 @@ export default function CorporateHousingPage() {
                 Value Comparison
               </span>
               <h2 style={{ font: '400 clamp(2.2rem, 4vw, 3.4rem)/1.1 var(--serif)', margin: '8px 0 14px', color: 'var(--forest)' }}>
-                Extended-Stay Hotel vs. Chase Street Residence
+                Extended-Stay Hotel vs. Baltimore Harbor Residence
               </h2>
               <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)', maxWidth: 640, margin: '0 auto' }}>
                 Why Baltimore's leading healthcare institutions and Fortune 500 firms choose our furnished private homes.
@@ -114,7 +114,7 @@ export default function CorporateHousingPage() {
                   <tr style={{ background: 'var(--forest)', color: '#fff' }}>
                     <th style={{ padding: '16px 20px', fontWeight: 600 }}>Feature</th>
                     <th style={{ padding: '16px 20px', fontWeight: 600 }}>Standard Extended-Stay Hotel</th>
-                    <th style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--sand)' }}>Chase Street Properties</th>
+                    <th style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--sand)' }}>Baltimore Harbor Properties</th>
                   </tr>
                 </thead>
                 <tbody>

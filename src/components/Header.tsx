@@ -76,9 +76,9 @@ export default function Header() {
       )}
 
       <header className={`site-header ${isSolid || pathname !== '/' ? 'is-solid' : ''}`} data-header>
-        <Link href="/" className="brand" aria-label="Chase Street Properties, home">
-          <span className="brand__monogram">CS</span>
-          <span className="brand__name">Chase Street <small>Properties</small></span>
+        <Link href="/" className="brand" aria-label="Baltimore Harbor Properties, home">
+          <span className="brand__monogram">BHP</span>
+          <span className="brand__name">Baltimore Harbor <small>Properties</small></span>
         </Link>
 
         <nav className="desktop-nav" aria-label="Main navigation">

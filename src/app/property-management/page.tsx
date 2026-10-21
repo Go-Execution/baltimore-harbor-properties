@@ -73,7 +73,7 @@ export default function PropertyManagementPage() {
               <h2 style={{ font: '400 clamp(2.4rem, 4vw, 3.8rem)/1.1 var(--serif)', margin: '6px 0' }}>
                 Baltimore Rental Yield Calculator
               </h2>
-              <p>See how your property performs under Chase Street Properties executive furnished management.</p>
+              <p>See how your property performs under Baltimore Harbor Properties executive furnished management.</p>
             </div>
           </div>
 
@@ -161,7 +161,7 @@ export default function PropertyManagementPage() {
                     <strong>92.5%</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Chase Street Full Management Fee:</span>
+                    <span>Baltimore Harbor Full Management Fee:</span>
                     <span>20% (all-inclusive)</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--sand)', fontWeight: 600 }}>
@@ -191,7 +191,7 @@ export default function PropertyManagementPage() {
               The Comparison
             </span>
             <h2 style={{ font: '400 clamp(2.4rem, 4vw, 3.8rem)/1.1 var(--serif)', margin: '8px 0 40px', color: 'var(--ink)' }}>
-              Why Baltimore owners switch to Chase Street.
+              Why Baltimore owners switch to Baltimore Harbor.
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
@@ -222,7 +222,7 @@ export default function PropertyManagementPage() {
               <div style={{ background: 'var(--forest)', color: '#fff', padding: 32, borderRadius: 4, boxShadow: '0 16px 40px rgba(23,35,31,0.18)', position: 'relative', overflow: 'hidden' }}>
                 <span className="p-badge p-badge--copper" style={{ position: 'absolute', top: 20, right: 20 }}>Top Choice</span>
                 <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sand)' }}>Model C</span>
-                <h3 style={{ font: '400 1.8rem var(--serif)', margin: '8px 0 16px', color: '#fff' }}>Chase Street Properties</h3>
+                <h3 style={{ font: '400 1.8rem var(--serif)', margin: '8px 0 16px', color: '#fff' }}>Baltimore Harbor Properties</h3>
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', fontSize: '0.82rem', lineHeight: 2, color: '#d6deda' }}>
                   <li>✓ <strong>+35% to +55% Net Revenue Premium</strong></li>
                   <li>✓ <strong>Vetted Healthcare, Corporate & Executive Guests</strong></li>

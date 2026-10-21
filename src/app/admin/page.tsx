@@ -42,7 +42,7 @@ export default function AdminDashboardPage() {
               CS
             </span>
             <div>
-              <strong style={{ display: 'block', fontSize: '0.9rem', letterSpacing: '0.04em' }}>Chase Street Properties</strong>
+              <strong style={{ display: 'block', fontSize: '0.9rem', letterSpacing: '0.04em' }}>Baltimore Harbor Properties</strong>
               <span style={{ fontSize: '0.65rem', color: '#a0a6a2', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                 Management Control Center
               </span>
