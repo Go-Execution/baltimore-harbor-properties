@@ -21,13 +21,13 @@ const CSP_PROPERTIES = [
     rating: 4.96,
     reviewsCount: 42,
     badges: ["Hopkins Preferred", "Garden Patio"],
-    coverImage: "https://www.chasestreetproperties.net/uploads/property_list_img/5eca3b19-9431-47d2-b928-0a6a2b1f671e_1660155115_1660170093_1660669083_1661532110.jpg",
+    coverImage: "/assets/media/chase/5eca3b19-9431-47d2-b928-0a6a2b1f671e_1660155115_1660170093_1660669083_16--734b20ec703a.jpg",
     gallery: [
-      "https://www.chasestreetproperties.net/uploads/property_list_img/5eca3b19-9431-47d2-b928-0a6a2b1f671e_1660155115_1660170093_1660669083_1661532110.jpg",
-      "https://www.chasestreetproperties.net/images/about.webp",
-      "https://www.chasestreetproperties.net/images/about2.webp",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80"
+      "/assets/media/chase/5eca3b19-9431-47d2-b928-0a6a2b1f671e_1660155115_1660170093_1660669083_16--734b20ec703a.jpg",
+      "/assets/media/chase/about--672b543223da.webp",
+      "/assets/media/chase/about2--4890844138d1.webp",
+      "/assets/media/unsplash/photo-1502672260266-1c1ef2d93688--98f0ac0a96f8.jpg",
+      "/assets/media/unsplash/photo-1556911220-e15b29be8c8f--b12742d8587d.jpg"
     ],
     description: "A calm, thoughtfully appointed sanctuary located in the heart of historic Canton. Crafted for travelling physicians, remote executives, and independent explorers, this light-flooded home provides whisper-quiet nights just steps from O'Donnell Square's finest bakeries and the harbor promenade.",
     amenities: [
@@ -66,13 +66,13 @@ const CSP_PROPERTIES = [
     rating: 4.98,
     reviewsCount: 68,
     badges: ["Flagship Stay", "Hopkins Preferred", "Private Courtyard"],
-    coverImage: "https://www.chasestreetproperties.net/uploads/property_list_img/hudsonliving_1661518528_1661532267.jpg",
+    coverImage: "/assets/media/chase/hudsonliving_1661518528_1661532267--2efdc5522fd6.jpg",
     gallery: [
-      "https://www.chasestreetproperties.net/uploads/property_list_img/hudsonliving_1661518528_1661532267.jpg",
-      "https://www.chasestreetproperties.net/images/about.webp",
-      "https://www.chasestreetproperties.net/images/about2.webp",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80"
+      "/assets/media/chase/hudsonliving_1661518528_1661532267--2efdc5522fd6.jpg",
+      "/assets/media/chase/about--672b543223da.webp",
+      "/assets/media/chase/about2--4890844138d1.webp",
+      "/assets/media/unsplash/photo-1600585154340-be6161a56a0c--e705a536f2a6.jpg",
+      "/assets/media/unsplash/photo-1584622650111-993a426fbf0a--4e3a48974b6c.jpg"
     ],
     description: "The signature flagship rowhome of Baltimore Harbor Properties. Beautifully restored with exposed red brick, rich hardwood floors, an expansive chef's kitchen, and a private brick patio for sunset dinners. Situated along vibrant Hudson Street, offering effortless proximity to Johns Hopkins medical campuses.",
     amenities: [
@@ -111,13 +111,13 @@ const CSP_PROPERTIES = [
     rating: 4.95,
     reviewsCount: 54,
     badges: ["Rooftop Deck", "Waterfront Skyline"],
-    coverImage: "https://www.chasestreetproperties.net/uploads/property_list_img/6acf57d7-4d5c-403c-ab68-fccffbd1828a_1660161150.webp",
+    coverImage: "/assets/media/chase/6acf57d7-4d5c-403c-ab68-fccffbd1828a_1660161150--9d11068f3b3e.webp",
     gallery: [
-      "https://www.chasestreetproperties.net/uploads/property_list_img/6acf57d7-4d5c-403c-ab68-fccffbd1828a_1660161150.webp",
-      "https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg",
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=1200&q=80"
+      "/assets/media/chase/6acf57d7-4d5c-403c-ab68-fccffbd1828a_1660161150--9d11068f3b3e.webp",
+      "/assets/media/chase/usa-maryland-baltimore-inner-harbor_1691259038--957298fcc60f.jpg",
+      "/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg",
+      "/assets/media/unsplash/photo-1616486338812-3dadae4b4ace--9c13e85423bf.jpg",
+      "/assets/media/unsplash/photo-1507089947368-19c1da9775ae--44be73c146cf.jpg"
     ],
     description: "An expansive executive residence with a private rooftop deck offering sweeping vistas of the Baltimore Inner Harbor. Perfect for project teams, medical consultants, and discerning families desiring effortless walking access to the waterfront promenade, downtown businesses, and world-class dining.",
     amenities: [
@@ -156,13 +156,13 @@ const CSP_PROPERTIES = [
     rating: 4.97,
     reviewsCount: 39,
     badges: ["Waterfront Historic", "Water Taxi Step-Out"],
-    coverImage: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "/assets/media/unsplash/photo-1560448204-e02f11c3d0e2--ef4b1c91720a.jpg",
     gallery: [
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80",
-      "https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80"
+      "/assets/media/unsplash/photo-1560448204-e02f11c3d0e2--ef4b1c91720a.jpg",
+      "/assets/media/unsplash/photo-1502672260266-1c1ef2d93688--98f0ac0a96f8.jpg",
+      "/assets/media/chase/usa-maryland-baltimore-inner-harbor_1691259038--957298fcc60f.jpg",
+      "/assets/media/unsplash/photo-1600585154340-be6161a56a0c--e705a536f2a6.jpg",
+      "/assets/media/unsplash/photo-1556911220-e15b29be8c8f--b12742d8587d.jpg"
     ],
     description: "Perched above the historic cobblestones of Thames Street, this maritime loft pairs late-19th-century exposed wood and masonry with refined Danish modern interiors. Step out your door onto the waterfront promenade or catch the Baltimore Water Taxi across the harbor.",
     amenities: [
@@ -201,13 +201,13 @@ const CSP_PROPERTIES = [
     rating: 4.99,
     reviewsCount: 48,
     badges: ["Cultural District", "Penn Station MARC/Amtrak"],
-    coverImage: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "/assets/media/unsplash/photo-1600210492486-724fe5c67fb0--6650d8d6a74e.jpg",
     gallery: [
-      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80",
-      "https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-walters-art-museum-staircase.jpg",
-      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80"
+      "/assets/media/unsplash/photo-1600210492486-724fe5c67fb0--6650d8d6a74e.jpg",
+      "/assets/media/chase/maryland-top-attractions-walters-art-museum-staircase--95b6d790caea.jpg",
+      "/assets/media/unsplash/photo-1584622650111-993a426fbf0a--4e3a48974b6c.jpg",
+      "/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg",
+      "/assets/media/unsplash/photo-1616486338812-3dadae4b4ace--9c13e85423bf.jpg"
     ],
     description: "Located in Baltimore's historic Mount Vernon cultural quarter, this residence boasts majestic 14-foot ceilings, period molding, and museum-grade finishes. Only a short stroll to Penn Station for painless DC or NYC rail commutes.",
     amenities: [
@@ -246,13 +246,13 @@ const CSP_PROPERTIES = [
     rating: 5.0,
     reviewsCount: 31,
     badges: ["Luxury Penthouse", "24/7 Doorman", "Private Terrace"],
-    coverImage: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "/assets/media/unsplash/photo-1545324418-cc1a3fa10c00--b7a3cd9e1695.jpg",
     gallery: [
-      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
-      "https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80"
+      "/assets/media/unsplash/photo-1545324418-cc1a3fa10c00--b7a3cd9e1695.jpg",
+      "/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg",
+      "/assets/media/chase/usa-maryland-baltimore-inner-harbor_1691259038--957298fcc60f.jpg",
+      "/assets/media/unsplash/photo-1600585154340-be6161a56a0c--e705a536f2a6.jpg",
+      "/assets/media/unsplash/photo-1584622650111-993a426fbf0a--4e3a48974b6c.jpg"
     ],
     description: "The pinnacle of Harbor East luxury. Floor-to-ceiling glass reveals breathtaking sunrises over the Patapsco River and sparkling night views of Baltimore's iconic skyline. Unmatched proximity to Michelin-caliber dining, Whole Foods, and premier corporate offices.",
     amenities: [

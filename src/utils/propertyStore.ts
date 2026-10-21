@@ -138,15 +138,15 @@ export function saveProperty(data: Partial<Property> & { id?: number }): Propert
       badges: data.badges?.length ? data.badges : ['New Listing', data.neighborhood || 'Baltimore'],
       coverImage:
         data.coverImage ||
-        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+        '/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg',
       gallery:
         data.gallery?.length
           ? data.gallery
           : [
               data.coverImage ||
-                'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
-              'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-              'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?auto=format&fit=crop&w=1200&q=80',
+                '/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg',
+              '/assets/media/unsplash/photo-1600585154340-be6161a56a0c--e705a536f2a6.jpg',
+              '/assets/media/unsplash/photo-1600565193348-f74bd3c7ccdf--6fe51e3c8698.jpg',
             ],
       description: data.description || 'Newly curated executive residence in Baltimore.',
       amenities: data.amenities || [

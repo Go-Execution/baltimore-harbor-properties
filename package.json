@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "assets:localize": "node scripts/localize-assets.mjs",
+    "assets:verify": "node scripts/verify-local-assets.mjs"
   },
   "repository": {
     "type": "git",

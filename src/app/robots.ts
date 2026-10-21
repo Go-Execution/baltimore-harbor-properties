@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin'],
     },
-    sitemap: 'https://www.chasestreetproperties.net/sitemap.xml',
+    sitemap: 'https://baltimore-harbor-properties.vercel.app/sitemap.xml',
   };
 }

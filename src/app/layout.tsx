@@ -7,7 +7,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.chasestreetproperties.net'),
+  metadataBase: new URL('https://baltimore-harbor-properties.vercel.app'),
   title: {
     default: 'Baltimore Harbor Properties — Furnished Executive Stays Baltimore',
     template: '%s | Baltimore Harbor Properties',
@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Baltimore Harbor Properties — Furnished Stays Baltimore',
     description: 'Considered homes for business trips, medical rotations, relocations, and weekends by the water in Baltimore.',
-    url: 'https://www.chasestreetproperties.net',
+    url: 'https://baltimore-harbor-properties.vercel.app',
     siteName: 'Baltimore Harbor Properties',
     images: [
       {
-        url: 'https://www.chasestreetproperties.net/images/bg.webp',
+        url: '/assets/media/chase/bg--ce32e9ca5d88.webp',
         width: 1200,
         height: 630,
         alt: 'Baltimore Harbor Properties Baltimore Waterfront',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Baltimore Harbor Properties — Furnished Stays Baltimore',
     description: 'Thoughtfully furnished executive stays in Baltimore waterfront neighborhoods.',
-    images: ['https://www.chasestreetproperties.net/images/bg.webp'],
+    images: ['/assets/media/chase/bg--ce32e9ca5d88.webp'],
   },
 };
 
@@ -49,8 +49,8 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'LodgingBusiness',
     name: 'Baltimore Harbor Properties',
-    image: 'https://www.chasestreetproperties.net/images/bg.webp',
-    url: 'https://www.chasestreetproperties.net/',
+    image: '/assets/media/chase/bg--ce32e9ca5d88.webp',
+    url: 'https://baltimore-harbor-properties.vercel.app/',
     telephone: '+1-410-218-8462',
     email: 'info@chasestreetproperties.net',
     priceRange: '$$',
@@ -72,10 +72,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+          href="/assets/fonts/fonts.css"
           rel="stylesheet"
         />
         <script

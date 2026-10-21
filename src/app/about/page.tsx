@@ -62,7 +62,7 @@ export default function AboutPage() {
             <div>
               <div style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', boxShadow: '0 20px 45px rgba(23, 35, 31, 0.12)' }}>
                 <img
-                  src="https://www.chasestreetproperties.net/images/about.webp"
+                  src="/assets/media/chase/about--672b543223da.webp"
                   alt="Baltimore Harbor Properties historic Baltimore rowhome interior"
                   style={{ width: '100%', display: 'block' }}
                 />
@@ -124,7 +124,7 @@ export default function AboutPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 70, alignItems: 'center' }}>
             <div>
               <img
-                src="https://www.chasestreetproperties.net/images/about2.webp"
+                src="/assets/media/chase/about2--4890844138d1.webp"
                 alt="Baltimore bedroom interior"
                 style={{ width: '100%', borderRadius: 4, boxShadow: '0 16px 36px rgba(23,35,31,0.08)' }}
               />

@@ -51,7 +51,7 @@ export default function BaltimoreGuidePage() {
             {/* Canton */}
             <article className="p-card">
               <div className="p-card__media">
-                <img src="https://www.chasestreetproperties.net/images/bg.webp" alt="Canton waterfront Baltimore" loading="lazy" />
+                <img src="/assets/media/chase/bg--ce32e9ca5d88.webp" alt="Canton waterfront Baltimore" loading="lazy" />
                 <div className="p-card__badge-row">
                   <span className="p-badge p-badge--copper">Canton</span>
                   <span className="p-badge">Hopkins Bayview: 5 min</span>
@@ -76,7 +76,7 @@ export default function BaltimoreGuidePage() {
             {/* Fells Point */}
             <article className="p-card">
               <div className="p-card__media">
-                <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80" alt="Historic Fells Point Baltimore cobblestones" loading="lazy" />
+                <img src="/assets/media/unsplash/photo-1560448204-e02f11c3d0e2--ef4b1c91720a.jpg" alt="Historic Fells Point Baltimore cobblestones" loading="lazy" />
                 <div className="p-card__badge-row">
                   <span className="p-badge p-badge--copper">Fells Point</span>
                   <span className="p-badge">Water Taxi Hub</span>
@@ -101,7 +101,7 @@ export default function BaltimoreGuidePage() {
             {/* Inner Harbor & Harbor East */}
             <article className="p-card">
               <div className="p-card__media">
-                <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg" alt="Baltimore Inner Harbor skyline" loading="lazy" />
+                <img src="/assets/media/chase/usa-maryland-baltimore-inner-harbor_1691259038--957298fcc60f.jpg" alt="Baltimore Inner Harbor skyline" loading="lazy" />
                 <div className="p-card__badge-row">
                   <span className="p-badge p-badge--copper">Inner Harbor</span>
                   <span className="p-badge">Downtown Center</span>
@@ -185,15 +185,15 @@ export default function BaltimoreGuidePage() {
 
           <div className="places">
             <Link className="place place--harbor image-reveal is-visible" href="/attractions/inner-harbor">
-              <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg" alt="Baltimore Inner Harbor" />
+              <img src="/assets/media/chase/usa-maryland-baltimore-inner-harbor_1691259038--957298fcc60f.jpg" alt="Baltimore Inner Harbor" />
               <span>01</span><h3>Inner Harbor</h3><p>Waterfront Promenade · 8 min · Guide & Stays ↗</p>
             </Link>
             <Link className="place place--walters image-reveal is-visible" href="/attractions/walters-art-museum">
-              <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-walters-art-museum-staircase.jpg" alt="Walters Art Museum Grand Staircase" />
+              <img src="/assets/media/chase/maryland-top-attractions-walters-art-museum-staircase--95b6d790caea.jpg" alt="Walters Art Museum Grand Staircase" />
               <span>02</span><h3>The Walters Art Museum</h3><p>Mount Vernon · 12 min · Guide & Stays ↗</p>
             </Link>
             <Link className="place place--fort image-reveal is-visible" href="/attractions/fort-mchenry">
-              <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-fort-mchenry-national-monument.jpg" alt="Fort McHenry Monument" />
+              <img src="/assets/media/chase/maryland-top-attractions-fort-mchenry-national-monument--cc92323f487e.jpg" alt="Fort McHenry Monument" />
               <span>03</span><h3>Fort McHenry</h3><p>Historic Harbor Fortress · 10 min · Guide & Stays ↗</p>
             </Link>
           </div>

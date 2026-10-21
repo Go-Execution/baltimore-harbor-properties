@@ -83,10 +83,10 @@ export default function AdminPropertyManager() {
       beds: 2,
       bathrooms: 2,
       sqft: 1200,
-      coverImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+      coverImage: '/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg',
       gallery: [
-        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        '/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg',
+        '/assets/media/unsplash/photo-1600585154340-be6161a56a0c--e705a536f2a6.jpg',
       ],
       description: 'Charming, meticulously appointed Baltimore residence located minutes from medical campuses and the harbor.',
       amenities: AVAILABLE_AMENITIES.slice(0, 5),

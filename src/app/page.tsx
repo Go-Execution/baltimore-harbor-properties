@@ -41,9 +41,9 @@ export default function HomePage() {
                 loop
                 playsInline
                 preload="metadata"
-                poster="https://www.chasestreetproperties.net/images/bg.webp"
+                poster="/assets/media/chase/bg--ce32e9ca5d88.webp"
               >
-                <source src="https://www.chasestreetproperties.net/images/Gonzalo.mp4" type="video/mp4" />
+                <source src="/assets/media/chase/Gonzalo--64a4a123e764.mp4" type="video/mp4" />
               </video>
               <div className="hero__scrim"></div>
             </div>
@@ -92,7 +92,7 @@ export default function HomePage() {
           <div className="story__collage">
             <figure className="story__image story__image--large">
               <img
-                src="https://www.chasestreetproperties.net/images/about.webp"
+                src="/assets/media/chase/about--672b543223da.webp"
                 alt="Light-filled furnished living room at Baltimore Harbor Properties"
                 loading="lazy"
               />
@@ -104,7 +104,7 @@ export default function HomePage() {
             </div>
             <figure className="story__image story__image--small">
               <img
-                src="https://www.chasestreetproperties.net/images/about2.webp"
+                src="/assets/media/chase/about2--4890844138d1.webp"
                 alt="Warm bedroom in a Baltimore furnished rental"
                 loading="lazy"
               />
@@ -137,7 +137,7 @@ export default function HomePage() {
             <article className="stay-card" data-index="01">
               <Link className="stay-card__media" href="/properties/1">
                 <img
-                  src="https://www.chasestreetproperties.net/uploads/property_list_img/5eca3b19-9431-47d2-b928-0a6a2b1f671e_1660155115_1660170093_1660669083_1661532110.jpg"
+                  src="/assets/media/chase/5eca3b19-9431-47d2-b928-0a6a2b1f671e_1660155115_1660170093_1660669083_16--734b20ec703a.jpg"
                   alt="Cozy and quiet Baltimore retreat"
                   loading="lazy"
                 />
@@ -160,7 +160,7 @@ export default function HomePage() {
             <article className="stay-card stay-card--reverse" data-index="02">
               <Link className="stay-card__media" href="/properties/2">
                 <img
-                  src="https://www.chasestreetproperties.net/uploads/property_list_img/hudsonliving_1661518528_1661532267.jpg"
+                  src="/assets/media/chase/hudsonliving_1661518528_1661532267--2efdc5522fd6.jpg"
                   alt="Fantastic Canton home near Johns Hopkins"
                   loading="lazy"
                 />
@@ -183,7 +183,7 @@ export default function HomePage() {
             <article className="stay-card" data-index="03">
               <Link className="stay-card__media" href="/properties/3">
                 <img
-                  src="https://www.chasestreetproperties.net/uploads/property_list_img/6acf57d7-4d5c-403c-ab68-fccffbd1828a_1660161150.webp"
+                  src="/assets/media/chase/6acf57d7-4d5c-403c-ab68-fccffbd1828a_1660161150--9d11068f3b3e.webp"
                   alt="Spacious Baltimore home near Inner Harbor"
                   loading="lazy"
                 />
@@ -215,7 +215,7 @@ export default function HomePage() {
         {/* Promise Standards Section */}
         <section className="promise">
           <div className="promise__media">
-            <img src="https://www.chasestreetproperties.net/images/bg.webp" alt="View over Baltimore waterfront" loading="lazy" />
+            <img src="/assets/media/chase/bg--ce32e9ca5d88.webp" alt="View over Baltimore waterfront" loading="lazy" />
           </div>
           <div className="promise__content section-pad">
             <p className="eyebrow light">What comes standard</p>
@@ -246,15 +246,15 @@ export default function HomePage() {
           </div>
           <div className="places">
             <Link className="place place--harbor" href="/attractions/inner-harbor">
-              <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/usa-maryland-baltimore-inner-harbor_1691259038.jpg" alt="Baltimore Inner Harbor" loading="lazy" />
+              <img src="/assets/media/chase/usa-maryland-baltimore-inner-harbor_1691259038--957298fcc60f.jpg" alt="Baltimore Inner Harbor" loading="lazy" />
               <span>01</span><h3>Inner Harbor</h3><p>Waterfront · 8 min · Guide & Stays ↗</p>
             </Link>
             <Link className="place place--walters" href="/attractions/walters-art-museum">
-              <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-walters-art-museum-staircase.jpg" alt="Grand staircase inside the Walters Art Museum" loading="lazy" />
+              <img src="/assets/media/chase/maryland-top-attractions-walters-art-museum-staircase--95b6d790caea.jpg" alt="Grand staircase inside the Walters Art Museum" loading="lazy" />
               <span>02</span><h3>The Walters</h3><p>Art & culture · 12 min · Guide & Stays ↗</p>
             </Link>
             <Link className="place place--fort" href="/attractions/fort-mchenry">
-              <img src="https://www.chasestreetproperties.net/uploads/things_to_do/1/maryland-top-attractions-fort-mchenry-national-monument.jpg" alt="Fort McHenry National Monument" loading="lazy" />
+              <img src="/assets/media/chase/maryland-top-attractions-fort-mchenry-national-monument--cc92323f487e.jpg" alt="Fort McHenry National Monument" loading="lazy" />
               <span>03</span><h3>Fort McHenry</h3><p>History · 10 min · Guide & Stays ↗</p>
             </Link>
           </div>

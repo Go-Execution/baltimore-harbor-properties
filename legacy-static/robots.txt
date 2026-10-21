@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.chasestreetproperties.net/sitemap.xml
+Sitemap: https://baltimore-harbor-properties.vercel.app/sitemap.xml

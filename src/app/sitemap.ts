@@ -3,7 +3,7 @@ import { PROPERTIES } from '@/data/properties';
 import { ATTRACTIONS } from '@/data/attractions';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.chasestreetproperties.net';
+  const baseUrl = 'https://baltimore-harbor-properties.vercel.app';
 
   const propertyUrls = PROPERTIES.map((prop) => ({
     url: `${baseUrl}/properties/${prop.id}`,
