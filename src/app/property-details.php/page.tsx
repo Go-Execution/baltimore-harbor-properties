@@ -31,5 +31,5 @@ export default function PropertyDetailsLegacyPage({ searchParams }: Props) {
     notFound();
   }
 
-  return <PropertyDetailClient property={property} />;
+  return <PropertyDetailClient property={property} propertyId={pid} />;
 }

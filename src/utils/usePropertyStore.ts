@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Property, Reservation } from '@/types';
 import {
   getStoredProperties,
-  getActiveProperties,
   getStoredReservations,
   getStoredSettings,
   saveProperty,
@@ -14,8 +13,18 @@ import {
   addReservation,
   updateReservationStatus,
   saveSettings,
+  replaceStoredProperties,
+  replaceStoredSettings,
   DEFAULT_SETTINGS,
 } from './propertyStore';
+import {
+  dbDeleteProperty,
+  dbFetchProperties,
+  dbFetchSettings,
+  dbResetProperties,
+  dbSaveProperty,
+  dbSaveSettings,
+} from '@/lib/supabase/propertyDatabase';
 
 export function usePropertyStore() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -31,6 +40,23 @@ export function usePropertyStore() {
     setReservations(getStoredReservations());
     setSettings(getStoredSettings());
     setIsLoaded(true);
+
+    void Promise.allSettled([dbFetchProperties(), dbFetchSettings()]).then(([propertyResult, settingsResult]) => {
+      if (propertyResult.status === 'fulfilled' && propertyResult.value?.length) {
+        replaceStoredProperties(propertyResult.value, false);
+        setProperties(propertyResult.value);
+        setActiveProperties(propertyResult.value.filter((property) => !property.status || property.status === 'Active'));
+      } else if (propertyResult.status === 'rejected') {
+        console.warn('Supabase property sync unavailable; using local cache.', propertyResult.reason);
+      }
+
+      if (settingsResult.status === 'fulfilled' && settingsResult.value) {
+        replaceStoredSettings(settingsResult.value, false);
+        setSettings(settingsResult.value);
+      } else if (settingsResult.status === 'rejected') {
+        console.warn('Supabase settings sync unavailable; using local cache.', settingsResult.reason);
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -51,26 +77,45 @@ export function usePropertyStore() {
     };
   }, [refreshData]);
 
-  const handleSaveProperty = (prop: Partial<Property> & { id?: number }) => {
+  const handleSaveProperty = async (prop: Partial<Property> & { id?: number }) => {
+    const previous = getStoredProperties();
     const saved = saveProperty(prop);
-    refreshData();
-    return saved;
+    try {
+      const cloudSaved = await dbSaveProperty(saved);
+      saveProperty(cloudSaved);
+      refreshData();
+      return cloudSaved;
+    } catch (error) {
+      replaceStoredProperties(previous);
+      throw error;
+    }
   };
 
-  const handleDeleteProperty = (id: number) => {
+  const handleDeleteProperty = async (id: number) => {
+    await dbDeleteProperty(id);
     const success = deleteProperty(id);
     if (success) refreshData();
     return success;
   };
 
-  const handleToggleStatus = (id: number) => {
+  const handleToggleStatus = async (id: number) => {
+    const previous = getStoredProperties();
     const updated = togglePropertyStatus(id);
-    if (updated) refreshData();
+    if (updated) {
+      try {
+        await dbSaveProperty(updated);
+        refreshData();
+      } catch (error) {
+        replaceStoredProperties(previous);
+        throw error;
+      }
+    }
     return updated;
   };
 
-  const handleResetToDefault = () => {
-    const reset = resetPropertiesToDefault();
+  const handleResetToDefault = async () => {
+    const reset = await dbResetProperties();
+    resetPropertiesToDefault();
     refreshData();
     return reset;
   };
@@ -85,10 +130,17 @@ export function usePropertyStore() {
     refreshData();
   };
 
-  const handleSaveSettings = (newSettings: Partial<typeof DEFAULT_SETTINGS>) => {
+  const handleSaveSettings = async (newSettings: Partial<typeof DEFAULT_SETTINGS>) => {
+    const previous = getStoredSettings();
     const updated = saveSettings(newSettings);
-    refreshData();
-    return updated;
+    try {
+      await dbSaveSettings(updated);
+      refreshData();
+      return updated;
+    } catch (error) {
+      replaceStoredSettings(previous);
+      throw error;
+    }
   };
 
   return {

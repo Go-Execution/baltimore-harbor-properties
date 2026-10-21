@@ -146,6 +146,13 @@ export function getActiveProperties(): Property[] {
   return getStoredProperties().filter((p) => !p.status || p.status === 'Active');
 }
 
+export function replaceStoredProperties(properties: Property[], notify = true): Property[] {
+  if (typeof window === 'undefined') return properties;
+  localStorage.setItem(PROPERTIES_KEY, JSON.stringify(properties));
+  if (notify) window.dispatchEvent(new CustomEvent('csp:properties-updated', { detail: properties }));
+  return properties;
+}
+
 export function getPropertyById(id: number): Property | undefined {
   const all = getStoredProperties();
   return all.find((p) => p.id === id);
@@ -326,4 +333,11 @@ export function saveSettings(settings: Partial<typeof DEFAULT_SETTINGS>): typeof
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
   window.dispatchEvent(new CustomEvent('csp:settings-updated', { detail: merged }));
   return merged;
+}
+
+export function replaceStoredSettings(settings: typeof DEFAULT_SETTINGS, notify = true): typeof DEFAULT_SETTINGS {
+  if (typeof window === 'undefined') return settings;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  if (notify) window.dispatchEvent(new CustomEvent('csp:settings-updated', { detail: settings }));
+  return settings;
 }

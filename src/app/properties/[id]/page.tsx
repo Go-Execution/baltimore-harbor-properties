@@ -1,5 +1,4 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { PROPERTIES } from '@/data/properties';
 import PropertyDetailClient from './PropertyDetailClient';
@@ -33,11 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function PropertyPage({ params }: Props) {
   const pid = parseInt(params.id, 10);
-  const property = PROPERTIES.find((p) => p.id === pid);
+  const property = PROPERTIES.find((p) => p.id === pid) || PROPERTIES[0];
 
-  if (!property) {
-    notFound();
-  }
-
-  return <PropertyDetailClient property={property} />;
+  return <PropertyDetailClient property={property} propertyId={pid} />;
 }

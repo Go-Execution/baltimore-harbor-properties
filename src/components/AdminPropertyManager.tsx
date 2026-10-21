@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Property } from '@/types';
 import { usePropertyStore } from '@/utils/usePropertyStore';
+import { dbUploadPropertyImages } from '@/lib/supabase/propertyDatabase';
 import { FiHome, FiSliders, FiPlus, FiRefreshCw, FiEye, FiEdit2, FiTrash2, FiCheck, FiX, FiUploadCloud, FiImage } from 'react-icons/fi';
 
 const NEIGHBORHOOD_OPTIONS = ['Canton', 'Fells Point', 'Inner Harbor', 'Harbor East', 'Mount Vernon', 'Federal Hill'];
@@ -25,9 +26,8 @@ const AVAILABLE_AMENITIES = [
 const MAX_IMAGES_PER_UPLOAD = 12;
 const MAX_GALLERY_IMAGES = 60;
 const MAX_IMAGE_FILE_SIZE = 12 * 1024 * 1024;
-const MAX_EMBEDDED_GALLERY_SIZE = 4 * 1024 * 1024;
 
-async function compressImageForListing(file: File): Promise<string> {
+async function compressImageForListing(file: File): Promise<{ blob: Blob; name: string }> {
   const objectUrl = URL.createObjectURL(file);
 
   try {
@@ -53,12 +53,7 @@ async function compressImageForListing(file: File): Promise<string> {
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.72));
     if (!blob) throw new Error(`Could not optimize ${file.name}.`);
 
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error(`Could not finish ${file.name}.`));
-      reader.readAsDataURL(blob);
-    });
+    return { blob, name: file.name };
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
@@ -89,6 +84,10 @@ export default function AdminPropertyManager() {
 
   // Settings form state
   const [settingsForm, setSettingsForm] = useState(settings);
+
+  useEffect(() => {
+    setSettingsForm(settings);
+  }, [settings]);
 
   const showToast = (msg: string) => {
     setNotification(msg);
@@ -186,28 +185,20 @@ export default function AdminPropertyManager() {
 
     setIsUploadingImages(true);
     try {
-      const optimizedImages: string[] = [];
+      const optimizedImages: Array<{ blob: Blob; name: string }> = [];
       for (const file of files) optimizedImages.push(await compressImageForListing(file));
-
-      const currentEmbeddedSize = gallery
-        .filter((image) => image.startsWith('data:'))
-        .reduce((total, image) => total + image.length, 0);
-      const nextEmbeddedSize = optimizedImages.reduce((total, image) => total + image.length, currentEmbeddedSize);
-
-      if (nextEmbeddedSize > MAX_EMBEDDED_GALLERY_SIZE) {
-        throw new Error('These images are still too large after optimization. Upload fewer images in this batch.');
-      }
+      const uploadedImages = await dbUploadPropertyImages(optimizedImages, editingProperty.id);
 
       setEditingProperty((current) => {
         if (!current) return current;
-        const nextGallery = [...(current.gallery || []), ...optimizedImages];
+        const nextGallery = [...(current.gallery || []), ...uploadedImages];
         return {
           ...current,
           gallery: nextGallery,
           coverImage: current.coverImage || nextGallery[0],
         };
       });
-      showToast(`${optimizedImages.length} image${optimizedImages.length === 1 ? '' : 's'} added to the gallery.`);
+      showToast(`${uploadedImages.length} image${uploadedImages.length === 1 ? '' : 's'} uploaded to Supabase Storage.`);
     } catch (error) {
       setImageUploadError(error instanceof Error ? error.message : 'Images could not be processed.');
     } finally {
@@ -232,7 +223,7 @@ export default function AdminPropertyManager() {
     setEditingProperty((current) => (current ? { ...current, coverImage: image } : current));
   };
 
-  const handleSaveModal = (e: React.FormEvent) => {
+  const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProperty || !editingProperty.title) {
       alert('Please enter a property title');
@@ -250,7 +241,7 @@ export default function AdminPropertyManager() {
     }
 
     try {
-      saveProperty(editingProperty);
+      await saveProperty(editingProperty);
       setIsModalOpen(false);
       showToast(editingProperty.id ? `Property #${editingProperty.id} successfully updated.` : 'New property published to inventory.');
       setEditingProperty(null);
@@ -264,31 +255,47 @@ export default function AdminPropertyManager() {
     }
   };
 
-  const handleDelete = (id: number, title: string) => {
+  const handleDelete = async (id: number, title: string) => {
     if (confirm(`Are you sure you want to remove "${title}"? This will remove it from all website catalogs.`)) {
-      deleteProperty(id);
-      showToast(`Property "${title}" removed.`);
+      try {
+        await deleteProperty(id);
+        showToast(`Property "${title}" removed.`);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Property could not be deleted.');
+      }
     }
   };
 
-  const handleToggle = (id: number) => {
-    const updated = togglePropertyStatus(id);
-    if (updated) {
-      showToast(`Property is now ${updated.status === 'Active' ? 'LIVE on website' : 'HIDDEN from website'}.`);
+  const handleToggle = async (id: number) => {
+    try {
+      const updated = await togglePropertyStatus(id);
+      if (updated) {
+        showToast(`Property is now ${updated.status === 'Active' ? 'LIVE on website' : 'HIDDEN from website'}.`);
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Property status could not be updated.');
     }
   };
 
-  const handleResetDefaults = () => {
+  const handleResetDefaults = async () => {
     if (confirm('Reset inventory to default Baltimore seed properties? Any custom listings added will be replaced.')) {
-      resetToDefault();
-      showToast('Inventory reset to original 6 Baltimore residences.');
+      try {
+        await resetToDefault();
+        showToast('Inventory reset to the original Baltimore residences.');
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Inventory could not be reset.');
+      }
     }
   };
 
-  const handleSettingsSubmit = (e: React.FormEvent) => {
+  const handleSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    saveSettings(settingsForm);
-    showToast('Website content & operational policies saved.');
+    try {
+      await saveSettings(settingsForm);
+      showToast('Website content & operational policies saved to Supabase.');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Settings could not be saved.');
+    }
   };
 
   return (
@@ -1061,10 +1068,10 @@ export default function AdminPropertyManager() {
                 >
                   <FiUploadCloud style={{ fontSize: '1.65rem', color: 'var(--copper)' }} />
                   <strong style={{ fontSize: '0.78rem' }}>
-                    {isUploadingImages ? 'Optimizing selected images…' : 'Choose multiple images or drag & drop them here'}
+                    {isUploadingImages ? 'Optimizing & uploading images…' : 'Choose multiple images or drag & drop them here'}
                   </strong>
                   <span style={{ fontSize: '0.67rem', color: 'var(--ink-soft)' }}>
-                    Images are resized and optimized automatically before saving.
+                    Images are resized, optimized and stored in Supabase automatically.
                   </span>
                 </label>
                 <input

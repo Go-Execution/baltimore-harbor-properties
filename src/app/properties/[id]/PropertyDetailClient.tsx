@@ -6,8 +6,17 @@ import { Property } from '@/types';
 import Footer from '@/components/Footer';
 import { addReservation } from '@/utils/propertyStore';
 import { dbSaveReservation, dbSubmitInquiry, dbSubmitReview } from '@/lib/supabase/database';
+import { usePropertyStore } from '@/utils/usePropertyStore';
 
-export default function PropertyDetailClient({ property }: { property: Property }) {
+export default function PropertyDetailClient({
+  property: initialProperty,
+  propertyId,
+}: {
+  property: Property;
+  propertyId?: number;
+}) {
+  const { properties } = usePropertyStore();
+  const property = properties.find((item) => item.id === (propertyId || initialProperty.id)) || initialProperty;
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [reserveModalOpen, setReserveModalOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3 | 4>(1);
