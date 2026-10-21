@@ -411,7 +411,7 @@ export default function PortalPage() {
               {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
               <span className="brand__monogram" style={{ display: 'inline-block', width: 44, height: 44, lineHeight: '44px', background: 'var(--forest)', color: '#fff', borderRadius: '50%', fontWeight: 700, fontSize: '0.95rem', marginBottom: 12 }}>
-                CS
+                BHP
               </span>
               <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700, marginBottom: 4 }}>
                 Private Member & Resident Gateway
@@ -984,7 +984,7 @@ export default function PortalPage() {
             <aside className="portal-sidebar">
               <div className="user-profile-card">
                 <div className="user-avatar">
-                  {currentUser?.full_name ? currentUser.full_name.charAt(0) : 'CS'}
+                  {currentUser?.full_name ? currentUser.full_name.charAt(0) : 'BHP'}
                 </div>
                 <div className="user-info">
                   <h3>{currentUser?.full_name || 'Resident Guest'}</h3>

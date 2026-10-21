@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Property } from '@/types';
 import { usePropertyStore } from '@/utils/usePropertyStore';
-import { FiHome, FiSliders, FiPlus, FiRefreshCw, FiEye, FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
+import { FiHome, FiSliders, FiPlus, FiRefreshCw, FiEye, FiEdit2, FiTrash2, FiCheck, FiX, FiUploadCloud, FiImage } from 'react-icons/fi';
 
 const NEIGHBORHOOD_OPTIONS = ['Canton', 'Fells Point', 'Inner Harbor', 'Harbor East', 'Mount Vernon', 'Federal Hill'];
 
@@ -21,6 +21,48 @@ const AVAILABLE_AMENITIES = [
   { name: 'Nespresso Bar', icon: '☕', category: 'Kitchen' },
   { name: 'Curated Vinyl Collection', icon: '🎶', category: 'Living' },
 ];
+
+const MAX_IMAGES_PER_UPLOAD = 12;
+const MAX_GALLERY_IMAGES = 60;
+const MAX_IMAGE_FILE_SIZE = 12 * 1024 * 1024;
+const MAX_EMBEDDED_GALLERY_SIZE = 4 * 1024 * 1024;
+
+async function compressImageForListing(file: File): Promise<string> {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error(`Could not read ${file.name}.`));
+      element.src = objectUrl;
+    });
+
+    const maxDimension = 1280;
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Your browser could not prepare this image.');
+    context.drawImage(image, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.72));
+    if (!blob) throw new Error(`Could not optimize ${file.name}.`);
+
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error(`Could not finish ${file.name}.`));
+      reader.readAsDataURL(blob);
+    });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
 
 export default function AdminPropertyManager() {
   const {
@@ -42,6 +84,8 @@ export default function AdminPropertyManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Partial<Property> | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
 
   // Settings form state
   const [settingsForm, setSettingsForm] = useState(settings);
@@ -70,6 +114,7 @@ export default function AdminPropertyManager() {
   const inactiveCount = properties.length - activeCount;
 
   const handleOpenAddModal = () => {
+    setImageUploadError(null);
     setEditingProperty({
       title: '',
       subtitle: 'Executive Furnished Stay',
@@ -100,8 +145,91 @@ export default function AdminPropertyManager() {
   };
 
   const handleOpenEditModal = (p: Property) => {
+    setImageUploadError(null);
     setEditingProperty({ ...p });
     setIsModalOpen(true);
+  };
+
+  const handleImageUpload = async (files: File[]) => {
+    if (!editingProperty || files.length === 0) return;
+
+    setImageUploadError(null);
+    const gallery = editingProperty.gallery || [];
+    const availableSlots = MAX_GALLERY_IMAGES - gallery.length;
+
+    if (availableSlots <= 0) {
+      setImageUploadError(`A listing can contain up to ${MAX_GALLERY_IMAGES} gallery images.`);
+      return;
+    }
+
+    if (files.length > MAX_IMAGES_PER_UPLOAD) {
+      setImageUploadError(`Please select no more than ${MAX_IMAGES_PER_UPLOAD} images at one time.`);
+      return;
+    }
+
+    if (files.length > availableSlots) {
+      setImageUploadError(`You can add ${availableSlots} more image${availableSlots === 1 ? '' : 's'} to this listing.`);
+      return;
+    }
+
+    const invalidFile = files.find((file) => !['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(file.type));
+    if (invalidFile) {
+      setImageUploadError(`${invalidFile.name} is not a supported JPG, PNG, WebP, or AVIF image.`);
+      return;
+    }
+
+    const oversizedFile = files.find((file) => file.size > MAX_IMAGE_FILE_SIZE);
+    if (oversizedFile) {
+      setImageUploadError(`${oversizedFile.name} is larger than 12 MB.`);
+      return;
+    }
+
+    setIsUploadingImages(true);
+    try {
+      const optimizedImages: string[] = [];
+      for (const file of files) optimizedImages.push(await compressImageForListing(file));
+
+      const currentEmbeddedSize = gallery
+        .filter((image) => image.startsWith('data:'))
+        .reduce((total, image) => total + image.length, 0);
+      const nextEmbeddedSize = optimizedImages.reduce((total, image) => total + image.length, currentEmbeddedSize);
+
+      if (nextEmbeddedSize > MAX_EMBEDDED_GALLERY_SIZE) {
+        throw new Error('These images are still too large after optimization. Upload fewer images in this batch.');
+      }
+
+      setEditingProperty((current) => {
+        if (!current) return current;
+        const nextGallery = [...(current.gallery || []), ...optimizedImages];
+        return {
+          ...current,
+          gallery: nextGallery,
+          coverImage: current.coverImage || nextGallery[0],
+        };
+      });
+      showToast(`${optimizedImages.length} image${optimizedImages.length === 1 ? '' : 's'} added to the gallery.`);
+    } catch (error) {
+      setImageUploadError(error instanceof Error ? error.message : 'Images could not be processed.');
+    } finally {
+      setIsUploadingImages(false);
+    }
+  };
+
+  const removeGalleryImage = (imageToRemove: string) => {
+    setEditingProperty((current) => {
+      if (!current) return current;
+      const nextGallery = (current.gallery || []).filter((image) => image !== imageToRemove);
+      return {
+        ...current,
+        gallery: nextGallery,
+        coverImage: current.coverImage === imageToRemove ? nextGallery[0] || '' : current.coverImage,
+      };
+    });
+    setImageUploadError(null);
+  };
+
+  const setGalleryCover = (image: string) => {
+    setEditingProperty((current) => (current ? { ...current, coverImage: image } : current));
   };
 
   const handleSaveModal = (e: React.FormEvent) => {
@@ -111,10 +239,29 @@ export default function AdminPropertyManager() {
       return;
     }
 
-    saveProperty(editingProperty);
-    setIsModalOpen(false);
-    showToast(editingProperty.id ? `Property #${editingProperty.id} successfully updated.` : 'New property published to inventory.');
-    setEditingProperty(null);
+    if (isUploadingImages) {
+      setImageUploadError('Please wait for the selected images to finish processing.');
+      return;
+    }
+
+    if (!editingProperty.coverImage) {
+      setImageUploadError('Please upload at least one image or enter a cover image URL.');
+      return;
+    }
+
+    try {
+      saveProperty(editingProperty);
+      setIsModalOpen(false);
+      showToast(editingProperty.id ? `Property #${editingProperty.id} successfully updated.` : 'New property published to inventory.');
+      setEditingProperty(null);
+      setImageUploadError(null);
+    } catch (error) {
+      setImageUploadError(
+        error instanceof Error
+          ? error.message
+          : 'The listing could not be saved. Try removing one or two large images.',
+      );
+    }
   };
 
   const handleDelete = (id: number, title: string) => {
@@ -853,15 +1000,14 @@ export default function AdminPropertyManager() {
               {/* Cover Image */}
               <div style={{ marginBottom: 18 }}>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>
-                  Cover / Hero Image URL
+                  Cover / Hero Image URL <span style={{ fontWeight: 400 }}>(optional if uploading below)</span>
                 </label>
                 <div style={{ display: 'flex', gap: 12 }}>
                   <input
-                    type="url"
-                    required
+                    type="text"
                     value={editingProperty.coverImage || ''}
                     onChange={(e) => setEditingProperty({ ...editingProperty, coverImage: e.target.value })}
-                    placeholder="https://..."
+                    placeholder="https://... or select a gallery image below"
                     style={{ flex: 1, padding: '10px 12px', borderRadius: 6, border: '1px solid var(--line)', fontSize: '0.82rem' }}
                   />
                   {editingProperty.coverImage && (
@@ -872,6 +1018,117 @@ export default function AdminPropertyManager() {
                     />
                   )}
                 </div>
+              </div>
+
+              {/* Multiple Gallery Image Upload */}
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12, marginBottom: 8 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 3 }}>
+                      Property Gallery Images
+                    </label>
+                    <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--ink-soft)' }}>
+                      Select up to {MAX_IMAGES_PER_UPLOAD} images together. JPG, PNG, WebP or AVIF · 12 MB each.
+                    </span>
+                  </div>
+                  <span style={{ flexShrink: 0, fontSize: '0.68rem', color: 'var(--copper)', fontWeight: 700 }}>
+                    {(editingProperty.gallery || []).length} / {MAX_GALLERY_IMAGES}
+                  </span>
+                </div>
+
+                <label
+                  htmlFor="property-gallery-upload"
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    void handleImageUpload(Array.from(event.dataTransfer.files));
+                  }}
+                  style={{
+                    minHeight: 108,
+                    border: '1px dashed var(--copper)',
+                    borderRadius: 8,
+                    background: 'rgba(170,118,84,0.06)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 7,
+                    padding: 18,
+                    color: 'var(--forest)',
+                    cursor: isUploadingImages ? 'wait' : 'pointer',
+                    textAlign: 'center',
+                  }}
+                >
+                  <FiUploadCloud style={{ fontSize: '1.65rem', color: 'var(--copper)' }} />
+                  <strong style={{ fontSize: '0.78rem' }}>
+                    {isUploadingImages ? 'Optimizing selected images…' : 'Choose multiple images or drag & drop them here'}
+                  </strong>
+                  <span style={{ fontSize: '0.67rem', color: 'var(--ink-soft)' }}>
+                    Images are resized and optimized automatically before saving.
+                  </span>
+                </label>
+                <input
+                  id="property-gallery-upload"
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp,image/avif"
+                  disabled={isUploadingImages}
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files || []);
+                    event.target.value = '';
+                    void handleImageUpload(files);
+                  }}
+                  style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+                />
+
+                {imageUploadError && (
+                  <div
+                    role="alert"
+                    style={{ marginTop: 9, padding: '9px 11px', borderRadius: 6, background: 'rgba(211,47,47,0.08)', border: '1px solid rgba(211,47,47,0.24)', color: '#b42318', fontSize: '0.72rem' }}
+                  >
+                    {imageUploadError}
+                  </div>
+                )}
+
+                {(editingProperty.gallery || []).length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))', gap: 10, marginTop: 12 }}>
+                    {(editingProperty.gallery || []).map((image, index) => {
+                      const isCover = editingProperty.coverImage === image;
+                      return (
+                        <div
+                          key={`${index}-${image.slice(-24)}`}
+                          style={{ position: 'relative', borderRadius: 7, overflow: 'hidden', border: isCover ? '2px solid var(--copper)' : '1px solid var(--line)', background: 'var(--paper)' }}
+                        >
+                          <img src={image} alt={`Gallery preview ${index + 1}`} style={{ width: '100%', height: 92, objectFit: 'cover', display: 'block' }} />
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, padding: '6px 7px' }}>
+                            <button
+                              type="button"
+                              onClick={() => setGalleryCover(image)}
+                              disabled={isCover}
+                              title={isCover ? 'Current cover image' : 'Set as cover image'}
+                              style={{ border: 'none', background: 'transparent', color: isCover ? 'var(--copper)' : 'var(--ink-soft)', padding: 0, fontSize: '0.63rem', fontWeight: 700, cursor: isCover ? 'default' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                            >
+                              <FiImage /> {isCover ? 'COVER' : 'SET COVER'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeGalleryImage(image)}
+                              title="Remove image"
+                              aria-label={`Remove gallery image ${index + 1}`}
+                              style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid rgba(211,47,47,0.25)', background: '#fff', color: '#d32f2f', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              <FiTrash2 />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 10, padding: 14, borderRadius: 6, background: 'var(--paper)', color: 'var(--ink-soft)', fontSize: '0.72rem', textAlign: 'center' }}>
+                    No gallery images yet. Upload several images in one selection.
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -898,9 +1155,14 @@ export default function AdminPropertyManager() {
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '12px 28px', borderRadius: 6, border: 'none', background: 'var(--copper)', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                  disabled={isUploadingImages}
+                  style={{ padding: '12px 28px', borderRadius: 6, border: 'none', background: 'var(--copper)', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: isUploadingImages ? 'wait' : 'pointer', opacity: isUploadingImages ? 0.65 : 1 }}
                 >
-                  {editingProperty.id ? 'Save Listing Changes' : 'Publish New Property'}
+                  {isUploadingImages
+                    ? 'Processing Images…'
+                    : editingProperty.id
+                      ? 'Save Listing Changes'
+                      : 'Publish New Property'}
                 </button>
               </div>
             </form>

@@ -39,7 +39,7 @@ export default function AdminDashboardPage() {
                 fontSize: '0.85rem',
               }}
             >
-              CS
+              BHP
             </span>
             <div>
               <strong style={{ display: 'block', fontSize: '0.9rem', letterSpacing: '0.04em' }}>Baltimore Harbor Properties</strong>

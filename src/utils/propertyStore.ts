@@ -165,7 +165,14 @@ export function saveProperty(data: Partial<Property> & { id?: number }): Propert
     all.unshift(updatedProp);
   }
 
-  localStorage.setItem(PROPERTIES_KEY, JSON.stringify(all));
+  try {
+    localStorage.setItem(PROPERTIES_KEY, JSON.stringify(all));
+  } catch (error) {
+    if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+      throw new Error('The uploaded gallery is too large for browser storage. Remove one or two images and save again.');
+    }
+    throw error;
+  }
   window.dispatchEvent(new CustomEvent('csp:properties-updated', { detail: all }));
   return updatedProp!;
 }
