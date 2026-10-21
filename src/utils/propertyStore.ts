@@ -5,6 +5,58 @@ const PROPERTIES_KEY = 'CSP_PROPERTIES_DATA_V1';
 const RESERVATIONS_KEY = 'CSP_RESERVATIONS_DATA_V1';
 const SETTINGS_KEY = 'CSP_SETTINGS_DATA_V1';
 
+const LEGACY_FALLBACK_IMAGES: Record<string, string> = {
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80':
+    '/assets/media/unsplash/photo-1512917774080-9991f1c4c750--25cc0a4415ec.jpg',
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80':
+    '/assets/media/unsplash/photo-1600585154340-be6161a56a0c--e705a536f2a6.jpg',
+  'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?auto=format&fit=crop&w=1200&q=80':
+    '/assets/media/unsplash/photo-1600565193348-f74bd3c7ccdf--6fe51e3c8698.jpg',
+};
+
+function isLegacyRemoteImage(image?: string): boolean {
+  return Boolean(
+    image &&
+      (image.startsWith('https://www.chasestreetproperties.net/') || image.startsWith('https://images.unsplash.com/')),
+  );
+}
+
+function migrateLegacyPropertyImages(properties: Property[]): { properties: Property[]; changed: boolean } {
+  let changed = false;
+  const migrated = properties.map((property) => {
+    const seedProperty = SEED_PROPERTIES.find((seed) => seed.id === property.id);
+    const gallery = property.gallery || [];
+    const hasLegacyGalleryImages = gallery.some(isLegacyRemoteImage);
+    let nextGallery = gallery;
+
+    if (hasLegacyGalleryImages && seedProperty) {
+      const userImages = gallery.filter((image) => !isLegacyRemoteImage(image));
+      nextGallery = [
+        ...seedProperty.gallery,
+        ...userImages.filter((image) => !seedProperty.gallery.includes(image)),
+      ];
+      changed = true;
+    } else if (hasLegacyGalleryImages) {
+      nextGallery = gallery.map((image) => LEGACY_FALLBACK_IMAGES[image] || image);
+      if (nextGallery.some((image, index) => image !== gallery[index])) changed = true;
+    }
+
+    let nextCoverImage = property.coverImage;
+    if (isLegacyRemoteImage(property.coverImage)) {
+      const localizedCover = seedProperty?.coverImage || LEGACY_FALLBACK_IMAGES[property.coverImage];
+      if (localizedCover) {
+        nextCoverImage = localizedCover;
+        changed = true;
+      }
+    }
+
+    if (nextGallery === gallery && nextCoverImage === property.coverImage) return property;
+    return { ...property, coverImage: nextCoverImage, gallery: nextGallery };
+  });
+
+  return { properties: migrated, changed };
+}
+
 export const DEFAULT_SETTINGS = {
   bannerEnabled: 'true',
   bannerText: 'Special Rates Available for 30+ Day Medical & Clinical Rotations — Inquire for Per-Diem Direct Invoicing.',
@@ -80,7 +132,10 @@ export function getStoredProperties(): Property[] {
       localStorage.setItem(PROPERTIES_KEY, JSON.stringify(initial));
       return initial;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw) as Property[];
+    const migrated = migrateLegacyPropertyImages(parsed);
+    if (migrated.changed) localStorage.setItem(PROPERTIES_KEY, JSON.stringify(migrated.properties));
+    return migrated.properties;
   } catch (err) {
     console.warn('Error reading properties from storage', err);
     return SEED_PROPERTIES;
