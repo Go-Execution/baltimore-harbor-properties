@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 const DEFAULT_SUPABASE_URL = 'https://luxexntcevwwvhkzusjb.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_YxYaGaO2PAKOFUyFn2h6Kg__0LbIMEH';
@@ -40,16 +41,8 @@ export function getSupabaseClient(): SupabaseClient | null {
   if (!supabaseInstance) {
     const url = getSupabaseUrl();
     const key = getSupabaseAnonKey();
-    supabaseInstance = createClient(url, key, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    });
+    supabaseInstance = createBrowserClient(url, key);
   }
 
   return supabaseInstance;
 }
-
-export const supabase = getSupabaseClient();

@@ -6,7 +6,7 @@ import { PROPERTIES } from '@/data/properties';
 import AttractionDetailClient from './AttractionDetailClient';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -16,7 +16,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const attraction = getAttractionBySlug(params.slug);
+  const { slug } = await params;
+  const attraction = getAttractionBySlug(slug);
   if (!attraction) {
     return { title: 'Attraction Not Found | Baltimore Harbor Properties' };
   }
@@ -32,8 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function AttractionPage({ params }: Props) {
-  const attraction = getAttractionBySlug(params.slug);
+export default async function AttractionPage({ params }: Props) {
+  const { slug } = await params;
+  const attraction = getAttractionBySlug(slug);
   if (!attraction) {
     notFound();
   }

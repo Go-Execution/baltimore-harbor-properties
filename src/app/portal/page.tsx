@@ -6,7 +6,7 @@ import { MaintenanceTicket, OwnerApproval, Reservation } from '@/types';
 import AdminPropertyManager from '@/components/AdminPropertyManager';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { supabaseSignIn, supabaseSignUp, supabaseSignOut, supabaseGetCurrentUser, UserProfile } from '@/lib/supabase/auth';
-import { dbFetchReservations, dbCreateTicket, dbFetchTickets } from '@/lib/supabase/database';
+import { dbFetchReservations, dbCreateTicket, dbFetchTickets, dbVerifyStayAccess } from '@/lib/supabase/database';
 import { getStoredReservations } from '@/utils/propertyStore';
 import {
   FiKey,
@@ -42,7 +42,7 @@ export default function PortalPage() {
   // Authentication & Session State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [authTab, setAuthTab] = useState<'passkey' | 'signin' | 'code' | 'signup'>('passkey');
+  const [authTab, setAuthTab] = useState<'passkey' | 'signin' | 'code' | 'signup'>('signin');
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -57,7 +57,6 @@ export default function PortalPage() {
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupRole, setSignupRole] = useState<'guest' | 'owner'>('guest');
   const [directBookingCode, setDirectBookingCode] = useState('');
   const [directPin, setDirectPin] = useState('');
 
@@ -154,43 +153,10 @@ export default function PortalPage() {
     });
   };
 
-  // Single Password (Client Review Mode) Handler
+  // Legacy passkey access is disabled; administrators use Supabase Auth.
   const handleOnePasswordAccess = (e: React.FormEvent) => {
     e.preventDefault();
-    setAuthLoading(true);
-    setAuthError(null);
-
-    const configuredPass = process.env.NEXT_PUBLIC_PORTAL_PASSWORD || 'chase2026';
-    const entered = portalPassInput.trim();
-
-    // Check against configured password or testing keys
-    const validPasswords = [configuredPass, 'chase2026', 'ChaseStreet2026!', 'csp2026', 'admin2026'];
-
-    if (!entered) {
-      setAuthLoading(false);
-      setAuthError('Please enter the portal access password.');
-      return;
-    }
-
-    if (!validPasswords.includes(entered)) {
-      setAuthLoading(false);
-      setAuthError('Incorrect portal access password. Please try again.');
-      return;
-    }
-
-    const roleProfiles: Record<string, UserProfile> = {
-      guest: { id: 'portal-guest', email: 'resident@chasestreetproperties.net', full_name: 'Resident Guest (Active Stay)', role: 'guest' },
-      owner: { id: 'portal-owner', email: 'owner@chasestreetproperties.net', full_name: 'Property Owner (Portfolio Review)', role: 'owner' },
-      admin: { id: 'portal-admin', email: 'gonzalo@chasestreetproperties.net', full_name: 'Gonzalo Jouan (Principal Host)', role: 'admin' },
-    };
-
-    const user = roleProfiles[portalRoleSelect] || roleProfiles.guest;
-    setCurrentUser(user);
-    setCurrentRole(portalRoleSelect);
-    setIsAuthenticated(true);
-    setAuthLoading(false);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    showToast(`Access granted! Welcome to Baltimore Harbor Portals (${portalRoleSelect.toUpperCase()} View).`);
+    window.location.assign('/admin/login');
   };
 
   // Sign In Handler
@@ -227,7 +193,7 @@ export default function PortalPage() {
     setAuthLoading(true);
     setAuthError(null);
 
-    const res = await supabaseSignUp(signupEmail, signupPassword, signupName, signupRole);
+    const res = await supabaseSignUp(signupEmail, signupPassword, signupName, 'guest');
     setAuthLoading(false);
 
     if (res.error) {
@@ -239,18 +205,18 @@ export default function PortalPage() {
       id: res.data?.user?.id || 'demo-user-signup',
       email: signupEmail,
       full_name: signupName,
-      role: signupRole,
+      role: 'guest',
     };
 
     setCurrentUser(user);
-    setCurrentRole(signupRole);
+    setCurrentRole('guest');
     setIsAuthenticated(true);
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     showToast(`Account created! Welcome to Baltimore Harbor Portals.`);
   };
 
   // Instant Access via Booking Code & PIN
-  const handleCodeAccess = (e: React.FormEvent) => {
+  const handleCodeAccess = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanCode = directBookingCode.trim().toUpperCase();
     const cleanPin = directPin.trim();
@@ -260,9 +226,15 @@ export default function PortalPage() {
       return;
     }
 
-    const matchedRes = adminReservations.find(
-      (r) => r.id.toUpperCase() === cleanCode || r.id.includes(cleanCode.replace('CSP-', ''))
-    );
+    setAuthLoading(true);
+    setAuthError(null);
+    const result = await dbVerifyStayAccess(cleanCode, cleanPin);
+    setAuthLoading(false);
+    if (!result.success || !result.reservation) {
+      setAuthError(result.error || 'Reservation reference or door PIN is incorrect.');
+      return;
+    }
+    const matchedRes = result.reservation;
 
     const user: UserProfile = {
       id: 'guest-' + cleanCode,
@@ -279,19 +251,8 @@ export default function PortalPage() {
   };
 
   // One-Click Demo Access
-  const handleDemoLogin = (role: 'guest' | 'owner' | 'admin') => {
-    const demoProfiles: Record<string, UserProfile> = {
-      guest: { id: 'demo-guest', email: 'aaron.miller@jhmi.edu', full_name: 'Aaron Miller (Johns Hopkins Fellow)', role: 'guest' },
-      owner: { id: 'demo-owner', email: 'eleanor.vance@vanceholdings.com', full_name: 'Eleanor Vance (Property Investor)', role: 'owner' },
-      admin: { id: 'demo-admin', email: 'gonzalo@chasestreetproperties.net', full_name: 'Gonzalo Jouan (Host & Operations Director)', role: 'admin' },
-    };
-
-    const user = demoProfiles[role];
-    setCurrentUser(user);
-    setCurrentRole(role);
-    setIsAuthenticated(true);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    showToast(`Logged in as ${user.full_name}`);
+  const handleDemoLogin = (_role: 'guest' | 'owner' | 'admin') => {
+    setAuthError('Demo access has been disabled. Use your secure account or reservation code.');
   };
 
   // Sign Out Handler
@@ -440,11 +401,12 @@ export default function PortalPage() {
             </div>
 
             {/* Access Tabs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, background: '#faf8f5', padding: 4, borderRadius: 8, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, background: '#faf8f5', padding: 4, borderRadius: 8, marginBottom: 24 }}>
               <button
                 type="button"
                 onClick={() => { setAuthTab('passkey'); setAuthError(null); }}
                 style={{
+                  display: 'none',
                   padding: '9px 3px',
                   fontSize: '0.73rem',
                   fontWeight: 600,
@@ -455,7 +417,6 @@ export default function PortalPage() {
                   color: authTab === 'passkey' ? 'var(--copper)' : 'var(--ink-soft)',
                   boxShadow: authTab === 'passkey' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   transition: 'all 0.2s',
-                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 5,
@@ -577,21 +538,11 @@ export default function PortalPage() {
                   <input
                     type={showPasswordText ? 'text' : 'password'}
                     required
-                    placeholder="Enter password (e.g. chase2026)"
+                    placeholder="Administrator password"
                     value={portalPassInput}
                     onChange={(e) => setPortalPassInput(e.target.value)}
                     style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.9rem', letterSpacing: showPasswordText ? 'normal' : '0.1em' }}
                   />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, fontSize: '0.7rem', color: 'var(--ink-soft)' }}>
-                    <span>Default: <code style={{ color: 'var(--copper)', fontWeight: 700 }}>chase2026</code></span>
-                    <button
-                      type="button"
-                      onClick={() => setPortalPassInput('chase2026')}
-                      style={{ background: 'none', border: 'none', color: 'var(--forest)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600 }}
-                    >
-                      Fill "chase2026"
-                    </button>
-                  </div>
                 </div>
 
                 <div>
@@ -807,14 +758,12 @@ export default function PortalPage() {
                   <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
                     Account Role
                   </label>
-                  <select
-                    value={signupRole}
-                    onChange={(e) => setSignupRole(e.target.value as 'guest' | 'owner')}
-                    style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
-                  >
+                  <select value="guest" disabled style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}>
                     <option value="guest">Resident / Visiting Fellow (Guest Portal)</option>
-                    <option value="owner">Property Owner / Investor (Owner Portal)</option>
                   </select>
+                  <small style={{ display: 'block', marginTop: 6, color: 'var(--ink-soft)' }}>
+                    Owner and administrator access is assigned by Baltimore Harbor Properties after verification.
+                  </small>
                 </div>
                 <button
                   type="submit"
@@ -828,7 +777,7 @@ export default function PortalPage() {
             )}
 
             {/* Quick Demo One-Click Access Divider */}
-            <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
+            <div style={{ display: 'none', marginTop: 28, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
               <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--ink-soft)', fontWeight: 700, textAlign: 'center', marginBottom: 12 }}>
                 Instant One-Click Demo Access
               </span>
@@ -959,22 +908,22 @@ export default function PortalPage() {
               <FiKey />
               <span>Resident & Guest Portal</span>
             </button>
-            <button
+            {(currentUser?.role === 'owner' || currentUser?.role === 'admin') && <button
               type="button"
               className={`portal-tab-btn ${currentRole === 'owner' ? 'is-active' : ''}`}
               onClick={() => setCurrentRole('owner')}
             >
               <FiTrendingUp />
               <span>Property Owner & Investor Portal</span>
-            </button>
-            <button
+            </button>}
+            {currentUser?.role === 'admin' && <button
               type="button"
               className={`portal-tab-btn ${currentRole === 'admin' ? 'is-active' : ''}`}
-              onClick={() => setCurrentRole('admin')}
+              onClick={() => window.location.assign('/admin')}
             >
               <FiShield />
               <span>Operations & Management Portal</span>
-            </button>
+            </button>}
           </div>
         </nav>
 
@@ -1361,7 +1310,7 @@ export default function PortalPage() {
               {/* ========================================================= */}
               {/* 3. OPERATIONS & ADMIN PORTAL VIEWPORT                     */}
               {/* ========================================================= */}
-              {currentRole === 'admin' && (
+              {currentRole === 'admin' && currentUser?.role === 'admin' && (
                 <div className="portal-view">
                   <div className="welcome-banner">
                     <div>

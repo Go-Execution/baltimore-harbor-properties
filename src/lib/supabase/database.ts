@@ -1,43 +1,36 @@
 import { getSupabaseClient, isSupabaseConfigured } from './client';
-import { MaintenanceTicket, OwnerApproval, Reservation, Property } from '@/types';
+import { MaintenanceTicket, Reservation } from '@/types';
 import { getStoredReservations, addReservation } from '@/utils/propertyStore';
 
 /**
  * Save a new reservation to Supabase (and mirror to local store)
  */
-export async function dbSaveReservation(res: Reservation): Promise<{ success: boolean; source: 'supabase' | 'local'; error?: string }> {
-  // Always update local store so UI is immediately responsive
-  addReservation(res);
-
+export async function dbSaveReservation(res: Reservation & {
+  propertyId?: number;
+  checkinDate?: string;
+  checkoutDate?: string;
+  stayPurpose?: string;
+  specialRequests?: string;
+}): Promise<{ success: boolean; source: 'supabase' | 'local'; error?: string; reservationId?: string; pinCode?: string }> {
   const supabase = getSupabaseClient();
   if (!supabase || !isSupabaseConfigured()) {
+    addReservation(res);
     return { success: true, source: 'local' };
   }
 
   try {
-    const { error } = await supabase.from('reservations').insert({
-      id: res.id,
-      guest_name: res.guest,
-      guest_email: res.guestEmail || '',
-      guest_phone: res.guestPhone || '',
-      property_title: res.property,
-      dates: res.dates,
-      total: res.total,
-      pin_code: res.pinCode || '4892#',
-      status: res.status,
-      nights: res.nights || 1,
-      created_at: res.createdAt || new Date().toISOString(),
+    const response = await fetch('/api/forms/reservation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(res),
     });
-
-    if (error) {
-      console.warn('Supabase reservation insert warning:', error.message);
-      return { success: true, source: 'local', error: error.message };
-    }
-
-    return { success: true, source: 'supabase' };
-  } catch (err: any) {
-    console.error('Supabase reservation exception:', err);
-    return { success: true, source: 'local', error: err.message };
+    const result = await response.json();
+    if (!response.ok || !result.success) return { success: false, source: 'supabase', error: result.error || 'Booking request failed.' };
+    const saved = { ...res, id: result.reservationId, pinCode: result.pinCode };
+    addReservation(saved);
+    return { success: true, source: 'supabase', reservationId: result.reservationId, pinCode: result.pinCode };
+  } catch (err) {
+    return { success: false, source: 'supabase', error: err instanceof Error ? err.message : 'Booking request failed.' };
   }
 }
 
@@ -57,8 +50,8 @@ export async function dbFetchReservations(): Promise<{ data: Reservation[]; sour
       .order('created_at', { ascending: false });
 
     if (error || !data) {
-      console.warn('Supabase fetch reservations error, using local fallback:', error?.message);
-      return { data: getStoredReservations(), source: 'local' };
+      console.warn('Supabase fetch reservations error:', error?.message);
+      return { data: [], source: 'supabase' };
     }
 
     const mapped: Reservation[] = data.map((r: any) => ({
@@ -78,20 +71,53 @@ export async function dbFetchReservations(): Promise<{ data: Reservation[]; sour
     return { data: mapped, source: 'supabase' };
   } catch (err) {
     console.error('Supabase fetch exception:', err);
-    return { data: getStoredReservations(), source: 'local' };
+    return { data: [], source: 'supabase' };
+  }
+}
+
+export async function dbUpdateReservationStatus(id: string, status: Reservation['status']): Promise<{ success: boolean; pinCode?: string; error?: string }> {
+  try {
+    const response = await fetch(`/api/admin/reservations/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    const result = await response.json();
+    return response.ok && result.success
+      ? { success: true, pinCode: result.pinCode }
+      : { success: false, error: result.error || 'Reservation status could not be updated.' };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Reservation status could not be updated.' };
+  }
+}
+
+export async function dbVerifyStayAccess(reservationId: string, pinCode: string): Promise<{ success: boolean; reservation?: Reservation; error?: string }> {
+  try {
+    const response = await fetch('/api/stay-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reservationId, pinCode }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) return { success: false, error: result.error || 'Stay access could not be verified.' };
+    return { success: true, reservation: result.reservation as Reservation };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Stay access could not be verified.' };
   }
 }
 
 /**
  * Save a new maintenance work order
  */
-export async function dbCreateTicket(ticket: MaintenanceTicket): Promise<{ success: boolean; source: 'supabase' | 'local' }> {
+export async function dbCreateTicket(ticket: MaintenanceTicket): Promise<{ success: boolean; source: 'supabase' | 'local'; error?: string }> {
   const supabase = getSupabaseClient();
   if (!supabase || !isSupabaseConfigured()) {
     return { success: true, source: 'local' };
   }
 
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, source: 'supabase', error: 'Sign in before creating a maintenance request.' };
     const { error } = await supabase.from('maintenance_tickets').insert({
       id: ticket.id,
       title: ticket.title,
@@ -101,16 +127,17 @@ export async function dbCreateTicket(ticket: MaintenanceTicket): Promise<{ succe
       status: ticket.status,
       room: ticket.room || '',
       date: ticket.date,
+      user_id: user.id,
     });
 
     if (error) {
       console.warn('Supabase ticket insert error:', error.message);
-      return { success: true, source: 'local' };
+      return { success: false, source: 'supabase', error: error.message };
     }
 
     return { success: true, source: 'supabase' };
   } catch (err) {
-    return { success: true, source: 'local' };
+    return { success: false, source: 'supabase', error: err instanceof Error ? err.message : 'Ticket submission failed.' };
   }
 }
 
@@ -155,7 +182,10 @@ export async function dbSubmitInquiry(inquiry: {
   phone?: string;
   message: string;
   propertyId?: number;
-}): Promise<{ success: boolean }> {
+  stayDates?: string;
+  source?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabaseClient();
   if (!supabase || !isSupabaseConfigured()) {
     // Store in localStorage for audit
@@ -168,20 +198,15 @@ export async function dbSubmitInquiry(inquiry: {
   }
 
   try {
-    const { error } = await supabase.from('property_inquiries').insert({
-      name: inquiry.name,
-      email: inquiry.email,
-      phone: inquiry.phone || '',
-      message: inquiry.message,
-      property_id: inquiry.propertyId || null,
+    const response = await fetch('/api/forms/inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inquiry),
     });
-
-    if (error) {
-      console.warn('Supabase inquiry insert warning:', error.message);
-    }
-    return { success: true };
+    const result = await response.json();
+    return response.ok && result.success ? { success: true } : { success: false, error: result.error || 'Message could not be sent.' };
   } catch (err) {
-    return { success: true };
+    return { success: false, error: err instanceof Error ? err.message : 'Message could not be sent.' };
   }
 }
 
@@ -194,7 +219,7 @@ export async function dbSubmitReview(review: {
   email?: string;
   rating: number;
   comment: string;
-}): Promise<{ success: boolean }> {
+}): Promise<{ success: boolean; error?: string; pendingModeration?: boolean }> {
   const supabase = getSupabaseClient();
   if (!supabase || !isSupabaseConfigured()) {
     try {
@@ -212,20 +237,16 @@ export async function dbSubmitReview(review: {
   }
 
   try {
-    const { error } = await supabase.from('property_reviews').insert({
-      property_id: review.propertyId,
-      author: review.author,
-      email: review.email || '',
-      rating: review.rating,
-      comment: review.comment,
-      is_approved: true,
+    const response = await fetch('/api/forms/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(review),
     });
-
-    if (error) {
-      console.warn('Supabase review insert warning:', error.message);
-    }
-    return { success: true };
+    const result = await response.json();
+    return response.ok && result.success
+      ? { success: true, pendingModeration: Boolean(result.pendingModeration) }
+      : { success: false, error: result.error || 'Review could not be submitted.' };
   } catch (err) {
-    return { success: true };
+    return { success: false, error: err instanceof Error ? err.message : 'Review could not be submitted.' };
   }
 }

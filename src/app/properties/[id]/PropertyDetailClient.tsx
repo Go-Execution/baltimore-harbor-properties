@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Property } from '@/types';
 import Footer from '@/components/Footer';
-import { addReservation } from '@/utils/propertyStore';
 import { dbSaveReservation, dbSubmitInquiry, dbSubmitReview } from '@/lib/supabase/database';
 import { usePropertyStore } from '@/utils/usePropertyStore';
 
@@ -21,8 +20,9 @@ export default function PropertyDetailClient({
   const [reserveModalOpen, setReserveModalOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmedReservation, setConfirmedReservation] = useState<string | null>(null);
-  const [assignedPin, setAssignedPin] = useState('4892#');
+  const [assignedPin, setAssignedPin] = useState('Issued after approval');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   // Reviews state & modal
   const [reviewsList, setReviewsList] = useState(property.reviews || []);
@@ -33,6 +33,7 @@ export default function PropertyDetailClient({
   const [revScore, setRevScore] = useState(5);
   const [revComment, setRevComment] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   // Property Inquiry Form state ("FEEL FREE TO CONTACT US")
   const [inquiryName, setInquiryName] = useState('');
@@ -40,6 +41,7 @@ export default function PropertyDetailClient({
   const [inquiryPhone, setInquiryPhone] = useState('');
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   // Booking calculator state
   const [checkin, setCheckin] = useState('');
@@ -55,7 +57,7 @@ export default function PropertyDetailClient({
   const [specialRequests, setSpecialRequests] = useState('');
 
   // Payment inputs
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'applepay' | 'invoice'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'applepay' | 'invoice'>('invoice');
   const [cardName, setCardName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
@@ -110,28 +112,35 @@ export default function PropertyDetailClient({
   const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessingPayment(true);
-
-    const code = 'CSP-2026-' + Math.floor(1000 + Math.random() * 9000);
-    const pin = Math.floor(1000 + Math.random() * 9000) + '#';
-    setAssignedPin(pin);
-    setConfirmedReservation(code);
+    setBookingError(null);
 
     // Save to shared property & reservations store and Supabase
-    await dbSaveReservation({
-      id: code,
+    const result = await dbSaveReservation({
+      id: '',
       guest: guestName || 'Resident Guest',
       property: property.title,
       dates: `${checkin} – ${checkout}`,
-      status: 'Confirmed',
+      status: 'Pending',
       total: `$${total.toFixed(2)}`,
       guestEmail: guestEmail || 'direct-guest@chasestreetproperties.net',
       guestPhone: guestPhone || '(410) 555-0199',
-      pinCode: pin,
+      pinCode: '',
       nights: diffDays,
       createdAt: new Date().toISOString(),
+      propertyId: property.id,
+      checkinDate: checkin,
+      checkoutDate: checkout,
+      stayPurpose,
+      specialRequests,
     });
 
     setIsProcessingPayment(false);
+    if (!result.success) {
+      setBookingError(result.error || 'Your booking request could not be saved.');
+      return;
+    }
+    setAssignedPin(result.pinCode || 'Pending');
+    setConfirmedReservation(result.reservationId || 'Pending');
     setCheckoutStep(4);
   };
 
@@ -146,16 +155,21 @@ export default function PropertyDetailClient({
       rating: revScore,
     };
 
-    setReviewsList((prev) => [newRev, ...prev]);
-    setReviewSuccess(true);
-
-    await dbSubmitReview({
+    setReviewError(null);
+    const result = await dbSubmitReview({
       propertyId: property.id,
       author: revName,
       email: revEmail,
       rating: revScore,
       comment: revComment,
     });
+
+    if (!result.success) {
+      setReviewError(result.error || 'Your review could not be submitted.');
+      return;
+    }
+    setReviewsList((prev) => [newRev, ...prev]);
+    setReviewSuccess(true);
 
     setTimeout(() => {
       setReviewSuccess(false);
@@ -169,14 +183,20 @@ export default function PropertyDetailClient({
 
   const handleSendInquiry = async (e: React.FormEvent) => {
     e.preventDefault();
-    setInquirySubmitted(true);
-    await dbSubmitInquiry({
+    setInquiryError(null);
+    const result = await dbSubmitInquiry({
       name: inquiryName,
       email: inquiryEmail,
       phone: inquiryPhone,
       message: inquiryMessage,
       propertyId: property.id,
+      source: 'property-detail',
     });
+    if (!result.success) {
+      setInquiryError(result.error || 'Your inquiry could not be sent.');
+      return;
+    }
+    setInquirySubmitted(true);
   };
 
   return (
@@ -501,6 +521,7 @@ export default function PropertyDetailClient({
                 </div>
               ) : (
                 <form onSubmit={handleSendInquiry} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: '24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {inquiryError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem' }}>{inquiryError}</div>}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Name *</label>
@@ -773,7 +794,7 @@ export default function PropertyDetailClient({
                     3
                   </span>
                   <span style={{ fontSize: '0.75rem', fontWeight: checkoutStep === 3 ? 700 : 500, color: checkoutStep === 3 ? 'var(--copper)' : 'var(--ink-soft)' }}>
-                    Payment & Confirm
+                    Submit Request
                   </span>
                 </div>
               </div>
@@ -980,25 +1001,25 @@ export default function PropertyDetailClient({
                         cursor: 'pointer',
                       }}
                     >
-                      Proceed to Secure Payment →
+                      Review Booking Request →
                     </button>
                   </div>
                 </form>
               </div>
             )}
 
-            {/* STEP 3: Integrated Payment Processing (SOW §4) */}
+            {/* STEP 3: Booking request confirmation */}
             {checkoutStep === 3 && (
               <div>
                 <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>
-                  Step 3 of 3 · SOW §4 Payment System
+                  Step 3 of 3 · Booking Request
                 </span>
                 <h2 style={{ font: '400 1.9rem var(--serif)', margin: '4px 0 14px', color: 'var(--forest)' }}>
-                  Complete Secure Payment (${total.toFixed(2)})
+                  Submit your booking request
                 </h2>
 
                 {/* Payment Method Switcher */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+                <div aria-hidden="true" style={{ display: 'none', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('card')}
@@ -1064,6 +1085,7 @@ export default function PropertyDetailClient({
                 </div>
 
                 <form onSubmit={handleProcessPayment} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {bookingError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem' }}>{bookingError}</div>}
                   {paymentMethod === 'card' && (
                     <>
                       <div>
@@ -1182,10 +1204,10 @@ export default function PropertyDetailClient({
                   {paymentMethod === 'invoice' && (
                     <div style={{ background: 'rgba(170,118,84,0.08)', border: '1px solid var(--copper)', borderRadius: 6, padding: 18 }}>
                       <strong style={{ display: 'block', color: 'var(--forest)', fontSize: '0.85rem', marginBottom: 6 }}>
-                        Direct Clinical & Institutional Billing
+                        Availability and payment confirmation
                       </strong>
                       <p style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', margin: '0 0 12px', lineHeight: 1.6 }}>
-                        Your reservation will be authorized immediately. We will issue a certified tax invoice to your department or travel coordinator matching Johns Hopkins or UMMC GSA per-diem rates.
+                        No payment is collected on this page. Our team will confirm availability, review the total shown, and send you a secure payment link or approved institutional invoice.
                       </p>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 4 }}>
@@ -1201,8 +1223,8 @@ export default function PropertyDetailClient({
                   )}
 
                   <div style={{ background: 'rgba(46, 125, 50, 0.08)', border: '1px solid rgba(46, 125, 50, 0.25)', borderRadius: 6, padding: 12, display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.74rem', color: '#166534' }}>
-                    <span>🔒</span>
-                    <span>256-bit TLS Bank-Grade Encryption. Powered by Baltimore Harbor Properties Gateway.</span>
+                    <span>✓</span>
+                    <span>Your request is stored securely. Submitting it does not charge your card or guarantee availability.</span>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
@@ -1232,10 +1254,10 @@ export default function PropertyDetailClient({
                     >
                       {isProcessingPayment ? (
                         <>
-                          <span style={{ animation: 'spin 1s linear infinite' }}>⏳</span> Authorizing & Dispatching Keycode...
+                          <span style={{ animation: 'spin 1s linear infinite' }}>⏳</span> Submitting Request...
                         </>
                       ) : (
-                        `Pay $${total.toFixed(2)} & Confirm Reservation 🔒`
+                        `Submit Booking Request · $${total.toFixed(2)}`
                       )}
                     </button>
                   </div>
@@ -1250,16 +1272,16 @@ export default function PropertyDetailClient({
                   ✓
                 </div>
                 <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--copper)', fontWeight: 700 }}>
-                  Booking Paid & Confirmed
+                  Booking Request Received
                 </span>
                 <h2 style={{ font: '400 2.2rem var(--serif)', margin: '6px 0 10px', color: 'var(--forest)' }}>
-                  You're all set in Baltimore!
+                  We’ll confirm your stay shortly
                 </h2>
                 <p style={{ fontSize: '0.84rem', color: 'var(--ink-soft)', maxWidth: 460, margin: '0 auto 20px', lineHeight: 1.6 }}>
-                  Thank you, <strong>{guestName || 'Valued Resident'}</strong>. Your payment of <strong>${total.toFixed(2)}</strong> has been processed. Your digital keycard and stay manual are ready below.
+                  Thank you, <strong>{guestName || 'Valued Resident'}</strong>. No payment has been taken. Our team will verify availability and email the next steps for your <strong>${total.toFixed(2)}</strong> request.
                 </p>
 
-                {/* Digital Keycard & Stay Voucher */}
+                {/* Booking request summary */}
                 <div
                   style={{
                     background: 'var(--forest)',
@@ -1282,17 +1304,17 @@ export default function PropertyDetailClient({
                       </strong>
                     </div>
                     <span style={{ background: 'rgba(46,125,50,0.3)', color: '#86efac', fontSize: '0.65rem', padding: '4px 8px', borderRadius: 4, fontWeight: 700 }}>
-                      Paid · Key Dispatched
+                      Pending Review
                     </span>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
                     <div>
-                      <span style={{ fontSize: '0.65rem', color: '#cbd3ce', textTransform: 'uppercase' }}>Front Door PIN</span>
+                      <span style={{ fontSize: '0.65rem', color: '#cbd3ce', textTransform: 'uppercase' }}>Door PIN</span>
                       <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--sand)', letterSpacing: '0.08em' }}>
                         {assignedPin}
                       </div>
-                      <span style={{ fontSize: '0.65rem', color: '#a0a6a2' }}>Keyless keypad entry</span>
+                      <span style={{ fontSize: '0.65rem', color: '#a0a6a2' }}>Released only after approval</span>
                     </div>
 
                     <div>
@@ -1328,7 +1350,7 @@ export default function PropertyDetailClient({
                     className="btn-outline"
                     style={{ padding: '12px 20px', cursor: 'pointer' }}
                   >
-                    🖨️ Print Voucher / Receipt
+                    🖨️ Print Request Summary
                   </button>
 
                   <button
@@ -1377,11 +1399,12 @@ export default function PropertyDetailClient({
                   Thank You for Your Review!
                 </strong>
                 <p style={{ fontSize: '0.84rem', color: '#2f5b44', margin: '4px 0 0' }}>
-                  Your review has been published to this residence.
+                  Your review was received and is awaiting moderation.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleAddReview} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {reviewError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem' }}>{reviewError}</div>}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Name *</label>

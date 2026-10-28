@@ -69,7 +69,7 @@ export interface Reservation {
   guest: string;
   property: string;
   dates: string;
-  status: 'In-Stay' | 'Arriving Today' | 'Confirmed' | 'Completed';
+  status: 'Pending' | 'In-Stay' | 'Arriving Today' | 'Confirmed' | 'Completed' | 'Cancelled';
   total: string;
   guestEmail?: string;
   guestPhone?: string;

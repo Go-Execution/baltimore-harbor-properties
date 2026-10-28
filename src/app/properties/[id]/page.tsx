@@ -4,7 +4,7 @@ import { PROPERTIES } from '@/data/properties';
 import PropertyDetailClient from './PropertyDetailClient';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function generateStaticParams() {
@@ -14,7 +14,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const prop = PROPERTIES.find((p) => p.id === parseInt(params.id, 10));
+  const { id } = await params;
+  const prop = PROPERTIES.find((p) => p.id === parseInt(id, 10));
   if (!prop) {
     return { title: 'Residence Not Found' };
   }
@@ -30,8 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function PropertyPage({ params }: Props) {
-  const pid = parseInt(params.id, 10);
+export default async function PropertyPage({ params }: Props) {
+  const { id } = await params;
+  const pid = parseInt(id, 10);
   const property = PROPERTIES.find((p) => p.id === pid) || PROPERTIES[0];
 
   return <PropertyDetailClient property={property} propertyId={pid} />;

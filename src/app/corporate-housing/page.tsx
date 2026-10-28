@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
+import { dbSubmitInquiry } from '@/lib/supabase/database';
 
 export default function CorporateHousingPage() {
   const [company, setCompany] = useState('');
@@ -14,9 +15,24 @@ export default function CorporateHousingPage() {
   const [billingType, setBillingType] = useState('direct-invoice');
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
+    const result = await dbSubmitInquiry({
+      name: contactName,
+      email,
+      phone,
+      source: 'corporate-housing',
+      stayDates: duration,
+      message: `Organization: ${company}\nDuration: ${duration}\nUnits: ${unitsNeeded}\nBilling: ${billingType}\n\n${notes || 'No additional notes.'}`,
+      metadata: { company, duration, unitsNeeded, billingType },
+    });
+    setSubmitting(false);
+    if (!result.success) return setSubmitError(result.error || 'Your inquiry could not be sent.');
     setSubmitted(true);
   };
 
@@ -277,6 +293,7 @@ export default function CorporateHousingPage() {
                   </span>
                   <button
                     type="submit"
+                    disabled={submitting}
                     style={{
                       padding: '14px 32px',
                       background: 'var(--copper)',
@@ -285,12 +302,14 @@ export default function CorporateHousingPage() {
                       borderRadius: 6,
                       fontSize: '0.82rem',
                       fontWeight: 600,
-                      cursor: 'pointer',
+                      cursor: submitting ? 'wait' : 'pointer',
+                      opacity: submitting ? .65 : 1,
                     }}
                   >
-                    Submit Corporate Inquiry ↗
+                    {submitting ? 'Submitting…' : 'Submit Corporate Inquiry ↗'}
                   </button>
                 </div>
+                {submitError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem' }}>{submitError}</div>}
               </form>
             ) : (
               <div style={{ textAlign: 'center', padding: '30px 10px' }}>

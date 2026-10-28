@@ -6,7 +6,6 @@ import { BaltimoreAttraction } from '@/data/attractions';
 import { Property } from '@/types';
 import Footer from '@/components/Footer';
 import QuickViewModal from '@/components/QuickViewModal';
-import { addReservation } from '@/utils/propertyStore';
 import { dbSaveReservation } from '@/lib/supabase/database';
 
 interface Props {
@@ -30,8 +29,9 @@ export default function AttractionDetailClient({
   // Booking process states
   const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmedReservation, setConfirmedReservation] = useState<string | null>(null);
-  const [assignedPin, setAssignedPin] = useState('5129#');
+  const [assignedPin, setAssignedPin] = useState('Issued after approval');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   // Booking calculator state
   const [checkin, setCheckin] = useState('');
@@ -47,7 +47,7 @@ export default function AttractionDetailClient({
   const [specialRequests, setSpecialRequests] = useState('');
 
   // Payment state
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'applepay' | 'invoice'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'applepay' | 'invoice'>('invoice');
   const [cardName, setCardName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
@@ -97,28 +97,35 @@ export default function AttractionDetailClient({
   const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessingPayment(true);
-
-    const code = 'CSP-2026-' + Math.floor(1000 + Math.random() * 9000);
-    const pin = Math.floor(1000 + Math.random() * 9000) + '#';
-    setAssignedPin(pin);
-    setConfirmedReservation(code);
+    setBookingError(null);
 
     // Save to store and Supabase so Admin and Portal see this immediately
-    await dbSaveReservation({
-      id: code,
+    const result = await dbSaveReservation({
+      id: '',
       guest: guestName || 'Resident Guest',
       property: currentProp ? currentProp.title : attraction.title + ' Nearby Stay',
       dates: `${checkin} – ${checkout}`,
-      status: 'Confirmed',
+      status: 'Pending',
       total: `$${total.toFixed(2)}`,
       guestEmail: guestEmail || 'attraction-guest@chasestreetproperties.net',
       guestPhone: guestPhone || '(410) 555-0199',
-      pinCode: pin,
+      pinCode: '',
       nights: diffDays,
       createdAt: new Date().toISOString(),
+      propertyId: currentProp?.id,
+      checkinDate: checkin,
+      checkoutDate: checkout,
+      stayPurpose,
+      specialRequests,
     });
 
     setIsProcessingPayment(false);
+    if (!result.success) {
+      setBookingError(result.error || 'Your booking request could not be saved.');
+      return;
+    }
+    setAssignedPin(result.pinCode || 'Pending');
+    setConfirmedReservation(result.reservationId || 'Pending');
     setCheckoutStep(4);
   };
 
@@ -765,7 +772,7 @@ export default function AttractionDetailClient({
                 </span>
               </div>
               <h2 style={{ font: '400 1.8rem var(--serif)', margin: 0, color: 'var(--forest)' }}>
-                {checkoutStep === 4 ? 'Reservation Confirmed!' : `Reserve: ${currentProp.title}`}
+                {checkoutStep === 4 ? 'Booking Request Received' : `Reserve: ${currentProp.title}`}
               </h2>
               <div style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', marginTop: 4 }}>
                 📍 {currentProp.address} · Near {attraction.title} ({attraction.commuteTime})
@@ -941,16 +948,17 @@ export default function AttractionDetailClient({
                     style={{ flex: 1, padding: '12px', fontSize: '0.85rem' }}
                     onClick={() => setCheckoutStep(3)}
                   >
-                    Proceed to Payment (${total.toFixed(2)}) →
+                    Review Booking Request (${total.toFixed(2)}) →
                   </button>
                 </div>
               </div>
             )}
 
-            {/* STEP 3: Payment */}
+            {/* STEP 3: Booking request confirmation */}
             {checkoutStep === 3 && (
               <form onSubmit={handleProcessPayment}>
-                <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+                {bookingError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem', marginBottom: 12 }}>{bookingError}</div>}
+                <div aria-hidden="true" style={{ display: 'none', gap: 10, marginBottom: 16 }}>
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('card')}
@@ -1074,9 +1082,9 @@ export default function AttractionDetailClient({
                   </div>
                 ) : (
                   <div style={{ background: '#faf8f5', padding: '20px', borderRadius: 6, marginBottom: 20, fontSize: '0.85rem', color: 'var(--ink)' }}>
-                    <strong>Direct Corporate & Institutional Billing Selected</strong>
+                    <strong>Availability and payment confirmation</strong>
                     <p style={{ margin: '8px 0 0', color: 'var(--ink-soft)' }}>
-                      An itemized per-diem invoice matching Hopkins, UMMC, or corporate compliance guidelines will be generated and dispatched to your email address.
+                      No payment is collected on this page. Our team will confirm availability and email a secure payment link or an approved institutional invoice.
                     </p>
                   </div>
                 )}
@@ -1096,7 +1104,7 @@ export default function AttractionDetailClient({
                     className="btn-book"
                     style={{ flex: 1, padding: '12px', fontSize: '0.85rem' }}
                   >
-                    {isProcessingPayment ? 'Securing Residence...' : `Confirm & Authorize $${total.toFixed(2)}`}
+                    {isProcessingPayment ? 'Submitting Request...' : `Submit Booking Request · $${total.toFixed(2)}`}
                   </button>
                 </div>
               </form>
@@ -1109,13 +1117,13 @@ export default function AttractionDetailClient({
                   ✓
                 </div>
                 <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>
-                  Immediate Move-In Ready
+                  Booking Request Received
                 </span>
                 <h3 style={{ font: '400 2rem var(--serif)', margin: '6px 0 10px', color: 'var(--forest)' }}>
-                  You are all set in Baltimore!
+                  We’ll confirm your stay shortly
                 </h3>
                 <p style={{ color: 'var(--ink-soft)', fontSize: '0.88rem', maxWidth: 440, margin: '0 auto 20px' }}>
-                  A confirmation receipt and detailed arrival packet have been routed to <strong>{guestEmail || 'your email'}</strong>.
+                  No payment has been taken. Our team will verify availability and email the next steps to <strong>{guestEmail || 'your email'}</strong>.
                 </p>
 
                 <div style={{ background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 8, padding: '20px', maxWidth: 460, margin: '0 auto 24px', textAlign: 'left' }}>
@@ -1124,7 +1132,7 @@ export default function AttractionDetailClient({
                     <strong style={{ fontSize: '0.88rem', color: 'var(--forest)' }}>{confirmedReservation}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Digital Door PIN:</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Door PIN:</span>
                     <strong style={{ fontSize: '1.05rem', color: 'var(--copper)', letterSpacing: '0.1em' }}>{assignedPin}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -1132,8 +1140,8 @@ export default function AttractionDetailClient({
                     <strong style={{ fontSize: '0.82rem' }}>{checkin} to {checkout} ({diffDays} nights)</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Check-in Window:</span>
-                    <strong style={{ fontSize: '0.82rem' }}>3:00 PM onwards (Keyless Self Check-in)</strong>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Status:</span>
+                    <strong style={{ fontSize: '0.82rem' }}>Pending availability review</strong>
                   </div>
                 </div>
 

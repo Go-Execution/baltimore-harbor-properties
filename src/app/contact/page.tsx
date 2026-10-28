@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
+import { dbSubmitInquiry } from '@/lib/supabase/database';
 
 export default function ContactPage() {
   const [fullName, setFullName] = useState('');
@@ -13,9 +14,24 @@ export default function ContactPage() {
   const [guests, setGuests] = useState('');
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
+    const result = await dbSubmitInquiry({
+      name: fullName,
+      email,
+      phone,
+      stayDates: dates,
+      source: 'contact-page',
+      message: `Inquiry type: ${inquiryType}\nGuests: ${guests || 'Not specified'}\n\n${message}`,
+      metadata: { inquiryType, guests },
+    });
+    setSubmitting(false);
+    if (!result.success) return setSubmitError(result.error || 'Your message could not be sent.');
     setSubmitted(true);
   };
 
@@ -150,10 +166,11 @@ export default function ContactPage() {
                     <span style={{ fontSize: '0.68rem', color: 'var(--ink-soft)' }}>
                       🔒 We never share your contact information.
                     </span>
-                    <button type="submit" className="btn-book" style={{ padding: '14px 28px', fontSize: '0.75rem' }}>
-                      Send Message to Concierge ↗
+                    <button type="submit" disabled={submitting} className="btn-book" style={{ padding: '14px 28px', fontSize: '0.75rem', opacity: submitting ? .65 : 1 }}>
+                      {submitting ? 'Sending…' : 'Send Message to Concierge ↗'}
                     </button>
                   </div>
+                  {submitError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem' }}>{submitError}</div>}
                 </form>
               ) : (
                 <div style={{ textAlign: 'center', padding: '30px 10px' }}>

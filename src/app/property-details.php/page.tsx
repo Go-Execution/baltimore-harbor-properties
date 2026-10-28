@@ -5,11 +5,12 @@ import { PROPERTIES } from '@/data/properties';
 import PropertyDetailClient from '../properties/[id]/PropertyDetailClient';
 
 interface Props {
-  searchParams: { pid?: string };
+  searchParams: Promise<{ pid?: string }>;
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const pid = parseInt(searchParams.pid || '1', 10);
+  const { pid: rawPid } = await searchParams;
+  const pid = parseInt(rawPid || '1', 10);
   const prop = PROPERTIES.find((p) => p.id === pid) || PROPERTIES[0];
 
   return {
@@ -23,8 +24,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
-export default function PropertyDetailsLegacyPage({ searchParams }: Props) {
-  const pid = parseInt(searchParams.pid || '1', 10);
+export default async function PropertyDetailsLegacyPage({ searchParams }: Props) {
+  const { pid: rawPid } = await searchParams;
+  const pid = parseInt(rawPid || '1', 10);
   const property = PROPERTIES.find((p) => p.id === pid);
 
   if (!property) {

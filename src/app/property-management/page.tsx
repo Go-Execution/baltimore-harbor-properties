@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
+import { dbSubmitInquiry } from '@/lib/supabase/database';
 
 export default function PropertyManagementPage() {
   // Calculator State
@@ -19,6 +20,8 @@ export default function PropertyManagementPage() {
   const [propFurnished, setPropFurnished] = useState('fully');
   const [ownerNotes, setOwnerNotes] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Dynamic calculation
   let baseAdr = 115;
@@ -34,8 +37,20 @@ export default function PropertyManagementPage() {
   const net = Math.round(gross * 0.80); // 20% mgmt fee
   const annualExtra = Math.max(0, (net - rent) * 12);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormSubmitting(true);
+    setFormError(null);
+    const result = await dbSubmitInquiry({
+      name: ownerName,
+      email: ownerEmail,
+      phone: ownerPhone,
+      source: 'property-management',
+      message: `Property: ${ownerAddress}\nType: ${propType}\nFurnished: ${propFurnished}\n\n${ownerNotes || 'No additional notes.'}`,
+      metadata: { ownerAddress, propType, propFurnished },
+    });
+    setFormSubmitting(false);
+    if (!result.success) return setFormError(result.error || 'Your valuation request could not be sent.');
     setFormSubmitted(true);
   };
 
@@ -345,10 +360,11 @@ export default function PropertyManagementPage() {
                   <span style={{ fontSize: '0.68rem', color: 'var(--ink-soft)' }}>
                     🔒 No obligation · 100% confidential assessment
                   </span>
-                  <button type="submit" className="btn-book" style={{ padding: '14px 28px', fontSize: '0.75rem' }}>
-                    Submit for Revenue Assessment ↗
+                  <button type="submit" disabled={formSubmitting} className="btn-book" style={{ padding: '14px 28px', fontSize: '0.75rem', opacity: formSubmitting ? .65 : 1 }}>
+                    {formSubmitting ? 'Submitting…' : 'Submit for Revenue Assessment ↗'}
                   </button>
                 </div>
+                {formError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem' }}>{formError}</div>}
               </form>
             ) : (
               <div style={{ textAlign: 'center', padding: '30px 10px' }}>

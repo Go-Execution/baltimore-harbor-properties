@@ -14,17 +14,7 @@ export interface UserProfile {
 export async function supabaseSignIn(email: string, password: string) {
   const supabase = getSupabaseClient();
   if (!supabase || !isSupabaseConfigured()) {
-    // Demo fallback for instant testing when Supabase is not configured
-    if (email.includes('guest') || email.includes('aaron')) {
-      return { data: { user: { id: 'demo-guest-1', email }, session: {} }, error: null, role: 'guest' as const };
-    }
-    if (email.includes('owner') || email.includes('eleanor')) {
-      return { data: { user: { id: 'demo-owner-1', email }, session: {} }, error: null, role: 'owner' as const };
-    }
-    if (email.includes('admin') || email.includes('gonzalo') || email.includes('host')) {
-      return { data: { user: { id: 'demo-admin-1', email }, session: {} }, error: null, role: 'admin' as const };
-    }
-    return { data: { user: { id: 'demo-user-1', email }, session: {} }, error: null, role: 'guest' as const };
+    return { data: null, error: 'Authentication service is not configured.', role: null };
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -46,8 +36,6 @@ export async function supabaseSignIn(email: string, password: string) {
       .single();
     if (profile?.role) {
       role = profile.role;
-    } else if (data.user.user_metadata?.role) {
-      role = data.user.user_metadata.role;
     }
   }
 
@@ -61,14 +49,13 @@ export async function supabaseSignUp(
   email: string,
   password: string,
   fullName: string,
-  role: 'guest' | 'owner' | 'admin' = 'guest'
+  _role: 'guest' | 'owner' | 'admin' = 'guest'
 ) {
   const supabase = getSupabaseClient();
   if (!supabase || !isSupabaseConfigured()) {
     return {
-      data: { user: { id: 'demo-signup-' + Date.now(), email, user_metadata: { full_name: fullName, role } } },
-      error: null,
-      message: 'Account created in demo mode. Connect Supabase in .env.local for production database storage.',
+      data: null,
+      error: 'Authentication service is not configured.',
     };
   }
 
@@ -78,8 +65,8 @@ export async function supabaseSignUp(
     options: {
       data: {
         full_name: fullName,
-        role,
       },
+      emailRedirectTo: `${window.location.origin}/auth/callback?next=/portal`,
     },
   });
 
@@ -123,10 +110,26 @@ export async function supabaseGetCurrentUser(): Promise<UserProfile | null> {
       id: session.user.id,
       email: session.user.email || '',
       full_name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
-      role: profile?.role || session.user.user_metadata?.role || 'guest',
+      role: profile?.role || 'guest',
       phone: profile?.phone,
     };
   } catch (err) {
     return null;
   }
+}
+
+export async function supabaseRequestPasswordReset(email: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return { error: 'Authentication service is not configured.' };
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/auth/callback?next=/admin/reset-password`,
+  });
+  return { error: error?.message || null };
+}
+
+export async function supabaseUpdatePassword(password: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return { error: 'Authentication service is not configured.' };
+  const { error } = await supabase.auth.updateUser({ password });
+  return { error: error?.message || null };
 }

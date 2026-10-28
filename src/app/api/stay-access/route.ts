@@ -1,0 +1,45 @@
+import { NextRequest } from 'next/server';
+import { createServiceSupabaseClient } from '@/lib/supabase/service';
+import { cleanText, jsonError, validRequestOrigin } from '@/lib/forms/validation';
+
+export async function POST(request: NextRequest) {
+  if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
+
+  try {
+    const body = await request.json();
+    const reservationId = cleanText(body.reservationId, 40).toUpperCase();
+    const pinCode = cleanText(body.pinCode, 20);
+    if (!/^([A-Z]{2,5})-\d{4}-\d{4,8}$/.test(reservationId) || pinCode.length < 4) {
+      return jsonError('Reservation reference or door PIN is incorrect.', 401);
+    }
+
+    const supabase = createServiceSupabaseClient();
+    const { data, error } = await supabase
+      .from('reservations')
+      .select('id, guest_name, guest_email, property_title, dates, status, pin_code, nights')
+      .eq('id', reservationId)
+      .eq('pin_code', pinCode)
+      .maybeSingle();
+
+    if (error || !data || data.status === 'Cancelled' || data.status === 'Pending') {
+      return jsonError('Reservation reference or door PIN is incorrect.', 401);
+    }
+
+    return Response.json({
+      success: true,
+      reservation: {
+        id: data.id,
+        guest: data.guest_name,
+        guestEmail: data.guest_email,
+        property: data.property_title,
+        dates: data.dates,
+        status: data.status,
+        pinCode: data.pin_code,
+        nights: data.nights,
+      },
+    });
+  } catch (error) {
+    console.error('Stay access verification failed', error instanceof Error ? error.message : 'Unknown error');
+    return jsonError('Stay access could not be verified. Please try again.', 500);
+  }
+}
