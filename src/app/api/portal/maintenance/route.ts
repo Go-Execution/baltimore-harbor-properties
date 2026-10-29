@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { cleanText, jsonError, validRequestOrigin } from '@/lib/forms/validation';
-import { recordStayAccessResult, stayAccessAllowed, stayAccessKey } from '@/lib/stayAccessRateLimit';
+import { clearRateLimit, consumeRateLimit, parseJsonBody, rateLimitResponse, requestSecurityResponse } from '@/lib/security/request';
 
 async function resolveStay(request: NextRequest, body: Record<string, unknown>) {
   const service = createServiceSupabaseClient();
@@ -19,20 +19,28 @@ async function resolveStay(request: NextRequest, body: Record<string, unknown>) 
   const reservationId = cleanText(body.reservationId, 40).toUpperCase();
   const pinCode = cleanText(body.pinCode, 20);
   if (!reservationId || !pinCode) return null;
-  const accessKey = stayAccessKey(request, reservationId);
-  if (!(await stayAccessAllowed(accessKey))) return { blocked: true as const };
+  const ipThrottle = await consumeRateLimit(request, 'maintenance-access-ip', 20, 900);
+  const reservationThrottle = await consumeRateLimit(request, 'maintenance-access-reservation', 8, 900, reservationId, false);
+  if (!ipThrottle.allowed || !reservationThrottle.allowed) {
+    return { blocked: true as const, retryAfter: Math.max(ipThrottle.retryAfter, reservationThrottle.retryAfter) };
+  }
   const { data } = await service.from('reservations').select('id,property_id,property_title')
     .eq('id', reservationId).eq('pin_code', pinCode).in('status', ['Confirmed', 'Arriving Today', 'In-Stay']).maybeSingle();
-  await recordStayAccessResult(accessKey, Boolean(data));
+  if (data) {
+    await Promise.all([
+      clearRateLimit(request, 'maintenance-access-ip'),
+      clearRateLimit(request, 'maintenance-access-reservation', reservationId, false),
+    ]);
+  }
   return data ? { reservation: data, userId: null } : null;
 }
 
 export async function POST(request: NextRequest) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
   try {
-    const body = await request.json();
+    const body = await parseJsonBody(request, 12_288);
     const access = await resolveStay(request, body);
-    if (access && 'blocked' in access) return Response.json({ success: false, error: 'Too many attempts. Please wait 15 minutes before trying again.' }, { status: 429, headers: { 'Retry-After': '900' } });
+    if (access && 'blocked' in access) return rateLimitResponse(access.retryAfter);
     if (!access) return jsonError('A confirmed stay is required to access maintenance requests.', 403);
     const service = createServiceSupabaseClient();
 
@@ -61,6 +69,8 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
     return Response.json({ success: true, ticket: data });
   } catch (error) {
+    const securityResponse = requestSecurityResponse(error);
+    if (securityResponse) return securityResponse;
     console.error('Maintenance portal request failed', error instanceof Error ? error.message : 'Unknown error');
     return jsonError('Maintenance request could not be processed.', 500);
   }

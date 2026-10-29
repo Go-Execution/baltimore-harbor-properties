@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const requestedNext = requestUrl.searchParams.get('next') || '/portal';
-  const next = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/portal';
+  const allowedDestinations = new Set(['/portal', '/admin', '/admin/reset-password']);
+  const next = allowedDestinations.has(requestedNext) ? requestedNext : '/portal';
   const response = NextResponse.redirect(new URL(next, requestUrl.origin));
 
   if (code) {

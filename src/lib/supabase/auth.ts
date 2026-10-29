@@ -8,6 +8,14 @@ export interface UserProfile {
   phone?: string;
 }
 
+export function validAccountPassword(password: string) {
+  return password.length >= 12
+    && /[a-z]/.test(password)
+    && /[A-Z]/.test(password)
+    && /\d/.test(password)
+    && /[^A-Za-z0-9]/.test(password);
+}
+
 /**
  * Sign in user with email & password via Supabase Auth
  */
@@ -23,7 +31,7 @@ export async function supabaseSignIn(email: string, password: string) {
   });
 
   if (error) {
-    return { data: null, error: error.message, role: null };
+    return { data: null, error: 'Invalid email or password.', role: null };
   }
 
   // Fetch user role from profiles table
@@ -57,6 +65,10 @@ export async function supabaseSignUp(
       data: null,
       error: 'Authentication service is not configured.',
     };
+  }
+
+  if (!validAccountPassword(password)) {
+    return { data: null, error: 'Use 12+ characters with uppercase, lowercase, number, and symbol.' };
   }
 
   const { data, error } = await supabase.auth.signUp({

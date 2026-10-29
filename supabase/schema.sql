@@ -64,7 +64,7 @@ create table if not exists public.reservations (
   guest_count integer not null default 1 check (guest_count between 1 and 32),
   total text not null,
   pin_code text not null default '4892#',
-  status text not null default 'Confirmed' check (status in ('In-Stay', 'Arriving Today', 'Confirmed', 'Completed', 'Cancelled')),
+  status text not null default 'Pending' check (status in ('Pending', 'In-Stay', 'Arriving Today', 'Confirmed', 'Completed', 'Cancelled')),
   stay_purpose text default 'leisure',
   special_requests text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -148,6 +148,18 @@ create table if not exists public.property_reviews (
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
 
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
+$$;
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
+
 alter table public.profiles enable row level security;
 alter table public.properties enable row level security;
 alter table public.reservations enable row level security;
@@ -158,16 +170,27 @@ alter table public.owner_blackouts enable row level security;
 alter table public.property_inquiries enable row level security;
 alter table public.property_reviews enable row level security;
 
+-- Defense in depth: public writes use validated service-role API endpoints.
+revoke insert on public.reservations from anon, authenticated;
+revoke insert on public.maintenance_tickets from anon, authenticated;
+revoke insert on public.property_inquiries from anon, authenticated;
+revoke insert on public.property_reviews from anon, authenticated;
+revoke update on public.owner_approvals from authenticated;
+grant update (status) on public.owner_approvals to authenticated;
+
 -- Profiles: Users can read their own profile, Admins can read all
 create policy "Users can read own profile" on public.profiles
-  for select using (auth.uid() = id or (select role from public.profiles where id = auth.uid()) = 'admin');
+  for select using (auth.uid() = id or public.is_admin());
 
 create policy "Users can update own profile" on public.profiles
-  for update using (auth.uid() = id);
+  for update using (auth.uid() = id) with check (auth.uid() = id);
+
+revoke update on public.profiles from authenticated;
+grant update (full_name, phone, avatar_url) on public.profiles to authenticated;
 
 -- Properties: Public can view active properties
 create policy "Public can view active properties" on public.properties
-  for select using (true);
+  for select using (status = 'Active' or public.is_admin());
 
 create policy "Admins can manage properties" on public.properties
   for all using (
@@ -193,9 +216,6 @@ create policy "Guests can view their own tickets" on public.maintenance_tickets
     auth.uid() = user_id or
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
-
-create policy "Authenticated guests can create own tickets" on public.maintenance_tickets
-  for insert to authenticated with check (auth.uid() = user_id);
 
 create policy "Admins can manage tickets" on public.maintenance_tickets
   for all using (
@@ -253,17 +273,11 @@ create policy "Owners can delete own blackouts" on public.owner_blackouts
     auth.uid() = owner_id or exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
--- Reviews: Anyone can view approved reviews, Anyone can insert a review
+-- Reviews: public reads are approved-only; validated server routes handle writes.
 create policy "Public can view approved reviews" on public.property_reviews
   for select using (is_approved = true);
 
-create policy "Anyone can submit review" on public.property_reviews
-  for insert with check (true);
-
--- Inquiries: Anyone can insert inquiries, Admins can view
-create policy "Anyone can submit inquiry" on public.property_inquiries
-  for insert with check (true);
-
+-- Inquiries: validated server routes handle writes; only admins can read them.
 create policy "Admins can view inquiries" on public.property_inquiries
   for select using (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
@@ -281,7 +295,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    coalesce(new.raw_user_meta_data->>'role', 'guest')
+    'guest'
   );
   return new;
 end;

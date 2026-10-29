@@ -26,10 +26,13 @@ export function cleanMetadata(value: unknown) {
 }
 
 export function validRequestOrigin(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  if (!origin) return true;
+  const suppliedOrigin = request.headers.get('origin');
+  const referer = request.headers.get('referer');
+  const candidate = suppliedOrigin || referer;
+  if (!candidate) return process.env.NODE_ENV !== 'production';
   try {
-    return new URL(origin).host === request.nextUrl.host;
+    const origin = new URL(candidate).origin;
+    return origin === request.nextUrl.origin;
   } catch {
     return false;
   }

@@ -102,7 +102,7 @@ export async function dbVerifyStayAccess(reservationId: string, pinCode: string)
     });
     const result = await response.json();
     if (!response.ok || !result.success) return { success: false, error: result.error || 'Stay access could not be verified.' };
-    return { success: true, reservation: result.reservation as Reservation };
+    return { success: true, reservation: { ...(result.reservation as Reservation), pinCode } };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Stay access could not be verified.' };
   }

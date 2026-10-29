@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabaseUpdatePassword } from '@/lib/supabase/auth';
+import { supabaseUpdatePassword, validAccountPassword } from '@/lib/supabase/auth';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -13,7 +13,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (password.length < 12) return setMessage('Use at least 12 characters.');
+    if (!validAccountPassword(password)) return setMessage('Use 12+ characters with uppercase, lowercase, number, and symbol.');
     if (password !== confirmPassword) return setMessage('Passwords do not match.');
     setLoading(true);
     const result = await supabaseUpdatePassword(password);

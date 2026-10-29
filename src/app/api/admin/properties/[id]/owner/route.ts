@@ -2,12 +2,15 @@ import { NextRequest } from 'next/server';
 import { isServerAdmin } from '@/lib/supabase/admin';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { jsonError, validRequestOrigin } from '@/lib/forms/validation';
+import { parseJsonBody, requestSecurityResponse } from '@/lib/security/request';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
   if (!(await isServerAdmin())) return jsonError('Administrator access required.', 403);
   const propertyId = Number((await params).id);
-  const body = await request.json();
+  let body: Record<string, unknown>;
+  try { body = await parseJsonBody(request, 4096); }
+  catch (error) { return requestSecurityResponse(error) || jsonError('Invalid request body.'); }
   const ownerId = typeof body.ownerId === 'string' && body.ownerId ? body.ownerId : null;
   if (!Number.isInteger(propertyId) || propertyId < 1) return jsonError('Invalid property.');
   const service = createServiceSupabaseClient();

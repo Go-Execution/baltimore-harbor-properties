@@ -2,11 +2,14 @@ import { NextRequest } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { cleanMetadata, cleanText, jsonError, validEmail, validRequestOrigin } from '@/lib/forms/validation';
 import { emailLayout, escapeHtml, getAdminNotificationEmail, queueEmail } from '@/lib/notifications/email';
+import { consumeRateLimit, parseJsonBody, rateLimitResponse, requestSecurityResponse } from '@/lib/security/request';
 
 export async function POST(request: NextRequest) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
   try {
-    const body = await request.json();
+    const throttle = await consumeRateLimit(request, 'public-inquiry', 8, 600);
+    if (!throttle.allowed) return rateLimitResponse(throttle.retryAfter);
+    const body = await parseJsonBody(request, 12_288);
     if (cleanText(body.website, 100)) return Response.json({ success: true });
 
     const name = cleanText(body.name, 120);
@@ -49,6 +52,8 @@ export async function POST(request: NextRequest) {
     await Promise.allSettled(jobs);
     return Response.json({ success: true });
   } catch (error) {
+    const securityResponse = requestSecurityResponse(error);
+    if (securityResponse) return securityResponse;
     console.error('Inquiry submission failed', error instanceof Error ? error.message : 'Unknown error');
     return jsonError('Your message could not be sent. Please try again.', 500);
   }

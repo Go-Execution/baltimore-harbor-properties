@@ -35,7 +35,6 @@ import {
 } from 'react-icons/fi';
 
 const STORAGE_KEY = 'csp_nextjs_portal_state_v1';
-const AUTH_KEY = 'csp_nextjs_portal_auth_v1';
 
 export default function PortalPage() {
   // Authentication & Session State
@@ -92,7 +91,7 @@ export default function PortalPage() {
       setAuthError('The secure account link is invalid or expired. Please sign in or request a new link.');
     }
 
-    // Check for active session in Supabase or local auth cache
+    // Only a server-verified Supabase session may restore portal access.
     async function initSession() {
       if (isSupabaseConfigured()) {
         const user = await supabaseGetCurrentUser();
@@ -104,18 +103,6 @@ export default function PortalPage() {
           setGuestTickets(await dbFetchTickets());
           if (user.role === 'owner' || user.role === 'admin') await loadOwnerDashboard();
         }
-      } else {
-        try {
-          const cachedAuth = localStorage.getItem(AUTH_KEY);
-          if (cachedAuth) {
-            const parsed = JSON.parse(cachedAuth);
-            if (parsed && parsed.email) {
-              setCurrentUser(parsed);
-              setCurrentRole(parsed.role || 'guest');
-              setIsAuthenticated(true);
-            }
-          }
-        } catch (e) {}
       }
 
       if (!isSupabaseConfigured()) {
@@ -192,7 +179,6 @@ export default function PortalPage() {
     setCurrentUser(user);
     setCurrentRole(user.role);
     setIsAuthenticated(true);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     await loadReservations();
     setGuestTickets(await dbFetchTickets());
     if (user.role === 'owner' || user.role === 'admin') await loadOwnerDashboard();
@@ -229,7 +215,6 @@ export default function PortalPage() {
     setCurrentUser(user);
     setCurrentRole('guest');
     setIsAuthenticated(true);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     await loadReservations();
     showToast(`Account created! Welcome to Baltimore Harbor Portals.`);
   };
@@ -268,7 +253,6 @@ export default function PortalPage() {
     setStayCredential({ reservationId: cleanCode, pinCode: cleanPin });
     setAdminReservations([matchedRes]);
     setGuestTickets(await dbFetchTickets({ reservationId: cleanCode, pinCode: cleanPin }));
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     showToast(`Welcome! Stay dashboard unlocked for ${cleanCode}`);
   };
 
@@ -280,7 +264,6 @@ export default function PortalPage() {
     setStayCredential(null);
     setGuestTickets([]);
     setAdminReservations([]);
-    localStorage.removeItem(AUTH_KEY);
     showToast('Signed out of Baltimore Harbor Portals.');
   };
 
@@ -773,8 +756,10 @@ export default function PortalPage() {
                   <input
                     type="password"
                     required
-                    minLength={8}
-                    placeholder="Minimum 8 characters"
+                    minLength={12}
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{12,}"
+                    title="Use 12+ characters with uppercase, lowercase, number, and symbol."
+                    placeholder="12+ characters with mixed character types"
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
                     style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
