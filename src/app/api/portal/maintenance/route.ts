@@ -3,8 +3,9 @@ import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { cleanText, jsonError, validRequestOrigin } from '@/lib/forms/validation';
+import { recordStayAccessResult, stayAccessAllowed, stayAccessKey } from '@/lib/stayAccessRateLimit';
 
-async function resolveStay(body: Record<string, unknown>) {
+async function resolveStay(request: NextRequest, body: Record<string, unknown>) {
   const service = createServiceSupabaseClient();
   const auth = await createServerSupabaseClient();
   const { data: { user } } = await auth.auth.getUser();
@@ -18,8 +19,11 @@ async function resolveStay(body: Record<string, unknown>) {
   const reservationId = cleanText(body.reservationId, 40).toUpperCase();
   const pinCode = cleanText(body.pinCode, 20);
   if (!reservationId || !pinCode) return null;
+  const accessKey = stayAccessKey(request, reservationId);
+  if (!(await stayAccessAllowed(accessKey))) return { blocked: true as const };
   const { data } = await service.from('reservations').select('id,property_id,property_title')
     .eq('id', reservationId).eq('pin_code', pinCode).in('status', ['Confirmed', 'Arriving Today', 'In-Stay']).maybeSingle();
+  await recordStayAccessResult(accessKey, Boolean(data));
   return data ? { reservation: data, userId: null } : null;
 }
 
@@ -27,7 +31,8 @@ export async function POST(request: NextRequest) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
   try {
     const body = await request.json();
-    const access = await resolveStay(body);
+    const access = await resolveStay(request, body);
+    if (access && 'blocked' in access) return Response.json({ success: false, error: 'Too many attempts. Please wait 15 minutes before trying again.' }, { status: 429, headers: { 'Retry-After': '900' } });
     if (!access) return jsonError('A confirmed stay is required to access maintenance requests.', 403);
     const service = createServiceSupabaseClient();
 

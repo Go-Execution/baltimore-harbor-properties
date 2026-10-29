@@ -256,7 +256,7 @@ export default function AdminPropertyManager() {
   };
 
   const handleDelete = async (id: number, title: string) => {
-    if (confirm(`Are you sure you want to remove "${title}"? This will remove it from all website catalogs.`)) {
+    if (confirm(`Remove "${title}" permanently? Properties with booking history are protected; use Inactive to hide them safely.`)) {
       try {
         await deleteProperty(id);
         showToast(`Property "${title}" removed.`);

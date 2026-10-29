@@ -38,10 +38,16 @@ export default function AdminDashboardPage() {
   const [tickets, setTickets] = useState<AdminTicket[]>([]);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [operationMessage, setOperationMessage] = useState<string | null>(null);
+  const [adminName, setAdminName] = useState('Administrator');
 
   useEffect(() => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+      setAdminName(profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Administrator');
+    });
     supabase.from('property_inquiries').select('id,name,email,phone,message,source,status,created_at').order('created_at', { ascending: false }).limit(100)
       .then(({ data, error }) => {
         if (error) setInquiryError('Inquiries could not be loaded.');
@@ -127,12 +133,8 @@ export default function AdminDashboardPage() {
     setTickets((current) => current.map((item) => item.id === id ? { ...item, status } : item));
   };
   const serviceCards: Array<[string, boolean | undefined]> = [
-    ['Canonical site URL', systemStatus?.siteUrl],
     ['Supabase database', systemStatus?.supabase],
-    ['Resend API', systemStatus?.emailProvider],
-    ['Verified email sender', systemStatus?.emailSender],
     ['Admin notifications', systemStatus?.adminNotifications],
-    ['Stripe payments (skipped)', false],
   ];
 
   return (
@@ -183,8 +185,8 @@ export default function AdminDashboardPage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600 }}>Gonzalo Jouan</span>
-            <span style={{ fontSize: '0.68rem', color: '#a0a6a2' }}>Principal Host & Owner</span>
+            <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600 }}>{adminName}</span>
+            <span style={{ fontSize: '0.68rem', color: '#a0a6a2' }}>Operations Administrator</span>
           </div>
 
           <Link
@@ -242,7 +244,7 @@ export default function AdminDashboardPage() {
               Go Execution · Scope of Work Delivery
             </span>
             <h1 style={{ font: '400 1.9rem/1.2 var(--serif)', margin: '4px 0', color: '#fff' }}>
-              Welcome back, Gonzalo. Your Real-Time Operations Control.
+              Welcome back, {adminName}. Your Real-Time Operations Control.
             </h1>
             <p style={{ fontSize: '0.82rem', color: '#cbd3ce', margin: 0, maxWidth: 840 }}>
               You have full sovereign control over your Baltimore rental inventory. Create new residences, update pricing for peak medical rotation seasons, toggle immediate website visibility, and inspect live guest reservations without developer assistance.
@@ -267,7 +269,7 @@ export default function AdminDashboardPage() {
           <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>Production Readiness</span>
           <h2 style={{ font: '400 1.65rem/1.2 var(--serif)', margin: '4px 0 16px' }}>Connected Services</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
-            {serviceCards.map(([label, ready]) => <div key={label} style={{ padding: 14, borderRadius: 6, border: '1px solid var(--line)', background: ready ? '#eef6f2' : '#fff7ed' }}><strong style={{ display: 'block', fontSize: '.8rem' }}>{label}</strong><span style={{ fontSize: '.72rem', color: ready ? '#107e4d' : '#b45309' }}>{ready ? 'Configured' : label === 'Stripe payments (skipped)' ? 'Intentionally disabled' : 'Needs environment variable'}</span></div>)}
+            {serviceCards.map(([label, ready]) => <div key={label} style={{ padding: 14, borderRadius: 6, border: '1px solid var(--line)', background: ready ? '#eef6f2' : '#fff7ed' }}><strong style={{ display: 'block', fontSize: '.8rem' }}>{label}</strong><span style={{ fontSize: '.72rem', color: ready ? '#107e4d' : '#b45309' }}>{ready ? 'Configured' : 'Needs environment variable'}</span></div>)}
           </div>
         </section>
 
@@ -304,6 +306,7 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
+                {reservations.length === 0 && <tr><td colSpan={7} style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>No booking requests have been received yet.</td></tr>}
                 {reservations.map((res) => (
                   <tr key={res.id} style={{ borderBottom: '1px solid var(--line)' }}>
                     <td style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--forest)' }}>
@@ -312,7 +315,7 @@ export default function AdminDashboardPage() {
                     <td style={{ padding: '14px 14px' }}>
                       <strong style={{ display: 'block', color: 'var(--ink)' }}>{res.guest}</strong>
                       <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)' }}>
-                        {res.guestEmail || 'Direct website booking'} · {res.guestPhone || ''}
+                        {res.guestEmail || 'Direct website booking'} · {res.guestPhone || ''}{res.guestCount ? ` · ${res.guestCount} guest${res.guestCount === 1 ? '' : 's'}` : ''}
                       </span>
                     </td>
                     <td style={{ padding: '14px 14px', color: 'var(--forest)', fontWeight: 500 }}>

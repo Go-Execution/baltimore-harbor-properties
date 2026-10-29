@@ -109,6 +109,14 @@ export async function dbSaveProperty(property: Property): Promise<Property> {
 
 export async function dbDeleteProperty(id: number): Promise<void> {
   const supabase = await requireAdminSession();
+  const { count, error: reservationError } = await supabase
+    .from('reservations')
+    .select('id', { count: 'exact', head: true })
+    .eq('property_id', id);
+  if (reservationError) throw new Error(`Booking history check failed: ${reservationError.message}`);
+  if ((count || 0) > 0) {
+    throw new Error('This property has booking history and cannot be deleted. Mark it Inactive instead.');
+  }
   const { error } = await supabase.from('properties').delete().eq('id', id);
   if (error) throw new Error(`Cloud delete failed: ${error.message}`);
 }

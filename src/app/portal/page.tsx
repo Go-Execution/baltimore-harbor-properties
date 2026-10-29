@@ -6,7 +6,7 @@ import { MaintenanceTicket, OwnerApproval, Property, Reservation } from '@/types
 import AdminPropertyManager from '@/components/AdminPropertyManager';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { supabaseSignIn, supabaseSignUp, supabaseSignOut, supabaseGetCurrentUser, UserProfile } from '@/lib/supabase/auth';
-import { dbCreateOwnerBlackout, dbCreateTicket, dbFetchOwnerDashboard, dbFetchReservations, dbFetchTickets, dbUpdateOwnerApproval, dbVerifyStayAccess, OwnerBlackout } from '@/lib/supabase/database';
+import { dbCreateOwnerBlackout, dbCreateTicket, dbDeleteOwnerBlackout, dbFetchOwnerDashboard, dbFetchReservations, dbFetchTickets, dbUpdateOwnerApproval, dbVerifyStayAccess, OwnerBlackout } from '@/lib/supabase/database';
 import { getStoredReservations } from '@/utils/propertyStore';
 import {
   FiKey,
@@ -45,7 +45,7 @@ export default function PortalPage() {
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Single Password (Client Review Mode)
+  // Retained for the hidden legacy review form; production access always uses Supabase Auth.
   const [portalPassInput, setPortalPassInput] = useState('');
   const [portalRoleSelect, setPortalRoleSelect] = useState<'guest' | 'owner' | 'admin'>('guest');
   const [showPasswordText, setShowPasswordText] = useState(false);
@@ -88,6 +88,9 @@ export default function PortalPage() {
   // Initialize Auth & Data on Load
   useEffect(() => {
     setIsCloudLive(isSupabaseConfigured());
+    if (new URLSearchParams(window.location.search).get('auth_error') === 'callback_failed') {
+      setAuthError('The secure account link is invalid or expired. Please sign in or request a new link.');
+    }
 
     // Check for active session in Supabase or local auth cache
     async function initSession() {
@@ -142,7 +145,8 @@ export default function PortalPage() {
     setOwnerProperties(data.properties);
     setOwnerApprovals(data.approvals);
     setOwnerBlackouts(data.blackouts);
-    setOwnerReservations(data.reservations.filter((reservation) => data.properties.some((property) => property.title === reservation.property)));
+    const assignedIds = new Set(data.properties.map((property) => property.id));
+    setOwnerReservations(data.reservations.filter((reservation) => reservation.propertyId ? assignedIds.has(reservation.propertyId) : data.properties.some((property) => property.title === reservation.property)));
     if (data.properties[0]) setBlackoutPropertyId(String(data.properties[0].id));
   };
 
@@ -159,7 +163,6 @@ export default function PortalPage() {
     });
   };
 
-  // Legacy passkey access is disabled; administrators use Supabase Auth.
   const handleOnePasswordAccess = (e: React.FormEvent) => {
     e.preventDefault();
     window.location.assign('/admin/login');
@@ -180,7 +183,7 @@ export default function PortalPage() {
     }
 
     const user: UserProfile = {
-      id: res.data?.user?.id || 'demo-user',
+      id: res.data?.user?.id || 'authenticated-user',
       email: loginEmail,
       full_name: res.data?.user?.user_metadata?.full_name || loginEmail.split('@')[0],
       role: res.role || 'guest',
@@ -217,7 +220,7 @@ export default function PortalPage() {
     }
 
     const user: UserProfile = {
-      id: res.data?.user?.id || 'demo-user-signup',
+      id: res.data?.user?.id || 'new-user',
       email: signupEmail,
       full_name: signupName,
       role: 'guest',
@@ -267,11 +270,6 @@ export default function PortalPage() {
     setGuestTickets(await dbFetchTickets({ reservationId: cleanCode, pinCode: cleanPin }));
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     showToast(`Welcome! Stay dashboard unlocked for ${cleanCode}`);
-  };
-
-  // One-Click Demo Access
-  const handleDemoLogin = (_role: 'guest' | 'owner' | 'admin') => {
-    setAuthError('Demo access has been disabled. Use your secure account or reservation code.');
   };
 
   // Sign Out Handler
@@ -329,12 +327,20 @@ export default function PortalPage() {
 
   const handleCreateBlackout = async () => {
     if (!blackoutPropertyId || !blackoutStart || !blackoutEnd) return showToast('Select a property and both dates.');
+    if (blackoutEnd <= blackoutStart) return showToast('End date must be after the start date.');
     const result = await dbCreateOwnerBlackout(Number(blackoutPropertyId), blackoutStart, blackoutEnd);
     if (!result.success || !result.blackout) return showToast(result.error || 'Owner dates could not be reserved.');
     setOwnerBlackouts((current) => [result.blackout!, ...current]);
     setBlackoutStart('');
     setBlackoutEnd('');
     showToast('Owner dates saved to the live portfolio calendar.');
+  };
+
+  const handleDeleteBlackout = async (id: string) => {
+    const result = await dbDeleteOwnerBlackout(id);
+    if (!result.success) return showToast(result.error || 'Owner dates could not be removed.');
+    setOwnerBlackouts((current) => current.filter((item) => item.id !== id));
+    showToast('Owner dates removed from the portfolio calendar.');
   };
 
   const activeReservation = adminReservations.find((reservation) => ['Confirmed', 'Arriving Today', 'In-Stay'].includes(reservation.status));
@@ -795,51 +801,6 @@ export default function PortalPage() {
                 </button>
               </form>
             )}
-
-            {/* Quick Demo One-Click Access Divider */}
-            <div style={{ display: 'none', marginTop: 28, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
-              <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--ink-soft)', fontWeight: 700, textAlign: 'center', marginBottom: 12 }}>
-                Instant One-Click Demo Access
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('guest')}
-                  className="btn-outline"
-                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 10 }}
-                >
-                  <FiUser style={{ color: 'var(--forest)', fontSize: '1.05rem' }} />
-                  <div style={{ textAlign: 'left', flex: 1 }}>
-                    <strong>Resident Guest</strong>: Aaron Miller (Hopkins Fellow)
-                  </div>
-                  <span style={{ color: 'var(--copper)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>Enter <FiArrowRight /></span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('owner')}
-                  className="btn-outline"
-                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 10 }}
-                >
-                  <FiTrendingUp style={{ color: 'var(--copper)', fontSize: '1.05rem' }} />
-                  <div style={{ textAlign: 'left', flex: 1 }}>
-                    <strong>Property Owner</strong>: Eleanor Vance (Investor Portfolio)
-                  </div>
-                  <span style={{ color: 'var(--copper)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>Enter <FiArrowRight /></span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('admin')}
-                  className="btn-outline"
-                  style={{ width: '100%', padding: '10px 14px', fontSize: '0.78rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 10 }}
-                >
-                  <FiShield style={{ color: 'var(--forest)', fontSize: '1.05rem' }} />
-                  <div style={{ textAlign: 'left', flex: 1 }}>
-                    <strong>Host Operations Admin</strong>: Gonzalo Jouan (Team Hub)
-                  </div>
-                  <span style={{ color: 'var(--copper)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>Enter <FiArrowRight /></span>
-                </button>
-              </div>
-            </div>
 
           </div>
         </main>
@@ -1310,7 +1271,7 @@ export default function PortalPage() {
                         Reserve Owner Dates
                       </button>
                     </div>
-                    {ownerBlackouts.length > 0 && <div style={{ marginTop: 18, display: 'grid', gap: 8 }}>{ownerBlackouts.map((blackout) => <div key={blackout.id} style={{ padding: 10, border: '1px solid var(--line)', borderRadius: 5, fontSize: '.8rem' }}><strong>{ownerProperties.find((property) => property.id === blackout.propertyId)?.title || `Property #${blackout.propertyId}`}</strong> · {blackout.startDate} to {blackout.endDate}</div>)}</div>}
+                    {ownerBlackouts.length > 0 && <div style={{ marginTop: 18, display: 'grid', gap: 8 }}>{ownerBlackouts.map((blackout) => <div key={blackout.id} style={{ padding: 10, border: '1px solid var(--line)', borderRadius: 5, fontSize: '.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><span><strong>{ownerProperties.find((property) => property.id === blackout.propertyId)?.title || `Property #${blackout.propertyId}`}</strong> · {blackout.startDate} to {blackout.endDate}</span><button type="button" onClick={() => void handleDeleteBlackout(blackout.id)} style={{ border: '1px solid #dc2626', color: '#b91c1c', background: '#fff', borderRadius: 4, padding: '5px 9px', cursor: 'pointer' }}>Remove</button></div>)}</div>}
                   </div>
                 </div>
               )}

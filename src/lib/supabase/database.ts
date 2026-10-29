@@ -58,6 +58,7 @@ export async function dbFetchReservations(): Promise<{ data: Reservation[]; sour
       id: r.id,
       guest: r.guest_name,
       property: r.property_title,
+      propertyId: r.property_id ? Number(r.property_id) : undefined,
       dates: r.dates,
       status: r.status,
       total: r.total,
@@ -65,6 +66,7 @@ export async function dbFetchReservations(): Promise<{ data: Reservation[]; sour
       guestPhone: r.guest_phone,
       pinCode: r.pin_code,
       nights: r.nights,
+      guestCount: r.guest_count,
       createdAt: r.created_at,
     }));
 
@@ -197,6 +199,7 @@ export async function dbSubmitReview(review: {
   propertyId: number;
   author: string;
   email?: string;
+  stayDate?: string;
   rating: number;
   comment: string;
 }): Promise<{ success: boolean; error?: string; pendingModeration?: boolean }> {
@@ -207,7 +210,7 @@ export async function dbSubmitReview(review: {
       const stored = JSON.parse(localStorage.getItem(key) || '[]');
       stored.unshift({
         author: review.author,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        date: review.stayDate ? new Date(`${review.stayDate}T12:00:00`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         text: review.comment,
         rating: review.rating,
       });
@@ -271,7 +274,7 @@ export async function dbFetchOwnerDashboard(): Promise<OwnerDashboardData> {
     properties,
     approvals: (approvalResult.data || []).map((row: any) => ({ id: row.id, property: row.property_title, item: row.item, cost: row.cost, status: row.status })),
     blackouts: (blackoutResult.data || []).map((row: any) => ({ id: row.id, propertyId: Number(row.property_id), startDate: row.start_date, endDate: row.end_date, notes: row.notes })),
-    reservations: (reservationResult.data || []).map((row: any) => ({ id: row.id, guest: row.guest_name, property: row.property_title, dates: row.dates, status: row.status, total: row.total, guestEmail: row.guest_email, guestPhone: row.guest_phone, pinCode: row.pin_code, nights: row.nights, createdAt: row.created_at })),
+    reservations: (reservationResult.data || []).map((row: any) => ({ id: row.id, guest: row.guest_name, property: row.property_title, propertyId: row.property_id ? Number(row.property_id) : undefined, dates: row.dates, status: row.status, total: row.total, guestEmail: row.guest_email, guestPhone: row.guest_phone, pinCode: row.pin_code, nights: row.nights, guestCount: row.guest_count, createdAt: row.created_at })),
   };
 }
 
@@ -289,4 +292,11 @@ export async function dbCreateOwnerBlackout(propertyId: number, startDate: strin
   if (!user) return { success: false, error: 'Sign in to reserve owner dates.' };
   const { data, error } = await supabase.from('owner_blackouts').insert({ owner_id: user.id, property_id: propertyId, start_date: startDate, end_date: endDate }).select('*').single();
   return error ? { success: false, error: error.message } : { success: true, blackout: { id: data.id, propertyId: Number(data.property_id), startDate: data.start_date, endDate: data.end_date } as OwnerBlackout };
+}
+
+export async function dbDeleteOwnerBlackout(id: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return { success: false, error: 'Supabase is not configured.' };
+  const { error } = await supabase.from('owner_blackouts').delete().eq('id', id);
+  return error ? { success: false, error: error.message } : { success: true };
 }

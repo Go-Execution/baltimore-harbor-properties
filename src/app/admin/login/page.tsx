@@ -11,9 +11,12 @@ function AdminLoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(
-    searchParams.get('error') === 'admin_required' ? 'This account does not have administrator access.' : null,
-  );
+  const loginError = searchParams.get('error');
+  const [message, setMessage] = useState<string | null>(loginError === 'admin_required'
+    ? 'This account does not have administrator access.'
+    : loginError === 'callback_failed'
+      ? 'The secure sign-in link is invalid or expired. Please try again.'
+      : null);
 
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();

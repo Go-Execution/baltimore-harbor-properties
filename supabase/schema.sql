@@ -61,6 +61,7 @@ create table if not exists public.reservations (
   checkin_date date,
   checkout_date date,
   nights integer default 1,
+  guest_count integer not null default 1 check (guest_count between 1 and 32),
   total text not null,
   pin_code text not null default '4892#',
   status text not null default 'Confirmed' check (status in ('In-Stay', 'Arriving Today', 'Confirmed', 'Completed', 'Cancelled')),

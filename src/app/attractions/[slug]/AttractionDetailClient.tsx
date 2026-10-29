@@ -8,6 +8,19 @@ import Footer from '@/components/Footer';
 import QuickViewModal from '@/components/QuickViewModal';
 import { dbSaveReservation } from '@/lib/supabase/database';
 
+function dateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(value: string, days: number) {
+  const date = new Date(`${value}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return dateInputValue(date);
+}
+
 interface Props {
   attraction: BaltimoreAttraction;
   nearbyProperties: Property[];
@@ -57,7 +70,7 @@ export default function AttractionDetailClient({
   // Initialize dates
   useEffect(() => {
     const today = new Date();
-    const localToday = today.toISOString().split('T')[0];
+    const localToday = dateInputValue(today);
     setMinDate(localToday);
 
     const d1 = new Date(today);
@@ -65,8 +78,8 @@ export default function AttractionDetailClient({
     const d2 = new Date(today);
     d2.setDate(today.getDate() + 7);
 
-    setCheckin(d1.toISOString().split('T')[0]);
-    setCheckout(d2.toISOString().split('T')[0]);
+    setCheckin(dateInputValue(d1));
+    setCheckout(dateInputValue(d2));
   }, []);
 
   // Set default booking property
@@ -84,9 +97,10 @@ export default function AttractionDetailClient({
   const diffTime = Math.max(0, d2.getTime() - d1.getTime());
   const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
   const subtotal = pricePerNight * diffDays;
-  const cleaningFee = 120;
-  const taxes = Math.round(subtotal * 0.095);
+  const cleaningFee = currentProp?.cleaningFee || 0;
+  const taxes = Math.round((subtotal + cleaningFee) * (currentProp?.taxRate || 0) * 100) / 100;
   const total = subtotal + cleaningFee + taxes;
+  const minimumCheckout = checkin ? addDays(checkin, 3) : minDate;
 
   const handleOpenBooking = (prop: Property) => {
     setBookingProperty(prop);
@@ -98,6 +112,12 @@ export default function AttractionDetailClient({
     e.preventDefault();
     setIsProcessingPayment(true);
     setBookingError(null);
+
+    if (!currentProp || !checkin || !checkout || diffDays < 3) {
+      setBookingError('Select a property and a stay of at least 3 nights.');
+      setIsProcessingPayment(false);
+      return;
+    }
 
     // Save to store and Supabase so Admin and Portal see this immediately
     const result = await dbSaveReservation({
@@ -111,6 +131,7 @@ export default function AttractionDetailClient({
       guestPhone: guestPhone || '(410) 555-0199',
       pinCode: '',
       nights: diffDays,
+      guestCount: Number(guests),
       createdAt: new Date().toISOString(),
       propertyId: currentProp?.id,
       checkinDate: checkin,
@@ -127,6 +148,15 @@ export default function AttractionDetailClient({
     setAssignedPin(result.pinCode || 'Pending');
     setConfirmedReservation(result.reservationId || 'Pending');
     setCheckoutStep(4);
+  };
+
+  const handleContinueToReview = () => {
+    if (!guestName.trim() || !guestEmail.trim() || !guestPhone.trim()) {
+      setBookingError('Please complete the guest name, email, and phone number.');
+      return;
+    }
+    setBookingError(null);
+    setCheckoutStep(3);
   };
 
   return (
@@ -791,7 +821,11 @@ export default function AttractionDetailClient({
                       type="date"
                       min={minDate}
                       value={checkin}
-                      onChange={(e) => setCheckin(e.target.value)}
+                      onChange={(e) => {
+                        setCheckin(e.target.value);
+                        const minimum = addDays(e.target.value, 3);
+                        if (!checkout || checkout < minimum) setCheckout(minimum);
+                      }}
                       style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
                     />
                   </div>
@@ -801,9 +835,9 @@ export default function AttractionDetailClient({
                     </label>
                     <input
                       type="date"
-                      min={checkin || minDate}
+                      min={minimumCheckout}
                       value={checkout}
-                      onChange={(e) => setCheckout(e.target.value)}
+                      onChange={(e) => setCheckout(e.target.value < minimumCheckout ? minimumCheckout : e.target.value)}
                       style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}
                     />
                   </div>
@@ -841,9 +875,10 @@ export default function AttractionDetailClient({
                     <strong>${taxes.toFixed(2)}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.98rem', borderTop: '1px solid var(--line)', paddingTop: 10, color: 'var(--forest)' }}>
-                    <strong>Total Stay Amount</strong>
+                    <strong>Estimated Stay Total</strong>
                     <strong style={{ fontSize: '1.2rem', fontFamily: 'var(--serif)' }}>${total.toFixed(2)}</strong>
                   </div>
+                  <p style={{ margin: '8px 0 0', color: 'var(--ink-soft)', fontSize: '0.72rem' }}>No payment is collected with this request.</p>
                 </div>
 
                 <button
@@ -860,6 +895,7 @@ export default function AttractionDetailClient({
             {/* STEP 2: Guest Details */}
             {checkoutStep === 2 && (
               <div>
+                {bookingError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem', marginBottom: 12 }}>{bookingError}</div>}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>
@@ -946,7 +982,7 @@ export default function AttractionDetailClient({
                     type="button"
                     className="btn-book"
                     style={{ flex: 1, padding: '12px', fontSize: '0.85rem' }}
-                    onClick={() => setCheckoutStep(3)}
+                    onClick={handleContinueToReview}
                   >
                     Review Booking Request (${total.toFixed(2)}) →
                   </button>

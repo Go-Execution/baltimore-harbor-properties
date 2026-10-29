@@ -1,7 +1,7 @@
 import { randomInt } from 'crypto';
 import { NextRequest } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
-import { cleanText, jsonError, validEmail, validRequestOrigin } from '@/lib/forms/validation';
+import { cleanText, jsonError, validDateInput, validEmail, validRequestOrigin } from '@/lib/forms/validation';
 import { emailLayout, escapeHtml, getAdminNotificationEmail, queueEmail } from '@/lib/notifications/email';
 
 export async function POST(request: NextRequest) {
@@ -13,23 +13,27 @@ export async function POST(request: NextRequest) {
     const guestEmail = cleanText(body.guestEmail, 254).toLowerCase();
     const guestPhone = cleanText(body.guestPhone, 40);
     const propertyId = Number(body.propertyId);
+    const guestCount = Number(body.guestCount);
     const checkinDate = cleanText(body.checkinDate, 10);
     const checkoutDate = cleanText(body.checkoutDate, 10);
 
     if (guestName.length < 2) return jsonError('Please enter the guest name.');
     if (!validEmail(guestEmail)) return jsonError('Please enter a valid guest email.');
     if (!Number.isInteger(propertyId) || propertyId < 1) return jsonError('Please select a valid property.');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(checkinDate) || !/^\d{4}-\d{2}-\d{2}$/.test(checkoutDate)) return jsonError('Valid stay dates are required.');
+    if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 32) return jsonError('Please select a valid number of guests.');
+    if (!validDateInput(checkinDate) || !validDateInput(checkoutDate)) return jsonError('Valid stay dates are required.');
+    if (checkinDate < new Date().toISOString().slice(0, 10)) return jsonError('Check-in cannot be in the past.');
     const nights = Math.round((Date.parse(`${checkoutDate}T00:00:00Z`) - Date.parse(`${checkinDate}T00:00:00Z`)) / 86400000);
-    if (!Number.isInteger(nights) || nights < 1 || nights > 365) return jsonError('Invalid stay duration.');
+    if (!Number.isInteger(nights) || nights < 3 || nights > 365) return jsonError('Stays must be between 3 and 365 nights.');
 
     const supabase = createServiceSupabaseClient();
     const { data: property, error: propertyError } = await supabase
       .from('properties')
-      .select('id,title,price,cleaning_fee,tax_rate,status')
+      .select('id,title,price,cleaning_fee,tax_rate,status,guests')
       .eq('id', propertyId)
       .maybeSingle();
     if (propertyError || !property || property.status !== 'Active') return jsonError('This property is not currently available.', 409);
+    if (guestCount > Number(property.guests)) return jsonError(`This property accommodates up to ${property.guests} guests.`, 409);
     const subtotal = nights * Number(property.price);
     const cleaningFee = Number(property.cleaning_fee || 0);
     const totalValue = subtotal + cleaningFee + ((subtotal + cleaningFee) * Number(property.tax_rate || 0));
@@ -45,6 +49,7 @@ export async function POST(request: NextRequest) {
       id, guest_name: guestName, guest_email: guestEmail, guest_phone: guestPhone,
       property_id: propertyId, property_title: property.title, dates, checkin_date: checkinDate,
       checkout_date: checkoutDate, nights, total, pin_code: 'Pending approval', status: 'Pending',
+      guest_count: guestCount,
       stay_purpose: cleanText(body.stayPurpose, 80) || null,
       special_requests: cleanText(body.specialRequests, 2000) || null,
     });

@@ -11,6 +11,12 @@ export function validEmail(value: string) {
   return value.length <= 254 && emailPattern.test(value);
 }
 
+export function validDateInput(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
 export function cleanMetadata(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).slice(0, 20).map(([key, entry]) => [

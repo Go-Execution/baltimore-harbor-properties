@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
-import { cleanText, jsonError, validEmail, validRequestOrigin } from '@/lib/forms/validation';
+import { cleanText, jsonError, validDateInput, validEmail, validRequestOrigin } from '@/lib/forms/validation';
 import { emailLayout, escapeHtml, getAdminNotificationEmail, queueEmail } from '@/lib/notifications/email';
 
 export async function POST(request: NextRequest) {
@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const author = cleanText(body.author, 120);
     const email = cleanText(body.email, 254).toLowerCase();
     const comment = cleanText(body.comment, 2000);
+    const stayDate = cleanText(body.stayDate, 10);
     const rating = Number(body.rating);
 
     if (!Number.isInteger(propertyId) || propertyId < 1) return jsonError('Invalid property.');
@@ -19,15 +20,19 @@ export async function POST(request: NextRequest) {
     if (email && !validEmail(email)) return jsonError('Please enter a valid email address.');
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) return jsonError('Rating must be between 1 and 5.');
     if (comment.length < 10) return jsonError('Please write a more detailed review.');
+    if (stayDate && (!validDateInput(stayDate) || Date.parse(`${stayDate}T00:00:00Z`) > Date.now())) return jsonError('Please enter a valid past stay date.');
 
     const supabase = createServiceSupabaseClient();
+    const { data: property } = await supabase.from('properties').select('id').eq('id', propertyId).maybeSingle();
+    if (!property) return jsonError('Property not found.', 404);
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     let query = supabase.from('property_reviews').select('id', { count: 'exact', head: true }).eq('property_id', propertyId).gte('created_at', since);
     query = email ? query.eq('email', email) : query.eq('author', author);
     const { count } = await query;
     if ((count || 0) >= 2) return jsonError('You have already submitted a recent review.', 429);
 
-    const { error } = await supabase.from('property_reviews').insert({ property_id: propertyId, author, email: email || null, rating, comment, is_approved: false });
+    const reviewDate = stayDate ? new Date(`${stayDate}T12:00:00`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : undefined;
+    const { error } = await supabase.from('property_reviews').insert({ property_id: propertyId, author, email: email || null, rating, comment, ...(reviewDate ? { date: reviewDate } : {}), is_approved: false });
     if (error) throw error;
     const jobs = [] as Array<ReturnType<typeof queueEmail>>;
     if (email) jobs.push(queueEmail({

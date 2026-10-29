@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
     if (message.length < 10) return jsonError('Please provide a little more detail.');
 
     const supabase = createServiceSupabaseClient();
+    if (propertyId !== null) {
+      const { data: property } = await supabase.from('properties').select('id').eq('id', propertyId).eq('status', 'Active').maybeSingle();
+      if (!property) return jsonError('The selected property is not currently available.', 409);
+    }
     const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const { count } = await supabase.from('property_inquiries').select('id', { count: 'exact', head: true }).eq('email', email).gte('created_at', since);
     if ((count || 0) >= 3) return jsonError('Too many recent submissions. Please wait a few minutes.', 429);

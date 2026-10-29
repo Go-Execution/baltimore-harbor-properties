@@ -49,7 +49,7 @@ export interface MaintenanceTicket {
   id: string;
   title: string;
   category: string;
-  status: 'Dispatched' | 'Resolved' | 'Under Review';
+  status: 'Dispatched' | 'Resolved' | 'Under Review' | 'In Progress';
   date: string;
   urgency: 'Normal' | 'Urgent' | 'Emergency';
   description?: string;
@@ -68,6 +68,7 @@ export interface Reservation {
   id: string;
   guest: string;
   property: string;
+  propertyId?: number;
   dates: string;
   status: 'Pending' | 'In-Stay' | 'Arriving Today' | 'Confirmed' | 'Completed' | 'Cancelled';
   total: string;
@@ -75,5 +76,6 @@ export interface Reservation {
   guestPhone?: string;
   pinCode?: string;
   nights?: number;
+  guestCount?: number;
   createdAt?: string;
 }

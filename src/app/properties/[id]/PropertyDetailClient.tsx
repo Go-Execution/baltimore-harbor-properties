@@ -7,6 +7,19 @@ import Footer from '@/components/Footer';
 import { dbFetchApprovedReviews, dbSaveReservation, dbSubmitInquiry, dbSubmitReview } from '@/lib/supabase/database';
 import { usePropertyStore } from '@/utils/usePropertyStore';
 
+function dateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(value: string, days: number) {
+  const date = new Date(`${value}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return dateInputValue(date);
+}
+
 export default function PropertyDetailClient({
   property: initialProperty,
   propertyId,
@@ -21,7 +34,7 @@ export default function PropertyDetailClient({
   const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmedReservation, setConfirmedReservation] = useState<string | null>(null);
   const [assignedPin, setAssignedPin] = useState('Issued after approval');
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
   // Reviews state & modal
@@ -56,7 +69,7 @@ export default function PropertyDetailClient({
   const [stayPurpose, setStayPurpose] = useState('medical');
   const [specialRequests, setSpecialRequests] = useState('');
 
-  // Payment inputs
+  // Only the no-payment booking-request path is exposed until a payment provider is connected.
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'applepay' | 'invoice'>('invoice');
   const [cardName, setCardName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
@@ -66,7 +79,7 @@ export default function PropertyDetailClient({
 
   useEffect(() => {
     const today = new Date();
-    const localToday = today.toISOString().split('T')[0];
+    const localToday = dateInputValue(today);
     setMinDate(localToday);
 
     const d1 = new Date(today);
@@ -74,8 +87,8 @@ export default function PropertyDetailClient({
     const d2 = new Date(today);
     d2.setDate(today.getDate() + 6);
 
-    setCheckin(d1.toISOString().split('T')[0]);
-    setCheckout(d2.toISOString().split('T')[0]);
+    setCheckin(dateInputValue(d1));
+    setCheckout(dateInputValue(d2));
   }, []);
 
   useEffect(() => {
@@ -90,14 +103,13 @@ export default function PropertyDetailClient({
 
   const handleCheckinChange = (val: string) => {
     setCheckin(val);
-    const d1 = new Date(val);
-    const minOut = new Date(d1);
-    minOut.setDate(d1.getDate() + 3); // 3 nights min
-    const minOutIso = minOut.toISOString().split('T')[0];
-    if (checkout && checkout <= val) {
+    const minOutIso = addDays(val, 3);
+    if (!checkout || checkout < minOutIso) {
       setCheckout(minOutIso);
     }
   };
+
+  const minimumCheckout = checkin ? addDays(checkin, 3) : minDate;
 
   // Calculations
   const diffDays = (() => {
@@ -119,10 +131,16 @@ export default function PropertyDetailClient({
     setReserveModalOpen(true);
   };
 
-  const handleProcessPayment = async (e: React.FormEvent) => {
+  const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessingPayment(true);
+    setIsSubmittingBooking(true);
     setBookingError(null);
+
+    if (!checkin || !checkout || diffDays < 3) {
+      setBookingError('Please select a stay of at least 3 nights.');
+      setIsSubmittingBooking(false);
+      return;
+    }
 
     // Save to shared property & reservations store and Supabase
     const result = await dbSaveReservation({
@@ -136,6 +154,7 @@ export default function PropertyDetailClient({
       guestPhone: guestPhone || '(410) 555-0199',
       pinCode: '',
       nights: diffDays,
+      guestCount: Number(guests),
       createdAt: new Date().toISOString(),
       propertyId: property.id,
       checkinDate: checkin,
@@ -144,7 +163,7 @@ export default function PropertyDetailClient({
       specialRequests,
     });
 
-    setIsProcessingPayment(false);
+    setIsSubmittingBooking(false);
     if (!result.success) {
       setBookingError(result.error || 'Your booking request could not be saved.');
       return;
@@ -158,18 +177,12 @@ export default function PropertyDetailClient({
     e.preventDefault();
     if (!revName || !revComment) return;
 
-    const newRev = {
-      author: revName,
-      date: revStayDate || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      text: revComment,
-      rating: revScore,
-    };
-
     setReviewError(null);
     const result = await dbSubmitReview({
       propertyId: property.id,
       author: revName,
       email: revEmail,
+      stayDate: revStayDate,
       rating: revScore,
       comment: revComment,
     });
@@ -178,7 +191,6 @@ export default function PropertyDetailClient({
       setReviewError(result.error || 'Your review could not be submitted.');
       return;
     }
-    setReviewsList((prev) => [newRev, ...prev]);
     setReviewSuccess(true);
 
     setTimeout(() => {
@@ -389,12 +401,12 @@ export default function PropertyDetailClient({
               </div>
             </div>
 
-            {/* Baltimore Icons & Cultural Proximity (SOW §3 & §9) */}
+            {/* Baltimore Icons & Cultural Proximity */}
             <div className="detail-section">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
                 <div>
                   <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>
-                    SOW §3 & §9 · Location & Attractions
+                    Location & Attractions
                   </span>
                   <h2>Baltimore Landmarks & Local Proximity</h2>
                   <p style={{ margin: '4px 0 20px', fontSize: '0.85rem', color: 'var(--ink-soft)' }}>
@@ -617,9 +629,9 @@ export default function PropertyDetailClient({
                     <input
                       type="date"
                       id="calc-checkout"
-                      min={checkin || minDate}
+                      min={minimumCheckout}
                       value={checkout}
-                      onChange={(e) => setCheckout(e.target.value)}
+                      onChange={(e) => setCheckout(e.target.value < minimumCheckout ? minimumCheckout : e.target.value)}
                       required
                     />
                   </div>
@@ -655,7 +667,7 @@ export default function PropertyDetailClient({
                     <span>${taxes.toFixed(2)}</span>
                   </div>
                   <div className="breakdown-row total-row">
-                    <span>Total Due</span>
+                    <span>Estimated Total</span>
                     <strong>${total.toFixed(2)}</strong>
                   </div>
                 </div>
@@ -664,7 +676,7 @@ export default function PropertyDetailClient({
                   Reserve This Residence <span>↗</span>
                 </button>
                 <div className="widget-guarantee">
-                  🔒 Direct Booking Guaranteed · No Platform Markups
+                  ✓ Booking request only · No payment collected now
                 </div>
               </form>
 
@@ -718,7 +730,7 @@ export default function PropertyDetailClient({
         </div>
       )}
 
-      {/* SOW §4: Comprehensive 4-Step Booking & Payment Checkout Modal */}
+      {/* Three-step booking request modal */}
       {reserveModalOpen && (
         <div className="modal-backdrop is-open" onClick={() => setReserveModalOpen(false)}>
           <div
@@ -862,14 +874,11 @@ export default function PropertyDetailClient({
                       <span>Maryland Lodging & Tourism Tax (9.5%)</span>
                       <span>${taxes.toFixed(2)}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#166534', fontSize: '0.74rem' }}>
-                      <span>Refundable Security Deposit (Hold only)</span>
-                      <span>$250.00</span>
-                    </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 10, borderTop: '1px solid var(--line)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--forest)' }}>
-                      <span>Total Due Now</span>
+                      <span>Estimated Stay Total</span>
                       <span>${total.toFixed(2)} USD</span>
                     </div>
+                    <p style={{ margin: '8px 0 0', color: 'var(--ink-soft)', fontSize: '0.72rem' }}>No payment is collected with this request.</p>
                   </div>
                 </div>
 
@@ -1094,7 +1103,7 @@ export default function PropertyDetailClient({
                   </button>
                 </div>
 
-                <form onSubmit={handleProcessPayment} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <form onSubmit={handleSubmitBooking} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {bookingError && <div role="alert" style={{ color: '#b42318', background: '#fef3f2', border: '1px solid #fecdca', padding: 10, borderRadius: 6, fontSize: '.78rem' }}>{bookingError}</div>}
                   {paymentMethod === 'card' && (
                     <>
@@ -1190,7 +1199,7 @@ export default function PropertyDetailClient({
                       </p>
                       <button
                         type="submit"
-                        disabled={isProcessingPayment}
+                        disabled={isSubmittingBooking}
                         style={{
                           background: '#000',
                           color: '#fff',
@@ -1247,7 +1256,7 @@ export default function PropertyDetailClient({
                     </button>
                     <button
                       type="submit"
-                      disabled={isProcessingPayment}
+                      disabled={isSubmittingBooking}
                       style={{
                         padding: '14px 28px',
                         background: 'var(--copper)',
@@ -1262,7 +1271,7 @@ export default function PropertyDetailClient({
                         gap: 8,
                       }}
                     >
-                      {isProcessingPayment ? (
+                      {isSubmittingBooking ? (
                         <>
                           <span style={{ animation: 'spin 1s linear infinite' }}>⏳</span> Submitting Request...
                         </>
@@ -1406,8 +1415,9 @@ export default function PropertyDetailClient({
               <div style={{ background: '#eef6f2', border: '1px solid #c2e2d0', borderRadius: 6, padding: '24px', textAlign: 'center' }}>
                 <div style={{ fontSize: '1.6rem', color: '#107e4d', marginBottom: 8 }}>✓</div>
                 <strong style={{ display: 'block', fontSize: '1.05rem', color: '#107e4d' }}>
-                  Thank You for Your Review!
+                  Review submitted for approval
                 </strong>
+                <p style={{ margin: '8px 0 0', color: 'var(--ink-soft)', fontSize: '.8rem' }}>It will appear publicly after the Baltimore Harbor team approves it.</p>
                 <p style={{ fontSize: '0.84rem', color: '#2f5b44', margin: '4px 0 0' }}>
                   Your review was received and is awaiting moderation.
                 </p>
@@ -1445,6 +1455,7 @@ export default function PropertyDetailClient({
                     <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 600 }}>Stay Date</label>
                     <input
                       type="date"
+                      max={minDate}
                       value={revStayDate}
                       onChange={(e) => setRevStayDate(e.target.value)}
                       style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.85rem' }}

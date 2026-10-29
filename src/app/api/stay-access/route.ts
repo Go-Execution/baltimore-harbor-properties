@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { cleanText, jsonError, validRequestOrigin } from '@/lib/forms/validation';
+import { recordStayAccessResult, stayAccessAllowed, stayAccessKey } from '@/lib/stayAccessRateLimit';
 
 export async function POST(request: NextRequest) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
@@ -13,17 +14,25 @@ export async function POST(request: NextRequest) {
       return jsonError('Reservation reference or door PIN is incorrect.', 401);
     }
 
+    const accessKey = stayAccessKey(request, reservationId);
+    if (!(await stayAccessAllowed(accessKey))) {
+      return Response.json({ success: false, error: 'Too many attempts. Please wait 15 minutes before trying again.' }, { status: 429, headers: { 'Retry-After': '900' } });
+    }
+
     const supabase = createServiceSupabaseClient();
     const { data, error } = await supabase
       .from('reservations')
-      .select('id, guest_name, guest_email, property_title, dates, status, pin_code, nights')
+      .select('id, guest_name, guest_email, property_id, property_title, dates, status, pin_code, nights, guest_count')
       .eq('id', reservationId)
       .eq('pin_code', pinCode)
       .maybeSingle();
 
     if (error || !data || data.status === 'Cancelled' || data.status === 'Pending') {
+      await recordStayAccessResult(accessKey, false);
       return jsonError('Reservation reference or door PIN is incorrect.', 401);
     }
+
+    await recordStayAccessResult(accessKey, true);
 
     return Response.json({
       success: true,
@@ -32,10 +41,12 @@ export async function POST(request: NextRequest) {
         guest: data.guest_name,
         guestEmail: data.guest_email,
         property: data.property_title,
+        propertyId: data.property_id,
         dates: data.dates,
         status: data.status,
         pinCode: data.pin_code,
         nights: data.nights,
+        guestCount: data.guest_count,
       },
     });
   } catch (error) {

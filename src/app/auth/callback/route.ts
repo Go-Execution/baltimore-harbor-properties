@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
       },
     });
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return NextResponse.redirect(new URL('/admin/login?error=callback_failed', requestUrl.origin));
+    if (error) {
+      const errorPath = next.startsWith('/admin') ? '/admin/login?error=callback_failed' : '/portal?auth_error=callback_failed';
+      return NextResponse.redirect(new URL(errorPath, requestUrl.origin));
+    }
   }
 
   return response;
