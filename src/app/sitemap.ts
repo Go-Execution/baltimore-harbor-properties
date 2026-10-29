@@ -1,9 +1,10 @@
 import { MetadataRoute } from 'next';
 import { PROPERTIES } from '@/data/properties';
 import { ATTRACTIONS } from '@/data/attractions';
+import { SITE_URL } from '@/lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://baltimore-harbor-properties.vercel.app';
+  const baseUrl = SITE_URL;
 
   const propertyUrls = PROPERTIES.map((prop) => ({
     url: `${baseUrl}/properties/${prop.id}`,

@@ -73,6 +73,7 @@ create table if not exists public.reservations (
 create table if not exists public.maintenance_tickets (
   id text primary key, -- e.g. TKT-104
   user_id uuid references public.profiles(id) on delete set null,
+  reservation_id text references public.reservations(id) on delete set null,
   property_id bigint references public.properties(id) on delete set null,
   property_title text,
   title text not null,
@@ -95,6 +96,25 @@ create table if not exists public.owner_approvals (
   cost text not null,
   status text not null default 'Pending' check (status in ('Pending', 'Approved', 'Declined')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 5B. PRIVATE PROPERTY-OWNER ASSIGNMENTS
+create table if not exists public.property_owners (
+  property_id bigint primary key references public.properties(id) on delete cascade,
+  owner_id uuid not null references public.profiles(id) on delete cascade,
+  assigned_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 5C. OWNER BLACKOUT DATES
+create table if not exists public.owner_blackouts (
+  id uuid default uuid_generate_v4() primary key,
+  owner_id uuid not null references public.profiles(id) on delete cascade,
+  property_id bigint not null references public.properties(id) on delete cascade,
+  start_date date not null,
+  end_date date not null,
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  constraint owner_blackout_dates_valid check (end_date > start_date)
 );
 
 -- 6. CONTACT INQUIRIES
@@ -132,6 +152,8 @@ alter table public.properties enable row level security;
 alter table public.reservations enable row level security;
 alter table public.maintenance_tickets enable row level security;
 alter table public.owner_approvals enable row level security;
+alter table public.property_owners enable row level security;
+alter table public.owner_blackouts enable row level security;
 alter table public.property_inquiries enable row level security;
 alter table public.property_reviews enable row level security;
 
@@ -151,16 +173,13 @@ create policy "Admins can manage properties" on public.properties
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
--- Reservations: Guests view their own, Admins view all, Anyone can create (book)
+-- Reservations: guests view their own; validated server routes create bookings.
 create policy "Guests can view own reservations" on public.reservations
   for select using (
     auth.uid() = user_id or
     guest_email = (select email from public.profiles where id = auth.uid()) or
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
-
-create policy "Anyone can insert reservation" on public.reservations
-  for insert with check (true);
 
 create policy "Admins can update reservations" on public.reservations
   for update using (
@@ -174,8 +193,8 @@ create policy "Guests can view their own tickets" on public.maintenance_tickets
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
-create policy "Anyone authenticated can create ticket" on public.maintenance_tickets
-  for insert with check (true);
+create policy "Authenticated guests can create own tickets" on public.maintenance_tickets
+  for insert to authenticated with check (auth.uid() = user_id);
 
 create policy "Admins can manage tickets" on public.maintenance_tickets
   for all using (
@@ -186,13 +205,51 @@ create policy "Admins can manage tickets" on public.maintenance_tickets
 create policy "Owners can view own approvals" on public.owner_approvals
   for select using (
     auth.uid() = owner_id or
-    exists (select 1 from public.profiles where id = auth.uid() and role in ('admin', 'owner'))
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create policy "Owners can view assigned reservations" on public.reservations
+  for select using (
+    exists (
+      select 1 from public.property_owners
+      where property_owners.property_id = reservations.property_id
+        and property_owners.owner_id = auth.uid()
+    )
   );
 
 create policy "Owners can update approval status" on public.owner_approvals
   for update using (
-    auth.uid() = owner_id or
-    exists (select 1 from public.profiles where id = auth.uid() and role in ('admin', 'owner'))
+    auth.uid() = owner_id or exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  ) with check (
+    auth.uid() = owner_id or exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create policy "Owners can view own assignments" on public.property_owners
+  for select using (
+    auth.uid() = owner_id or exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create policy "Admins can manage owner assignments" on public.property_owners
+  for all using (exists (select 1 from public.profiles where id = auth.uid() and role = 'admin'))
+  with check (exists (select 1 from public.profiles where id = auth.uid() and role = 'admin'));
+
+create policy "Owners can view own blackouts" on public.owner_blackouts
+  for select using (
+    auth.uid() = owner_id or exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create policy "Owners can create own blackouts" on public.owner_blackouts
+  for insert with check (
+    auth.uid() = owner_id and exists (
+      select 1 from public.property_owners
+      where property_owners.property_id = owner_blackouts.property_id
+        and property_owners.owner_id = auth.uid()
+    )
+  );
+
+create policy "Owners can delete own blackouts" on public.owner_blackouts
+  for delete using (
+    auth.uid() = owner_id or exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
 -- Reviews: Anyone can view approved reviews, Anyone can insert a review

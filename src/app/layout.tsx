@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Header from '@/components/Header';
+import { SITE_URL } from '@/lib/site';
 
 export const viewport: Viewport = {
   themeColor: '#17231f',
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://baltimore-harbor-properties.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Baltimore Harbor Properties — Furnished Executive Stays Baltimore',
     template: '%s | Baltimore Harbor Properties',
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Baltimore Harbor Properties — Furnished Stays Baltimore',
     description: 'Considered homes for business trips, medical rotations, relocations, and weekends by the water in Baltimore.',
-    url: 'https://baltimore-harbor-properties.vercel.app',
+    url: SITE_URL,
     siteName: 'Baltimore Harbor Properties',
     images: [
       {
@@ -50,7 +51,7 @@ export default function RootLayout({
     '@type': 'LodgingBusiness',
     name: 'Baltimore Harbor Properties',
     image: '/assets/media/chase/bg--ce32e9ca5d88.webp',
-    url: 'https://baltimore-harbor-properties.vercel.app/',
+    url: `${SITE_URL}/`,
     telephone: '+1-410-218-8462',
     email: 'gonzalojouan@hotmail.com',
     priceRange: '$$',

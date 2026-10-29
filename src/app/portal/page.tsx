@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MaintenanceTicket, OwnerApproval, Reservation } from '@/types';
+import { MaintenanceTicket, OwnerApproval, Property, Reservation } from '@/types';
 import AdminPropertyManager from '@/components/AdminPropertyManager';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { supabaseSignIn, supabaseSignUp, supabaseSignOut, supabaseGetCurrentUser, UserProfile } from '@/lib/supabase/auth';
-import { dbFetchReservations, dbCreateTicket, dbFetchTickets, dbVerifyStayAccess } from '@/lib/supabase/database';
+import { dbCreateOwnerBlackout, dbCreateTicket, dbFetchOwnerDashboard, dbFetchReservations, dbFetchTickets, dbUpdateOwnerApproval, dbVerifyStayAccess, OwnerBlackout } from '@/lib/supabase/database';
 import { getStoredReservations } from '@/utils/propertyStore';
 import {
   FiKey,
@@ -22,7 +22,6 @@ import {
   FiCheck,
   FiPhone,
   FiMail,
-  FiWifi,
   FiHome,
   FiAlertCircle,
   FiTool,
@@ -66,10 +65,8 @@ export default function PortalPage() {
   const [isCloudLive, setIsCloudLive] = useState<boolean>(false);
 
   // Guest State
-  const [guestTickets, setGuestTickets] = useState<MaintenanceTicket[]>([
-    { id: 'TKT-104', title: 'HVAC Filter & Thermostat Calibration', category: 'HVAC', status: 'Dispatched', date: 'Oct 13, 2026', urgency: 'Normal', room: 'Living Area' },
-    { id: 'TKT-089', title: 'Additional Down Pillows Request', category: 'Housekeeping', status: 'Resolved', date: 'Oct 12, 2026', urgency: 'Normal', room: 'Master Bedroom' }
-  ]);
+  const [guestTickets, setGuestTickets] = useState<MaintenanceTicket[]>([]);
+  const [stayCredential, setStayCredential] = useState<{ reservationId: string; pinCode: string } | null>(null);
   const [ticketTitle, setTicketTitle] = useState('');
   const [ticketCategory, setTicketCategory] = useState('HVAC');
   const [ticketUrgency, setTicketUrgency] = useState<'Normal' | 'Urgent' | 'Emergency'>('Normal');
@@ -77,10 +74,11 @@ export default function PortalPage() {
   const [ticketDesc, setTicketDesc] = useState('');
 
   // Owner State
-  const [ownerApprovals, setOwnerApprovals] = useState<OwnerApproval[]>([
-    { id: 'APP-201', property: '3037 Hudson St', item: 'Winter Furnace Inspection & Filter Replacement', cost: '$180.00', status: 'Pending' },
-    { id: 'APP-198', property: '2904 O\'Donnell St', item: 'Balcony Deck Sealant & Power Wash', cost: '$240.00', status: 'Approved' }
-  ]);
+  const [ownerApprovals, setOwnerApprovals] = useState<OwnerApproval[]>([]);
+  const [ownerProperties, setOwnerProperties] = useState<Property[]>([]);
+  const [ownerBlackouts, setOwnerBlackouts] = useState<OwnerBlackout[]>([]);
+  const [ownerReservations, setOwnerReservations] = useState<Reservation[]>([]);
+  const [blackoutPropertyId, setBlackoutPropertyId] = useState('');
   const [blackoutStart, setBlackoutStart] = useState('');
   const [blackoutEnd, setBlackoutEnd] = useState('');
 
@@ -99,6 +97,9 @@ export default function PortalPage() {
           setCurrentUser(user);
           setCurrentRole(user.role);
           setIsAuthenticated(true);
+          await loadReservations();
+          setGuestTickets(await dbFetchTickets());
+          if (user.role === 'owner' || user.role === 'admin') await loadOwnerDashboard();
         }
       } else {
         try {
@@ -114,30 +115,35 @@ export default function PortalPage() {
         } catch (e) {}
       }
 
-      // Load cached tickets & approvals
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.guestTickets) setGuestTickets(parsed.guestTickets);
-          if (parsed.ownerApprovals) setOwnerApprovals(parsed.ownerApprovals);
-        }
-      } catch (e) {}
+      if (!isSupabaseConfigured()) {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.guestTickets) setGuestTickets(parsed.guestTickets);
+            if (parsed.ownerApprovals) setOwnerApprovals(parsed.ownerApprovals);
+          }
+        } catch (e) {}
+      }
 
-      // Load reservations from Supabase / LocalStore
-      loadReservations();
+      if (!isSupabaseConfigured()) loadReservations();
     }
 
     initSession();
   }, []);
 
   const loadReservations = async () => {
-    const { data } = await dbFetchReservations();
-    if (data && data.length > 0) {
-      setAdminReservations(data);
-    } else {
-      setAdminReservations(getStoredReservations());
-    }
+    const { data, source } = await dbFetchReservations();
+    setAdminReservations(source === 'supabase' ? data : (data.length ? data : getStoredReservations()));
+  };
+
+  const loadOwnerDashboard = async () => {
+    const data = await dbFetchOwnerDashboard();
+    setOwnerProperties(data.properties);
+    setOwnerApprovals(data.approvals);
+    setOwnerBlackouts(data.blackouts);
+    setOwnerReservations(data.reservations.filter((reservation) => data.properties.some((property) => property.title === reservation.property)));
+    if (data.properties[0]) setBlackoutPropertyId(String(data.properties[0].id));
   };
 
   const showToast = (msg: string) => {
@@ -184,6 +190,9 @@ export default function PortalPage() {
     setCurrentRole(user.role);
     setIsAuthenticated(true);
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    await loadReservations();
+    setGuestTickets(await dbFetchTickets());
+    if (user.role === 'owner' || user.role === 'admin') await loadOwnerDashboard();
     showToast(`Welcome back, ${user.full_name || user.email}!`);
   };
 
@@ -201,6 +210,12 @@ export default function PortalPage() {
       return;
     }
 
+    if (!res.data?.session) {
+      setAuthTab('signin');
+      setAuthError('Account created. Check your email to confirm the account, then sign in.');
+      return;
+    }
+
     const user: UserProfile = {
       id: res.data?.user?.id || 'demo-user-signup',
       email: signupEmail,
@@ -212,6 +227,7 @@ export default function PortalPage() {
     setCurrentRole('guest');
     setIsAuthenticated(true);
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    await loadReservations();
     showToast(`Account created! Welcome to Baltimore Harbor Portals.`);
   };
 
@@ -246,6 +262,9 @@ export default function PortalPage() {
     setCurrentUser(user);
     setCurrentRole('guest');
     setIsAuthenticated(true);
+    setStayCredential({ reservationId: cleanCode, pinCode: cleanPin });
+    setAdminReservations([matchedRes]);
+    setGuestTickets(await dbFetchTickets({ reservationId: cleanCode, pinCode: cleanPin }));
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     showToast(`Welcome! Stay dashboard unlocked for ${cleanCode}`);
   };
@@ -260,6 +279,9 @@ export default function PortalPage() {
     await supabaseSignOut();
     setIsAuthenticated(false);
     setCurrentUser(null);
+    setStayCredential(null);
+    setGuestTickets([]);
+    setAdminReservations([]);
     localStorage.removeItem(AUTH_KEY);
     showToast('Signed out of Baltimore Harbor Portals.');
   };
@@ -272,54 +294,52 @@ export default function PortalPage() {
       return;
     }
 
-    const newId = 'TKT-' + Math.floor(100 + Math.random() * 900);
     const newTicket: MaintenanceTicket = {
-      id: newId,
+      id: '',
       title: ticketTitle,
       category: ticketCategory,
       urgency: ticketUrgency,
-      status: 'Dispatched',
+      status: 'Under Review',
       date: 'Today, Just now',
       description: ticketDesc,
       room: ticketRoom || 'General'
     };
 
-    const updated = [newTicket, ...guestTickets];
-    setGuestTickets(updated);
-
-    // Save to Supabase (and local storage fallback)
-    await dbCreateTicket(newTicket);
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        currentRole,
-        guestTickets: updated,
-        ownerApprovals
-      }));
-    } catch (e) {}
+    const result = await dbCreateTicket(newTicket, stayCredential || {});
+    if (!result.success || !result.ticket) {
+      showToast(result.error || 'Maintenance request could not be submitted.');
+      return;
+    }
+    setGuestTickets((current) => [result.ticket!, ...current]);
 
     setTicketTitle('');
     setTicketRoom('');
     setTicketDesc('');
-    showToast(`Work order ${newId} dispatched to Baltimore Harbor Concierge & Supabase!`);
+    showToast(`Work order ${result.ticket.id} submitted to Baltimore Harbor Concierge.`);
   };
 
   // Owner Approve / Decline
-  const handleApprovalAction = (index: number, newStatus: 'Approved' | 'Declined') => {
-    const updated = [...ownerApprovals];
-    updated[index].status = newStatus;
-    setOwnerApprovals(updated);
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        currentRole,
-        guestTickets,
-        ownerApprovals: updated
-      }));
-    } catch (e) {}
-
-    showToast(`Work order ${updated[index].id} marked as ${newStatus}.`);
+  const handleApprovalAction = async (index: number, newStatus: 'Approved' | 'Declined') => {
+    const target = ownerApprovals[index];
+    const result = await dbUpdateOwnerApproval(target.id, newStatus);
+    if (!result.success) return showToast(result.error || 'Approval could not be updated.');
+    setOwnerApprovals((current) => current.map((item) => item.id === target.id ? { ...item, status: newStatus } : item));
+    showToast(`Work order ${target.id} marked as ${newStatus}.`);
   };
+
+  const handleCreateBlackout = async () => {
+    if (!blackoutPropertyId || !blackoutStart || !blackoutEnd) return showToast('Select a property and both dates.');
+    const result = await dbCreateOwnerBlackout(Number(blackoutPropertyId), blackoutStart, blackoutEnd);
+    if (!result.success || !result.blackout) return showToast(result.error || 'Owner dates could not be reserved.');
+    setOwnerBlackouts((current) => [result.blackout!, ...current]);
+    setBlackoutStart('');
+    setBlackoutEnd('');
+    showToast('Owner dates saved to the live portfolio calendar.');
+  };
+
+  const activeReservation = adminReservations.find((reservation) => ['Confirmed', 'Arriving Today', 'In-Stay'].includes(reservation.status));
+  const ownerAverageRate = ownerProperties.length ? ownerProperties.reduce((sum, property) => sum + property.price, 0) / ownerProperties.length : 0;
+  const ownerActiveBookings = ownerReservations.filter((reservation) => ['Confirmed', 'Arriving Today', 'In-Stay'].includes(reservation.status)).length;
 
   return (
     <div className="portal-wrapper">
@@ -949,19 +969,11 @@ export default function PortalPage() {
                 <ul className="stay-meta-list">
                   <li>
                     <span className="label"><FiHome style={{ color: 'var(--forest)' }} /> Current Stay</span>
-                    <span className="value">Canton Townhouse</span>
+                    <span className="value">{activeReservation?.property || 'No active stay'}</span>
                   </li>
                   <li>
                     <span className="label"><FiKey style={{ color: 'var(--copper)' }} /> Front Door PIN</span>
-                    <span className="value" style={{ color: 'var(--copper)', fontWeight: 700 }}>4892#</span>
-                  </li>
-                  <li>
-                    <span className="label"><FiWifi style={{ color: 'var(--forest)' }} /> WiFi Network</span>
-                    <span className="value">BHP-HighSpeed</span>
-                  </li>
-                  <li>
-                    <span className="label"><FiLock style={{ color: 'var(--forest)' }} /> WiFi Password</span>
-                    <span className="value">waterfront2026</span>
+                    <span className="value" style={{ color: 'var(--copper)', fontWeight: 700 }}>{activeReservation?.pinCode && activeReservation.pinCode !== 'Pending approval' ? activeReservation.pinCode : 'Not issued'}</span>
                   </li>
                 </ul>
               </div>
@@ -1008,28 +1020,20 @@ export default function PortalPage() {
                       <span className="eyebrow">
                         Welcome to Baltimore
                       </span>
-                      <h2>Your Stay at The Townhouse at Hudson Street</h2>
-                      <p>3037 Hudson Street, Canton · Active Stay through Oct 28, 2026</p>
+                      <h2>{activeReservation ? `Your Stay at ${activeReservation.property}` : 'No active stay yet'}</h2>
+                      <p>{activeReservation ? `${activeReservation.dates} · ${activeReservation.status}` : 'Confirmed reservations linked to your email will appear here.'}</p>
                     </div>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                      <button
+                      {activeReservation?.pinCode && activeReservation.pinCode !== 'Pending approval' && <button
                         type="button"
                         className="btn-book"
                         style={{ background: 'var(--sand)', color: 'var(--forest)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        onClick={() => handleCopy('4892#')}
+                        onClick={() => handleCopy(activeReservation.pinCode || '')}
                       >
                         <FiKey />
-                        <span>Copy Door PIN (4892#)</span>
+                        <span>Copy Door PIN ({activeReservation.pinCode})</span>
                       </button>
-                      <button
-                        type="button"
-                        className="btn-outline"
-                        style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        onClick={() => handleCopy('waterfront2026')}
-                      >
-                        <FiWifi />
-                        <span>Copy WiFi Password</span>
-                      </button>
+                      }
                     </div>
                   </div>
 
@@ -1125,8 +1129,8 @@ export default function PortalPage() {
                       </div>
 
                       <div style={{ gridColumn: 'span 2' }}>
-                        <button type="submit" className="btn-book" style={{ padding: '10px 24px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                          <span>Dispatch Work Order to Supabase</span>
+                        <button type="submit" disabled={!activeReservation} className="btn-book" style={{ padding: '10px 24px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 8, opacity: activeReservation ? 1 : .55 }}>
+                          <span>{activeReservation ? 'Submit Work Order' : 'Confirmed Stay Required'}</span>
                           <FiArrowRight />
                         </button>
                       </div>
@@ -1151,6 +1155,7 @@ export default function PortalPage() {
                           </tr>
                         </thead>
                         <tbody>
+                          {guestTickets.length === 0 && <tr><td colSpan={6} style={{ padding: 18, textAlign: 'center', color: 'var(--ink-soft)' }}>No maintenance requests for this stay.</td></tr>}
                           {guestTickets.map((t) => (
                             <tr key={t.id} style={{ borderBottom: '1px solid var(--line)' }}>
                               <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{t.id}</td>
@@ -1186,27 +1191,27 @@ export default function PortalPage() {
                       <span className="eyebrow">
                         Property Investor Overview
                       </span>
-                      <h2>Eleanor Vance Portfolio Dashboard</h2>
-                      <p>Managing 2 Executive Residences in Canton & Mount Vernon · Baltimore, MD</p>
+                      <h2>{currentUser?.full_name || 'Owner'} Portfolio Dashboard</h2>
+                      <p>{ownerProperties.length ? `Managing ${ownerProperties.length} assigned residence${ownerProperties.length === 1 ? '' : 's'} in Baltimore` : 'No properties have been assigned yet. Contact the administrator.'}</p>
                     </div>
                   </div>
 
                   {/* Financial Metrics Strip */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginTop: 24 }}>
                     <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: 20 }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Monthly Net Revenue</span>
-                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>$7,420.00</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>↑ 8.4% vs last month</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Assigned Properties</span>
+                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>{ownerProperties.length}</strong>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>Live portfolio records</span>
                     </div>
                     <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: 20 }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Average Occupancy</span>
-                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>94.2%</strong>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>Hopkins & corporate fellows</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Active Bookings</span>
+                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>{ownerActiveBookings}</strong>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--ink-soft)' }}>Confirmed and in-stay</span>
                     </div>
                     <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: 20 }}>
                       <span style={{ fontSize: '0.7rem', color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Average Daily Rate</span>
-                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>$178.50</strong>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--copper)' }}>GSA per-diem aligned</span>
+                      <strong style={{ display: 'block', fontSize: '1.6rem', color: 'var(--forest)', margin: '6px 0 2px' }}>${ownerAverageRate.toFixed(2)}</strong>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--copper)' }}>Across assigned properties</span>
                     </div>
                   </div>
 
@@ -1219,6 +1224,7 @@ export default function PortalPage() {
                       Items exceeding $150 require owner authorization before work is dispatched.
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {ownerApprovals.length === 0 && <p style={{ color: 'var(--ink-soft)' }}>No maintenance approvals are pending.</p>}
                       {ownerApprovals.map((app, idx) => (
                         <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#faf8f5', border: '1px solid var(--line)', borderRadius: 6, padding: '16px 20px', flexWrap: 'wrap', gap: 12 }}>
                           <div>
@@ -1271,6 +1277,13 @@ export default function PortalPage() {
                     </p>
                     <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                       <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: 4 }}>Property</label>
+                        <select value={blackoutPropertyId} onChange={(event) => setBlackoutPropertyId(event.target.value)} style={{ padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 4, fontSize: '0.82rem', minWidth: 220 }}>
+                          <option value="">Select property</option>
+                          {ownerProperties.map((property) => <option key={property.id} value={property.id}>{property.title}</option>)}
+                        </select>
+                      </div>
+                      <div>
                         <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: 4 }}>Start Date</label>
                         <input
                           type="date"
@@ -1292,17 +1305,12 @@ export default function PortalPage() {
                         type="button"
                         className="btn-book"
                         style={{ padding: '10px 20px', fontSize: '0.78rem' }}
-                        onClick={() => {
-                          if (blackoutStart && blackoutEnd) {
-                            showToast(`Blackout dates reserved from ${blackoutStart} to ${blackoutEnd}.`);
-                          } else {
-                            showToast('Please select both start and end dates.');
-                          }
-                        }}
+                        onClick={() => void handleCreateBlackout()}
                       >
                         Reserve Owner Dates
                       </button>
                     </div>
+                    {ownerBlackouts.length > 0 && <div style={{ marginTop: 18, display: 'grid', gap: 8 }}>{ownerBlackouts.map((blackout) => <div key={blackout.id} style={{ padding: 10, border: '1px solid var(--line)', borderRadius: 5, fontSize: '.8rem' }}><strong>{ownerProperties.find((property) => property.id === blackout.propertyId)?.title || `Property #${blackout.propertyId}`}</strong> · {blackout.startDate} to {blackout.endDate}</div>)}</div>}
                   </div>
                 </div>
               )}

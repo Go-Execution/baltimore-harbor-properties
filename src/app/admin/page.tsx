@@ -22,6 +22,9 @@ type Inquiry = {
 type Review = { id: string; author: string; email?: string; rating: number; comment: string; is_approved: boolean; created_at: string; property_id: number };
 type Notification = { id: string; recipient: string; subject: string; event_type: string; status: 'Pending' | 'Sent' | 'Failed'; last_error?: string; created_at: string };
 type PortalUser = { id: string; email: string; full_name?: string; role: 'guest' | 'owner' | 'admin'; created_at: string };
+type ManagedProperty = { id: number; title: string; neighborhood: string; owner_id?: string | null };
+type AdminTicket = { id: string; title: string; description: string; property_title?: string; category: string; urgency: string; status: 'Under Review' | 'Dispatched' | 'In Progress' | 'Resolved'; created_at: string };
+type SystemStatus = { siteUrl: boolean; supabase: boolean; emailProvider: boolean; emailSender: boolean; adminNotifications: boolean; payments: boolean };
 
 export default function AdminDashboardPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -31,6 +34,9 @@ export default function AdminDashboardPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [portalUsers, setPortalUsers] = useState<PortalUser[]>([]);
+  const [managedProperties, setManagedProperties] = useState<ManagedProperty[]>([]);
+  const [tickets, setTickets] = useState<AdminTicket[]>([]);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [operationMessage, setOperationMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,6 +53,16 @@ export default function AdminDashboardPage() {
       .then(({ data }) => setNotifications((data || []) as Notification[]));
     supabase.from('profiles').select('id,email,full_name,role,created_at').order('created_at', { ascending: false }).limit(100)
       .then(({ data }) => setPortalUsers((data || []) as PortalUser[]));
+    Promise.all([
+      supabase.from('properties').select('id,title,neighborhood').order('id'),
+      supabase.from('property_owners').select('property_id,owner_id'),
+    ]).then(([propertyResult, assignmentResult]) => {
+      const assignments = new Map((assignmentResult.data || []).map((item: any) => [Number(item.property_id), item.owner_id]));
+      setManagedProperties((propertyResult.data || []).map((item: any) => ({ ...item, owner_id: assignments.get(Number(item.id)) || null })) as ManagedProperty[]);
+    });
+    supabase.from('maintenance_tickets').select('id,title,description,property_title,category,urgency,status,created_at').order('created_at', { ascending: false }).limit(100)
+      .then(({ data }) => setTickets((data || []) as AdminTicket[]));
+    fetch('/api/admin/system-status').then((response) => response.json()).then((result) => result.success && setSystemStatus(result.services));
   }, []);
 
   useEffect(() => {
@@ -94,6 +110,30 @@ export default function AdminDashboardPage() {
     if (!response.ok) return setOperationMessage(result.error || 'Portal role could not be updated.');
     setPortalUsers((current) => current.map((item) => item.id === id ? { ...item, role } : item));
   };
+
+  const assignPropertyOwner = async (propertyId: number, ownerId: string | null) => {
+    setOperationMessage(null);
+    const response = await fetch(`/api/admin/properties/${propertyId}/owner`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ownerId }) });
+    const result = await response.json();
+    if (!response.ok) return setOperationMessage(result.error || 'Property owner could not be assigned.');
+    setManagedProperties((current) => current.map((item) => item.id === propertyId ? { ...item, owner_id: result.ownerId } : item));
+  };
+
+  const updateTicketStatus = async (id: string, status: AdminTicket['status']) => {
+    setOperationMessage(null);
+    const response = await fetch(`/api/admin/tickets/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    const result = await response.json();
+    if (!response.ok) return setOperationMessage(result.error || 'Ticket could not be updated.');
+    setTickets((current) => current.map((item) => item.id === id ? { ...item, status } : item));
+  };
+  const serviceCards: Array<[string, boolean | undefined]> = [
+    ['Canonical site URL', systemStatus?.siteUrl],
+    ['Supabase database', systemStatus?.supabase],
+    ['Resend API', systemStatus?.emailProvider],
+    ['Verified email sender', systemStatus?.emailSender],
+    ['Admin notifications', systemStatus?.adminNotifications],
+    ['Stripe payments (skipped)', false],
+  ];
 
   return (
     <div style={{ background: 'var(--paper)', minHeight: '100vh', paddingBottom: 80 }}>
@@ -223,6 +263,14 @@ export default function AdminDashboardPage() {
         {/* Property Listing Manager Component */}
         <AdminPropertyManager />
 
+        <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '24px 28px', marginTop: 32 }}>
+          <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>Production Readiness</span>
+          <h2 style={{ font: '400 1.65rem/1.2 var(--serif)', margin: '4px 0 16px' }}>Connected Services</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+            {serviceCards.map(([label, ready]) => <div key={label} style={{ padding: 14, borderRadius: 6, border: '1px solid var(--line)', background: ready ? '#eef6f2' : '#fff7ed' }}><strong style={{ display: 'block', fontSize: '.8rem' }}>{label}</strong><span style={{ fontSize: '.72rem', color: ready ? '#107e4d' : '#b45309' }}>{ready ? 'Configured' : label === 'Stripe payments (skipped)' ? 'Intentionally disabled' : 'Needs environment variable'}</span></div>)}
+          </div>
+        </section>
+
         {operationMessage && <div role="status" style={{ marginTop: 24, padding: 12, borderRadius: 6, background: '#f8f2ed', color: 'var(--forest)' }}>{operationMessage}</div>}
 
         {/* Live Guest Reservations Pipeline (SOW §4) */}
@@ -322,6 +370,12 @@ export default function AdminDashboardPage() {
         </div>
 
         <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '32px 28px', marginTop: 32 }}>
+          <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>Resident Operations</span>
+          <h2 style={{ font: '400 1.9rem/1.2 var(--serif)', margin: '4px 0 18px' }}>Maintenance & Concierge Tickets</h2>
+          {tickets.length === 0 ? <p style={{ color: 'var(--ink-soft)' }}>No resident tickets have been submitted.</p> : <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}><thead><tr><th style={{ padding: 10, textAlign: 'left' }}>Ticket</th><th style={{ padding: 10, textAlign: 'left' }}>Property</th><th style={{ padding: 10, textAlign: 'left' }}>Request</th><th style={{ padding: 10 }}>Urgency</th><th style={{ padding: 10 }}>Status</th></tr></thead><tbody>{tickets.map((ticket) => <tr key={ticket.id} style={{ borderTop: '1px solid var(--line)' }}><td style={{ padding: 10, fontFamily: 'monospace' }}>{ticket.id}</td><td style={{ padding: 10 }}>{ticket.property_title || 'Unassigned'}</td><td style={{ padding: 10 }}><strong>{ticket.title}</strong><br /><small style={{ color: 'var(--ink-soft)' }}>{ticket.description}</small></td><td style={{ padding: 10, textAlign: 'center' }}>{ticket.urgency}</td><td style={{ padding: 10, textAlign: 'center' }}><select value={ticket.status} onChange={(event) => void updateTicketStatus(ticket.id, event.target.value as AdminTicket['status'])} style={{ padding: 7, border: '1px solid var(--line)', borderRadius: 4 }}><option>Under Review</option><option>Dispatched</option><option>In Progress</option><option>Resolved</option></select></td></tr>)}</tbody></table></div>}
+        </section>
+
+        <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '32px 28px', marginTop: 32 }}>
           <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>Phase 2 · Form Submissions</span>
           <h2 style={{ font: '400 1.9rem/1.2 var(--serif)', margin: '4px 0 18px' }}>Website Inquiries</h2>
           {inquiryError && <p role="alert" style={{ color: '#b42318' }}>{inquiryError}</p>}
@@ -370,6 +424,8 @@ export default function AdminDashboardPage() {
           {portalUsers.length === 0 ? <p style={{ color: 'var(--ink-soft)' }}>No registered portal users yet.</p> : (
             <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}><thead><tr><th style={{ textAlign: 'left', padding: 10 }}>User</th><th style={{ textAlign: 'left', padding: 10 }}>Registered</th><th style={{ textAlign: 'left', padding: 10 }}>Role</th></tr></thead><tbody>{portalUsers.map((item) => <tr key={item.id} style={{ borderTop: '1px solid var(--line)' }}><td style={{ padding: 10 }}><strong>{item.full_name || item.email}</strong><br /><span style={{ color: 'var(--ink-soft)' }}>{item.email}</span></td><td style={{ padding: 10 }}>{new Date(item.created_at).toLocaleDateString()}</td><td style={{ padding: 10 }}><select value={item.role} onChange={(event) => void updatePortalRole(item.id, event.target.value as PortalUser['role'])} style={{ padding: 7, border: '1px solid var(--line)', borderRadius: 4 }}><option value="guest">Guest</option><option value="owner">Owner</option><option value="admin">Admin</option></select></td></tr>)}</tbody></table></div>
           )}
+          <h3 style={{ font: '400 1.35rem var(--serif)', margin: '28px 0 12px' }}>Property Owner Assignments</h3>
+          <div style={{ display: 'grid', gap: 10 }}>{managedProperties.map((property) => <div key={property.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, border: '1px solid var(--line)', borderRadius: 6, padding: 12, flexWrap: 'wrap' }}><div><strong>{property.title}</strong><br /><small style={{ color: 'var(--ink-soft)' }}>{property.neighborhood}</small></div><select value={property.owner_id || ''} onChange={(event) => void assignPropertyOwner(property.id, event.target.value || null)} style={{ minWidth: 230, padding: 8, border: '1px solid var(--line)', borderRadius: 4 }}><option value="">Unassigned</option>{portalUsers.filter((user) => user.role === 'owner' || user.role === 'admin').map((user) => <option key={user.id} value={user.id}>{user.full_name || user.email}</option>)}</select></div>)}</div>
         </section>
       </main>
     </div>
