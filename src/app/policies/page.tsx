@@ -52,7 +52,7 @@ export default function PoliciesPage() {
                   <strong>Standard Check-out Time:</strong> 11:00 AM EST. Late check-out requests must be coordinated via the Portals Hub or by contacting your host at least 24 hours prior.
                 </p>
                 <p>
-                  <strong>Digital Keypad PIN:</strong> Every guest receives a unique 4-digit PIN code dispatched via email, SMS, and accessible via the Resident Portal upon reservation confirmation. Codes activate precisely at 3:00 PM on arrival day and expire automatically at 11:00 AM on departure day.
+                  <strong>Digital Keypad PIN:</strong> Confirmed guests receive a unique PIN by email. The same credentials can be verified through the Resident Portal. Your final arrival instructions specify the approved access window.
                 </p>
               </div>
             </div>

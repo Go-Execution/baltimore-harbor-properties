@@ -52,7 +52,7 @@ export default function ContactPage() {
             </p>
             <div className="page-hero__meta">
               <div><span>Phone / Text:</span> <strong>+1 (410) 218-8462</strong></div>
-              <div><span>Direct Email:</span> <strong>info@chasestreetproperties.net</strong></div>
+              <div><span>Direct Email:</span> <strong>gonzalojouan@hotmail.com</strong></div>
               <div><span>Headquarters:</span> <strong>3037 Hudson St, Baltimore</strong></div>
               <div><span>Response Time:</span> <strong>Under 1 Hour</strong></div>
             </div>
@@ -221,7 +221,6 @@ export default function ContactPage() {
                   <div>
                     <span style={{ display: 'block', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--sand)' }}>Email Concierge & Host</span>
                     <a href="mailto:gonzalojouan@hotmail.com" style={{ color: '#fff', fontWeight: 500, fontSize: '0.95rem' }}>gonzalojouan@hotmail.com</a>
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: '#c9cecb' }}>Alt: info@chasestreetproperties.net</span>
                   </div>
 
                   <div>
@@ -281,7 +280,7 @@ export default function ContactPage() {
                   <span style={{ color: 'var(--copper)', fontSize: '1.3rem' }}>+</span>
                 </summary>
                 <p style={{ margin: '14px 0 0', fontSize: '0.86rem', lineHeight: 1.7, color: 'var(--ink-soft)', borderTop: '1px solid var(--line)', paddingTop: 12 }}>
-                  All residences feature commercial-grade keyless smart locks. Prior to arrival, you receive a unique, encrypted 4-digit PIN code via email and SMS (also accessible anytime on your Resident Portal). Check in 24/7 at your convenience after 3:00 PM without waiting for anyone.
+                  All residences feature commercial-grade keyless smart locks. After your stay is approved, you receive a unique PIN by email and can verify it through the Resident Portal. Check in after the arrival instructions and access window are confirmed by our team.
                 </p>
               </details>
 

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { cleanText, jsonError, validEmail, validRequestOrigin } from '@/lib/forms/validation';
+import { emailLayout, escapeHtml, getAdminNotificationEmail, queueEmail } from '@/lib/notifications/email';
 
 export async function POST(request: NextRequest) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
@@ -28,6 +29,19 @@ export async function POST(request: NextRequest) {
 
     const { error } = await supabase.from('property_reviews').insert({ property_id: propertyId, author, email: email || null, rating, comment, is_approved: false });
     if (error) throw error;
+    const jobs = [] as Array<ReturnType<typeof queueEmail>>;
+    if (email) jobs.push(queueEmail({
+      eventType: 'review_received', recipient: email, subject: 'Your review was received',
+      html: emailLayout('Thank you for your review', `<p>Hi ${escapeHtml(author)},</p><p>We received your ${rating}-star review. It will appear on the property page after moderation.</p>`),
+      metadata: { propertyId, rating },
+    }));
+    const adminEmail = getAdminNotificationEmail();
+    if (adminEmail) jobs.push(queueEmail({
+      eventType: 'admin_review_pending', recipient: adminEmail, subject: `Review awaiting moderation from ${author}`,
+      html: emailLayout('Review awaiting moderation', `<p><strong>${escapeHtml(author)}</strong> submitted a ${rating}-star review:</p><p>${escapeHtml(comment)}</p>`),
+      metadata: { propertyId, rating },
+    }));
+    await Promise.allSettled(jobs);
     return Response.json({ success: true, pendingModeration: true });
   } catch (error) {
     console.error('Review submission failed', error instanceof Error ? error.message : 'Unknown error');

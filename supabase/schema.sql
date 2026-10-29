@@ -1,5 +1,5 @@
 -- ==============================================================================
--- Chase Street Properties — Supabase Production Database Schema
+-- Baltimore Harbor Properties — Supabase Production Database Schema
 -- Run this in your Supabase SQL Editor (https://supabase.com/dashboard)
 -- ==============================================================================
 
@@ -50,7 +50,7 @@ create table if not exists public.properties (
 
 -- 3. RESERVATIONS TABLE
 create table if not exists public.reservations (
-  id text primary key, -- e.g. CSP-2026-8941
+  id text primary key, -- e.g. BHP-2026-123456
   user_id uuid references public.profiles(id) on delete set null,
   guest_name text not null,
   guest_email text not null,

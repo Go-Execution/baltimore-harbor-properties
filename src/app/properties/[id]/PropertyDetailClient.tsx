@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Property } from '@/types';
 import Footer from '@/components/Footer';
-import { dbSaveReservation, dbSubmitInquiry, dbSubmitReview } from '@/lib/supabase/database';
+import { dbFetchApprovedReviews, dbSaveReservation, dbSubmitInquiry, dbSubmitReview } from '@/lib/supabase/database';
 import { usePropertyStore } from '@/utils/usePropertyStore';
 
 export default function PropertyDetailClient({
@@ -78,6 +78,16 @@ export default function PropertyDetailClient({
     setCheckout(d2.toISOString().split('T')[0]);
   }, []);
 
+  useEffect(() => {
+    void dbFetchApprovedReviews(property.id).then((cloudReviews) => {
+      if (!cloudReviews.length) return;
+      setReviewsList((current) => {
+        const existing = new Set(current.map((item) => `${item.author}|${item.date}|${item.text}`));
+        return [...cloudReviews.filter((item) => !existing.has(`${item.author}|${item.date}|${item.text}`)), ...current];
+      });
+    });
+  }, [property.id]);
+
   const handleCheckinChange = (val: string) => {
     setCheckin(val);
     const d1 = new Date(val);
@@ -122,7 +132,7 @@ export default function PropertyDetailClient({
       dates: `${checkin} – ${checkout}`,
       status: 'Pending',
       total: `$${total.toFixed(2)}`,
-      guestEmail: guestEmail || 'direct-guest@chasestreetproperties.net',
+      guestEmail: guestEmail || 'direct-guest@example.invalid',
       guestPhone: guestPhone || '(410) 555-0199',
       pinCode: '',
       nights: diffDays,
@@ -938,7 +948,7 @@ export default function PropertyDetailClient({
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>
-                        Mobile Phone (for SMS lock code) *
+                        Mobile Phone (for stay coordination) *
                       </label>
                       <input
                         type="tel"
@@ -1320,7 +1330,7 @@ export default function PropertyDetailClient({
                     <div>
                       <span style={{ fontSize: '0.65rem', color: '#cbd3ce', textTransform: 'uppercase' }}>High-Speed WiFi</span>
                       <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', marginTop: 4 }}>
-                        CSP-Gigabit-Fiber
+                        BHP-Gigabit-Fiber
                       </div>
                       <span style={{ fontSize: '0.65rem', color: 'var(--sand)' }}>Password: waterfront2026</span>
                     </div>

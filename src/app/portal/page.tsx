@@ -222,7 +222,7 @@ export default function PortalPage() {
     const cleanPin = directPin.trim();
 
     if (!cleanCode) {
-      setAuthError('Please enter a valid Reservation Reference (e.g. CSP-2026-8941).');
+      setAuthError('Please enter a valid Reservation Reference (e.g. BHP-2026-123456).');
       return;
     }
 
@@ -238,7 +238,7 @@ export default function PortalPage() {
 
     const user: UserProfile = {
       id: 'guest-' + cleanCode,
-      email: matchedRes?.guestEmail || 'resident@chasestreetproperties.net',
+      email: matchedRes?.guestEmail || 'resident@example.invalid',
       full_name: matchedRes?.guest || 'Resident Guest',
       role: 'guest',
     };
@@ -683,7 +683,7 @@ export default function PortalPage() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. CSP-2026-8941"
+                    placeholder="e.g. BHP-2026-123456"
                     value={directBookingCode}
                     onChange={(e) => setDirectBookingCode(e.target.value)}
                     style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem', textTransform: 'uppercase' }}
@@ -747,8 +747,8 @@ export default function PortalPage() {
                   <input
                     type="password"
                     required
-                    minLength={6}
-                    placeholder="Minimum 6 characters"
+                    minLength={8}
+                    placeholder="Minimum 8 characters"
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
                     style={{ width: '100%', padding: '11px 13px', border: '1px solid var(--line)', borderRadius: 6, fontSize: '0.86rem' }}
@@ -957,7 +957,7 @@ export default function PortalPage() {
                   </li>
                   <li>
                     <span className="label"><FiWifi style={{ color: 'var(--forest)' }} /> WiFi Network</span>
-                    <span className="value">CSP-HighSpeed</span>
+                    <span className="value">BHP-HighSpeed</span>
                   </li>
                   <li>
                     <span className="label"><FiLock style={{ color: 'var(--forest)' }} /> WiFi Password</span>
@@ -977,7 +977,7 @@ export default function PortalPage() {
                     <FiPhone style={{ color: 'var(--forest)' }} />
                     <span>Call Host: (410) 218-8462</span>
                   </a>
-                  <a href="mailto:info@chasestreetproperties.net" className="btn-outline" style={{ fontSize: '0.74rem', padding: '8px 12px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <a href="mailto:gonzalojouan@hotmail.com" className="btn-outline" style={{ fontSize: '0.74rem', padding: '8px 12px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     <FiMail style={{ color: 'var(--copper)' }} />
                     <span>Email Concierge</span>
                   </a>

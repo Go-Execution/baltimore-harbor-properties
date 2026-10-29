@@ -1,5 +1,5 @@
 import { getSupabaseClient, isSupabaseConfigured } from './client';
-import { MaintenanceTicket, Reservation } from '@/types';
+import { MaintenanceTicket, PropertyReview, Reservation } from '@/types';
 import { getStoredReservations, addReservation } from '@/utils/propertyStore';
 
 /**
@@ -249,4 +249,16 @@ export async function dbSubmitReview(review: {
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Review could not be submitted.' };
   }
+}
+
+export async function dbFetchApprovedReviews(propertyId: number): Promise<PropertyReview[]> {
+  const supabase = getSupabaseClient();
+  if (!supabase || !isSupabaseConfigured()) return [];
+  const { data, error } = await supabase.from('property_reviews')
+    .select('author,date,comment,rating')
+    .eq('property_id', propertyId)
+    .eq('is_approved', true)
+    .order('created_at', { ascending: false });
+  if (error || !data) return [];
+  return data.map((item) => ({ author: item.author, date: item.date, text: item.comment, rating: item.rating }));
 }

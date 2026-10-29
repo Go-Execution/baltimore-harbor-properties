@@ -15,23 +15,38 @@ type Inquiry = {
   phone?: string;
   message: string;
   source?: string;
+  status: 'New' | 'Contacted' | 'Booked' | 'Archived';
   created_at: string;
 };
+
+type Review = { id: string; author: string; email?: string; rating: number; comment: string; is_approved: boolean; created_at: string; property_id: number };
+type Notification = { id: string; recipient: string; subject: string; event_type: string; status: 'Pending' | 'Sent' | 'Failed'; last_error?: string; created_at: string };
+type PortalUser = { id: string; email: string; full_name?: string; role: 'guest' | 'owner' | 'admin'; created_at: string };
 
 export default function AdminDashboardPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [reservationError, setReservationError] = useState<string | null>(null);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [inquiryError, setInquiryError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [portalUsers, setPortalUsers] = useState<PortalUser[]>([]);
+  const [operationMessage, setOperationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    supabase.from('property_inquiries').select('id,name,email,phone,message,source,created_at').order('created_at', { ascending: false }).limit(100)
+    supabase.from('property_inquiries').select('id,name,email,phone,message,source,status,created_at').order('created_at', { ascending: false }).limit(100)
       .then(({ data, error }) => {
         if (error) setInquiryError('Inquiries could not be loaded.');
         else setInquiries((data || []) as Inquiry[]);
       });
+    supabase.from('property_reviews').select('id,author,email,rating,comment,is_approved,created_at,property_id').order('created_at', { ascending: false }).limit(100)
+      .then(({ data }) => setReviews((data || []) as Review[]));
+    supabase.from('notification_outbox').select('id,recipient,subject,event_type,status,last_error,created_at').order('created_at', { ascending: false }).limit(100)
+      .then(({ data }) => setNotifications((data || []) as Notification[]));
+    supabase.from('profiles').select('id,email,full_name,role,created_at').order('created_at', { ascending: false }).limit(100)
+      .then(({ data }) => setPortalUsers((data || []) as PortalUser[]));
   }, []);
 
   useEffect(() => {
@@ -43,6 +58,41 @@ export default function AdminDashboardPage() {
     const result = await dbUpdateReservationStatus(id, status);
     if (!result.success) return setReservationError(result.error || 'Reservation status could not be updated.');
     setReservations((current) => current.map((item) => item.id === id ? { ...item, status, pinCode: result.pinCode || item.pinCode } : item));
+  };
+
+  const updateInquiryStatus = async (id: string, status: Inquiry['status']) => {
+    setOperationMessage(null);
+    const response = await fetch(`/api/admin/inquiries/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    const result = await response.json();
+    if (!response.ok) return setOperationMessage(result.error || 'Inquiry could not be updated.');
+    setInquiries((current) => current.map((item) => item.id === id ? { ...item, status } : item));
+  };
+
+  const moderateReview = async (id: string, action: 'approve' | 'hide' | 'delete') => {
+    setOperationMessage(null);
+    const response = await fetch(`/api/admin/reviews/${id}`, action === 'delete'
+      ? { method: 'DELETE' }
+      : { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approved: action === 'approve' }) });
+    const result = await response.json();
+    if (!response.ok) return setOperationMessage(result.error || 'Review could not be updated.');
+    setReviews((current) => action === 'delete' ? current.filter((item) => item.id !== id) : current.map((item) => item.id === id ? { ...item, is_approved: action === 'approve' } : item));
+  };
+
+  const retryNotification = async (id: string) => {
+    setOperationMessage(null);
+    const response = await fetch(`/api/admin/notifications/${id}/retry`, { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok) return setOperationMessage(result.error || 'Email could not be sent.');
+    setNotifications((current) => current.map((item) => item.id === id ? { ...item, status: 'Sent', last_error: undefined } : item));
+    setOperationMessage('Email sent successfully.');
+  };
+
+  const updatePortalRole = async (id: string, role: PortalUser['role']) => {
+    setOperationMessage(null);
+    const response = await fetch(`/api/admin/users/${id}/role`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }) });
+    const result = await response.json();
+    if (!response.ok) return setOperationMessage(result.error || 'Portal role could not be updated.');
+    setPortalUsers((current) => current.map((item) => item.id === id ? { ...item, role } : item));
   };
 
   return (
@@ -173,6 +223,8 @@ export default function AdminDashboardPage() {
         {/* Property Listing Manager Component */}
         <AdminPropertyManager />
 
+        {operationMessage && <div role="status" style={{ marginTop: 24, padding: 12, borderRadius: 6, background: '#f8f2ed', color: 'var(--forest)' }}>{operationMessage}</div>}
+
         {/* Live Guest Reservations Pipeline (SOW §4) */}
         <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '32px 28px', marginTop: 32 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -277,17 +329,46 @@ export default function AdminDashboardPage() {
           {inquiries.length > 0 && (
             <div style={{ overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 8 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '.78rem' }}>
-                <thead><tr style={{ background: 'var(--paper)' }}><th style={{ padding: 12 }}>Received</th><th style={{ padding: 12 }}>Contact</th><th style={{ padding: 12 }}>Source</th><th style={{ padding: 12 }}>Message</th></tr></thead>
+                <thead><tr style={{ background: 'var(--paper)' }}><th style={{ padding: 12 }}>Received</th><th style={{ padding: 12 }}>Contact</th><th style={{ padding: 12 }}>Source</th><th style={{ padding: 12 }}>Message</th><th style={{ padding: 12 }}>Status</th></tr></thead>
                 <tbody>{inquiries.map((item) => (
                   <tr key={item.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 12, whiteSpace: 'nowrap' }}>{new Date(item.created_at).toLocaleString()}</td>
                     <td style={{ padding: 12 }}><strong>{item.name}</strong><br /><a href={`mailto:${item.email}`}>{item.email}</a>{item.phone ? <><br />{item.phone}</> : null}</td>
                     <td style={{ padding: 12 }}>{item.source || 'website'}</td>
                     <td style={{ padding: 12, maxWidth: 560, whiteSpace: 'pre-wrap' }}>{item.message}</td>
+                    <td style={{ padding: 12 }}><select value={item.status} onChange={(event) => void updateInquiryStatus(item.id, event.target.value as Inquiry['status'])} style={{ padding: 7, border: '1px solid var(--line)', borderRadius: 4 }}><option>New</option><option>Contacted</option><option>Booked</option><option>Archived</option></select></td>
                   </tr>
                 ))}</tbody>
               </table>
             </div>
+          )}
+        </section>
+
+        <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '32px 28px', marginTop: 32 }}>
+          <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>Guest Trust</span>
+          <h2 style={{ font: '400 1.9rem/1.2 var(--serif)', margin: '4px 0 18px' }}>Review Moderation</h2>
+          {reviews.length === 0 ? <p style={{ color: 'var(--ink-soft)' }}>No reviews are awaiting management.</p> : (
+            <div style={{ display: 'grid', gap: 12 }}>{reviews.map((review) => <article key={review.id} style={{ border: '1px solid var(--line)', borderRadius: 7, padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><strong>{review.author} · {'★'.repeat(review.rating)}</strong><span style={{ color: review.is_approved ? '#107e4d' : 'var(--copper)', fontSize: '.75rem' }}>{review.is_approved ? 'Published' : 'Pending'}</span></div>
+              <p style={{ whiteSpace: 'pre-wrap', color: 'var(--ink-soft)' }}>{review.comment}</p>
+              <div style={{ display: 'flex', gap: 8 }}><button type="button" onClick={() => void moderateReview(review.id, 'approve')} style={{ padding: '7px 12px' }}>Approve</button><button type="button" onClick={() => void moderateReview(review.id, 'hide')} style={{ padding: '7px 12px' }}>Hide</button><button type="button" onClick={() => void moderateReview(review.id, 'delete')} style={{ padding: '7px 12px', color: '#b42318' }}>Delete</button></div>
+            </article>)}</div>
+          )}
+        </section>
+
+        <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '32px 28px', marginTop: 32 }}>
+          <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>Transactional Email</span>
+          <h2 style={{ font: '400 1.9rem/1.2 var(--serif)', margin: '4px 0 18px' }}>Notification Outbox</h2>
+          {notifications.length === 0 ? <p style={{ color: 'var(--ink-soft)' }}>No notification events yet.</p> : (
+            <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}><thead><tr><th style={{ padding: 10, textAlign: 'left' }}>Created</th><th style={{ padding: 10, textAlign: 'left' }}>Recipient</th><th style={{ padding: 10, textAlign: 'left' }}>Subject</th><th style={{ padding: 10 }}>Status</th><th style={{ padding: 10 }}>Action</th></tr></thead><tbody>{notifications.map((item) => <tr key={item.id} style={{ borderTop: '1px solid var(--line)' }}><td style={{ padding: 10 }}>{new Date(item.created_at).toLocaleString()}</td><td style={{ padding: 10 }}>{item.recipient}</td><td style={{ padding: 10 }}>{item.subject}{item.last_error ? <small style={{ display: 'block', color: '#b42318' }}>{item.last_error}</small> : null}</td><td style={{ padding: 10, textAlign: 'center' }}>{item.status}</td><td style={{ padding: 10, textAlign: 'center' }}>{item.status !== 'Sent' ? <button type="button" onClick={() => void retryNotification(item.id)} style={{ padding: '6px 10px' }}>Retry</button> : '—'}</td></tr>)}</tbody></table></div>
+          )}
+        </section>
+
+        <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '32px 28px', marginTop: 32 }}>
+          <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--copper)', fontWeight: 700 }}>Access Control</span>
+          <h2 style={{ font: '400 1.9rem/1.2 var(--serif)', margin: '4px 0 18px' }}>Portal Users & Roles</h2>
+          {portalUsers.length === 0 ? <p style={{ color: 'var(--ink-soft)' }}>No registered portal users yet.</p> : (
+            <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}><thead><tr><th style={{ textAlign: 'left', padding: 10 }}>User</th><th style={{ textAlign: 'left', padding: 10 }}>Registered</th><th style={{ textAlign: 'left', padding: 10 }}>Role</th></tr></thead><tbody>{portalUsers.map((item) => <tr key={item.id} style={{ borderTop: '1px solid var(--line)' }}><td style={{ padding: 10 }}><strong>{item.full_name || item.email}</strong><br /><span style={{ color: 'var(--ink-soft)' }}>{item.email}</span></td><td style={{ padding: 10 }}>{new Date(item.created_at).toLocaleDateString()}</td><td style={{ padding: 10 }}><select value={item.role} onChange={(event) => void updatePortalRole(item.id, event.target.value as PortalUser['role'])} style={{ padding: 7, border: '1px solid var(--line)', borderRadius: 4 }}><option value="guest">Guest</option><option value="owner">Owner</option><option value="admin">Admin</option></select></td></tr>)}</tbody></table></div>
           )}
         </section>
       </main>

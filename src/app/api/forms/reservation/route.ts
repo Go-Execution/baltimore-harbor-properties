@@ -2,6 +2,7 @@ import { randomInt } from 'crypto';
 import { NextRequest } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { cleanText, jsonError, validEmail, validRequestOrigin } from '@/lib/forms/validation';
+import { emailLayout, escapeHtml, getAdminNotificationEmail, queueEmail } from '@/lib/notifications/email';
 
 export async function POST(request: NextRequest) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
@@ -47,7 +48,20 @@ export async function POST(request: NextRequest) {
       stay_purpose: cleanText(body.stayPurpose, 80) || null,
       special_requests: cleanText(body.specialRequests, 2000) || null,
     });
+    if (error?.code === '23P01') return jsonError('Those dates have just become unavailable. Please choose different dates.', 409);
     if (error) throw error;
+    const adminEmail = getAdminNotificationEmail();
+    const jobs = [queueEmail({
+      eventType: 'booking_request_received', recipient: guestEmail, subject: `Booking request ${id} received`,
+      html: emailLayout('Your booking request is pending review', `<p>Hi ${escapeHtml(guestName)},</p><p>We received your request for <strong>${escapeHtml(property.title)}</strong>.</p><p><strong>Dates:</strong> ${escapeHtml(dates)}<br><strong>Estimated total:</strong> ${escapeHtml(total)}<br><strong>Reference:</strong> ${escapeHtml(id)}</p><p>No payment has been collected. We will confirm availability and send the next steps.</p>`),
+      metadata: { reservationId: id, propertyId },
+    })];
+    if (adminEmail) jobs.push(queueEmail({
+      eventType: 'admin_booking_request', recipient: adminEmail, subject: `New booking request ${id}`,
+      html: emailLayout('New booking request', `<p><strong>${escapeHtml(guestName)}</strong><br>${escapeHtml(guestEmail)}<br>${escapeHtml(guestPhone)}</p><p>${escapeHtml(property.title)}<br>${escapeHtml(dates)}<br>${escapeHtml(total)}</p>`),
+      metadata: { reservationId: id, propertyId },
+    }));
+    await Promise.allSettled(jobs);
     return Response.json({ success: true, reservationId: id });
   } catch (error) {
     console.error('Reservation submission failed', error instanceof Error ? error.message : 'Unknown error');

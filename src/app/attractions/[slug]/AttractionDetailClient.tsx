@@ -107,7 +107,7 @@ export default function AttractionDetailClient({
       dates: `${checkin} – ${checkout}`,
       status: 'Pending',
       total: `$${total.toFixed(2)}`,
-      guestEmail: guestEmail || 'attraction-guest@chasestreetproperties.net',
+      guestEmail: guestEmail || 'attraction-guest@example.invalid',
       guestPhone: guestPhone || '(410) 555-0199',
       pinCode: '',
       nights: diffDays,

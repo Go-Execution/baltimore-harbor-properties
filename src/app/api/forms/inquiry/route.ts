@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
-import { cleanText, jsonError, validEmail, validRequestOrigin } from '@/lib/forms/validation';
+import { cleanMetadata, cleanText, jsonError, validEmail, validRequestOrigin } from '@/lib/forms/validation';
+import { emailLayout, escapeHtml, getAdminNotificationEmail, queueEmail } from '@/lib/notifications/email';
 
 export async function POST(request: NextRequest) {
   if (!validRequestOrigin(request)) return jsonError('Invalid request origin.', 403);
@@ -27,9 +28,21 @@ export async function POST(request: NextRequest) {
 
     const { error } = await supabase.from('property_inquiries').insert({
       name, email, phone, message, stay_dates: stayDates || null, property_id: propertyId,
-      source, metadata: typeof body.metadata === 'object' && body.metadata ? body.metadata : {},
+      source, metadata: cleanMetadata(body.metadata),
     });
     if (error) throw error;
+    const adminEmail = getAdminNotificationEmail();
+    const jobs = [queueEmail({
+      eventType: 'inquiry_received', recipient: email, subject: 'We received your Baltimore Harbor Properties inquiry',
+      html: emailLayout('Your inquiry is with our team', `<p>Hi ${escapeHtml(name)},</p><p>Thank you for contacting us. We received your request and our Baltimore team will follow up shortly.</p><p><strong>Your message</strong><br>${escapeHtml(message).replaceAll('\n', '<br>')}</p>`),
+      metadata: { source },
+    })];
+    if (adminEmail) jobs.push(queueEmail({
+      eventType: 'admin_new_inquiry', recipient: adminEmail, subject: `New website inquiry from ${name}`,
+      html: emailLayout('New website inquiry', `<p><strong>${escapeHtml(name)}</strong><br>${escapeHtml(email)}<br>${escapeHtml(phone)}</p><p>${escapeHtml(message).replaceAll('\n', '<br>')}</p><p>Source: ${escapeHtml(source)}</p>`),
+      metadata: { source, customerEmail: email },
+    }));
+    await Promise.allSettled(jobs);
     return Response.json({ success: true });
   } catch (error) {
     console.error('Inquiry submission failed', error instanceof Error ? error.message : 'Unknown error');

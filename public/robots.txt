@@ -1,4 +1,4 @@
-# Chase Street Properties Static Assets
+# Baltimore Harbor Properties Static Assets
 User-agent: *
 Allow: /
 Disallow: /admin

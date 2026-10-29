@@ -1,5 +1,5 @@
 -- ==============================================================================
--- Chase Street Properties — Supabase Initial Seed Data
+-- Baltimore Harbor Properties — Supabase Initial Seed Data
 -- ==============================================================================
 
 -- Seed properties
@@ -23,7 +23,7 @@ values
   'Garden view',
   'Queen bed',
   array['Hopkins Preferred', '24/7 Keypad', 'Free Parking'],
-  'https://www.chasestreetproperties.net/uploads/1/67074b93-cb25-4701-9d5d-6c370f42e34d_1660156994_1660241387.webp',
+  'https://baltimore-harbor-properties.vercel.app/assets/media/chase/67074b93-cb25-4701-9d5d-6c370f42e34d_1660156994_1660241387--723b59f04d9d.webp',
   'Cozy & quiet retreat located in a 3.5 acres of beautiful wooded yard, 24/7 self-check in. House & all linens professionally cleaned and sanitized after each guest. Located few minutes from Old Town Ellicott City, restaurants, coffee shops, grocery store, and local artist craft shops.',
   'Active',
   true
@@ -46,7 +46,7 @@ values
   'Historic Canton Brick View',
   'King & Queen Beds',
   array['Superhost', 'Patterson Park', 'Hopkins Fellow Choice'],
-  'https://www.chasestreetproperties.net/uploads/2/3bf0ded7-d02e-4fcf-b7d8-55cba7fc04ec_1660160940_1660241856.jpg',
+  'https://baltimore-harbor-properties.vercel.app/assets/media/chase/3bf0ded7-d02e-4fcf-b7d8-55cba7fc04ec_1660160940_1660241856--35827b13aa3f.jpg',
   'Large, sunny town home in the most upscale Harbor neighborhood, Canton. Three blocks from the water front, steps from restaurants, shops, grocery store and Patterson Park. House & all linens professionally cleaned and sanitized after each guest.',
   'Active',
   true
@@ -69,7 +69,7 @@ values
   'Downtown Harbor Skyline',
   '1 King, 2 Queens, 2 Twins',
   array['Convention Center', 'Waterfront', 'Group & Family Ready'],
-  'https://www.chasestreetproperties.net/uploads/3/1_1660242598.jpg',
+  'https://baltimore-harbor-properties.vercel.app/assets/media/chase/1_1660242598--727f016a9fc9.jpg',
   'Very large, sunny and modern executive residence steps from the Convention Center, stadiums and Inner Harbor waterfront promenade. Easy walking distance to Camden Yards, M&T Bank Stadium, and light rail.',
   'Active',
   true

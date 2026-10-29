@@ -52,7 +52,7 @@ export default function RootLayout({
     image: '/assets/media/chase/bg--ce32e9ca5d88.webp',
     url: 'https://baltimore-harbor-properties.vercel.app/',
     telephone: '+1-410-218-8462',
-    email: 'info@chasestreetproperties.net',
+    email: 'gonzalojouan@hotmail.com',
     priceRange: '$$',
     address: {
       '@type': 'PostalAddress',
